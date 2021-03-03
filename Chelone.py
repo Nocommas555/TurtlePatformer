@@ -8,6 +8,8 @@ The engine includes basic loading, collision detection, animation, drawing, z-la
 import tkinter as tk
 from typing import Union, Callable
 from time import time, sleep
+import os
+import json
 
 TARGET_FPS = 60
 InFocus = True
@@ -73,7 +75,74 @@ def on_key_release(event):
 	global caught_keys
 	caught_keys.remove(event.keysym)
 
+"""Handles loading sprites and animations"""
+"""There can be multiple instances at the same time"""
+class SpriteLoader():
+	_sprite_dir = "sprites/"
 
+	_storage = {}
+
+	class SpriteFrame(tk.PhotoImage):
+		"""A frame of animation that has extra data for collision detection"""
+		hitboxes = []
+		extra = {}
+		def __init__(self, file:str, hitboxes:list = [], extra:dict = {}):
+			super(self, file = file).__init__()
+			self.hitboxes = []
+			self.extra = {}
+
+
+	def __init__(self, sprite_dir:str = "sprites/"):
+		self._sprite_dir = sprite_dir
+		self._storage = {}
+
+	def _load_anim(path:str):
+		if not os.path.exists(path+"/anim_descr.json"):
+			print("animation does not exist!")
+			return
+
+		anim_descr = json.load(path+"/anim_descr.json")
+		self._storage[path] = []
+
+		for frame in anim_descr["frames"]:
+			
+			if "hitboxes" not in frame.keys():
+				frame["hitboxes"] = []
+
+			if "extra" not in frame.keys():
+				frame["extra"] = {}
+
+			self._storage[path].append(self.SpriteFrame(frame["image"],frame["hitboxes"], frame["extra"]))
+
+		return(self._storage[path])
+
+	def load(path:str):
+
+		path = self._sprite_dir + path
+		
+		# check if we already loaded the image/anim
+		if path in self._storage.keys():
+			return self._storage[path]
+
+		if os.path.exists(path):
+
+			if os.path.isfile(path):
+				self._storage[path] = self.SpriteFrame(path)
+				return self._storage[path]
+
+			else:
+				return self._load_anim(path)
+
+		else:
+			print("the path is invalid, loading failed for " + path)
+		
+	def unload(path:str):
+		self._storage.pop(path)
+
+	def unload_all():
+
+		for path in self._storage.keys():
+			self.unload(path)
 
 class Sprite():
 	"""Object that contains data about the sprite. Also can be used to have code ran on each frame"""
@@ -140,7 +209,7 @@ class Sprite():
 		self.updateFunc = anim_sheduler
 
 class SpriteRenderer():
-	"""Main drawing class. Handles drawing every sprite"""
+	"""Main drawing class. Handles every sprite"""
 	_root = None
 	_screen = None
 	_sprites = []
@@ -241,7 +310,6 @@ while 1:
 	a.advance_frame()
 	check_keys()
 	endTime = time()
-	print(pressed_keys)
 	elapsedTime = endTime - startTime
-	#print(1./elapsedTime)
+	print(1./elapsedTime)
 	
