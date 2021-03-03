@@ -82,12 +82,14 @@ class SpriteLoader():
 
 	_storage = {}
 
-	class SpriteFrame(tk.PhotoImage):
+	class SpriteFrame():
 		"""A frame of animation that has extra data for collision detection"""
 		hitboxes = []
 		extra = {}
+		image = None
+
 		def __init__(self, file:str, hitboxes:list = [], extra:dict = {}):
-			super(self, file = file).__init__()
+			self.image = tk.PhotoImage(file=file)
 			self.hitboxes = []
 			self.extra = {}
 
@@ -96,12 +98,12 @@ class SpriteLoader():
 		self._sprite_dir = sprite_dir
 		self._storage = {}
 
-	def _load_anim(path:str):
+	def _load_anim(self, path:str):
 		if not os.path.exists(path+"/anim_descr.json"):
 			print("animation does not exist!")
 			return
 
-		anim_descr = json.load(path+"/anim_descr.json")
+		anim_descr = json.load(open(path+"/anim_descr.json", "r"))
 		self._storage[path] = []
 
 		for frame in anim_descr["frames"]:
@@ -112,11 +114,15 @@ class SpriteLoader():
 			if "extra" not in frame.keys():
 				frame["extra"] = {}
 
-			self._storage[path].append(self.SpriteFrame(frame["image"],frame["hitboxes"], frame["extra"]))
+			if frame["image"] != "None":
+				self._storage[path].append(self.SpriteFrame(path+'/'+frame["image"],frame["hitboxes"], frame["extra"]))
+
+			else:
+				self._storage[path].append(None)
 
 		return(self._storage[path])
 
-	def load(path:str):
+	def load(self, path:str):
 
 		path = self._sprite_dir + path
 		
@@ -136,10 +142,10 @@ class SpriteLoader():
 		else:
 			print("the path is invalid, loading failed for " + path)
 		
-	def unload(path:str):
+	def unload(self, path:str):
 		self._storage.pop(path)
 
-	def unload_all():
+	def unload_all(self):
 
 		for path in self._storage.keys():
 			self.unload(path)
@@ -149,22 +155,18 @@ class Sprite():
 	x = 0
 	y = 0
 	var = {}
-	image = None
+	frame = None
 	image_tk = None
 	parent_canvas = None
 	updateFunc = None
 	_passedUpdateFunc=None
 	_in_anim = False
 	
-	def __init__(self, image:Union[str, tk.PhotoImage], x:int=0, y:int=0, updateFunc:Callable[..., None]=lambda a:None, setupFunc:Callable[..., None]=lambda a:None):
+	def __init__(self, frame:SpriteLoader.SpriteFrame, x:int=0, y:int=0, updateFunc:Callable[..., None]=lambda a:None, setupFunc:Callable[..., None]=lambda a:None):
 		self.x = x
 		self.y = y
 		self.var = {}
-
-		if isinstance(image, str):
-			self.image = tk.PhotoImage(file=image)
-		else:
-			self.image = image
+		self.frame = frame
 		self.image_tk = None
 		self.parent_canvas = None
 		self._passedUpdateFunc = updateFunc
@@ -178,13 +180,13 @@ class Sprite():
 		self.y += y
 		self.parent_canvas.move(self.image_tk, x, y)
 
-	def change_image(self, image:tk.PhotoImage, stop_anim:bool=True):
+	def change_image(self, frame:SpriteLoader.SpriteFrame, stop_anim:bool=True):
 
 		if stop_anim and self._in_anim:
 			self.updateFunc = self._passedUpdateFunc
 
-		self.image = image
-		self.parent_canvas.itemconfig(self.image_tk, image=self.image)
+		self.frame = frame
+		self.parent_canvas.itemconfig(self.image_tk, image=frame.image)
 
 
 	def shedule_anim(self, anim_frames:list):
@@ -198,7 +200,9 @@ class Sprite():
 		def anim_sheduler(sprite):
 			nonlocal i, tmp
 
-			sprite.change_image(anim_frames[i],False)
+			if anim_frames[i]!=None:
+				sprite.change_image(anim_frames[i],False)
+
 			i+=1
 
 			if i == len(anim_frames):
@@ -258,7 +262,7 @@ class SpriteRenderer():
 
 		self._sprites[layer].append(sprite)
 
-		sprite.image_tk = self._screen.create_image(sprite.x, sprite.y, anchor=tk.NW, image=sprite.image)
+		sprite.image_tk = self._screen.create_image(sprite.x, sprite.y, anchor=tk.NW, image=sprite.frame.image)
 		sprite.parent_canvas = self._screen
 
 		for i, z_layer in enumerate(self._sprites):
@@ -271,11 +275,11 @@ class SpriteRenderer():
 # setting up a basic scene to test
 a = init(1000,500)
 
-a.add_sprite(Sprite("Untitled.png",10,10),40)
+loader = SpriteLoader()
+a.add_sprite(Sprite(loader.load("Untitled.png"),10,10),40)
 
 
 flag = True
-main_anim = [tk.PhotoImage(file = "sprites/1.png"), tk.PhotoImage(file = "sprites/2.png"), tk.PhotoImage(file = "sprites/2.png"), tk.PhotoImage(file = "sprites/2.png"), tk.PhotoImage(file = "sprites/2.png")]
 def move(sprite):
 	global pressed_keys,flag, main_anim
 
@@ -289,21 +293,23 @@ def move(sprite):
 		sprite.move(1,0)
 
 	if "q" in pressed_keys:
-		sprite.shedule_anim(main_anim)
+		sprite.shedule_anim(loader.load("stick_figure"))
 		flag = False
 
 	if "e" in pressed_keys:
-		sprite.change_image(tk.PhotoImage(file = "Untitled.png"))
+		sprite.change_image(loader.load("Untitled.png"))
 
 	if "g" in pressed_keys:
-		sprite.change_image(tk.PhotoImage(file = "sprites/2.png"))
+		sprite.change_image(loader.load("stick_figure/2.png"))
 
 	if "v" in pressed_keys:
 		sprite.change_image(clear_img)
 
 for i in range(1000):
-	spr = Sprite("sprites/4.png", updateFunc=move)
+	spr = Sprite(loader.load("test.gif"), updateFunc=move)
 	a.add_sprite(spr)
+
+
 
 while 1:
 	startTime = time()
