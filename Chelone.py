@@ -87,6 +87,7 @@ class Sprite():
 	parent_canvas = None
 	updateFunc = None
 	_passedUpdateFunc=None
+	_in_anim = False
 	
 	def __init__(self, image:Union[str, tk.PhotoImage], x:int=0, y:int=0, updateFunc:Callable[..., None]=lambda a:None, setupFunc:Callable[..., None]=lambda a:None):
 		self.x = x
@@ -101,6 +102,7 @@ class Sprite():
 		self.parent_canvas = None
 		self._passedUpdateFunc = updateFunc
 		self.updateFunc = updateFunc
+		self._in_anim = False
 
 		setupFunc(self)
 
@@ -109,12 +111,19 @@ class Sprite():
 		self.y += y
 		self.parent_canvas.move(self.image_tk, x, y)
 
-	def change_image(self, image:tk.PhotoImage):
+	def change_image(self, image:tk.PhotoImage, stop_anim:bool=True):
+
+		if stop_anim and self._in_anim:
+			self.updateFunc = self._passedUpdateFunc
+
 		self.image = image
 		self.parent_canvas.itemconfig(self.image_tk, image=self.image)
 
+
 	def shedule_anim(self, anim_frames:list):
 		global clear_img
+
+		self._in_anim = True
 
 		i = 0
 		tmp = self._passedUpdateFunc
@@ -122,7 +131,7 @@ class Sprite():
 		def anim_sheduler(sprite):
 			nonlocal i, tmp
 
-			sprite.change_image(anim_frames[i])
+			sprite.change_image(anim_frames[i],False)
 			i+=1
 
 			if i == len(anim_frames):
@@ -156,7 +165,7 @@ class SpriteRenderer():
 	now=time()
 	next_frame=now+frame_period
 
-	def draw_scene(self):
+	def advance_frame(self):
 
 		while self.now<self.next_frame:
 			sleep(self.next_frame-self.now)
@@ -192,7 +201,7 @@ class SpriteRenderer():
 	def bind(func:Callable, key:str):
 		self._root.bind(func,key)
 
-# testing
+# setting up a basic scene to test
 a = init(1000,500)
 
 a.add_sprite(Sprite("Untitled.png",10,10),40)
@@ -212,7 +221,7 @@ def move(sprite):
 	if 'd' in pressed_keys:
 		sprite.move(1,0)
 
-	if "q" in pressed_keys:g
+	if "q" in pressed_keys:
 		sprite.shedule_anim(main_anim)
 		flag = False
 
@@ -231,7 +240,7 @@ for i in range(100):
 
 while 1:
 	startTime = time()
-	a.draw_scene()
+	a.advance_frame()
 	check_keys()
 	endTime = time()
 
