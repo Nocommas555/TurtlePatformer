@@ -3,7 +3,7 @@ Chelone is a graphics library created specifically for our platformer
 It is a wrapper over the included tkinter library that seeks to become an
 alternative to pyGame with more of a focus on sprites rather then primitives
 
-The engine includes basic collision detection, animation, drawing, z-layering and complex backrounds
+The engine includes basic loading, collision detection, animation, drawing, z-layering and complex backrounds
 '''
 import tkinter as tk
 from typing import Union, Callable
@@ -42,7 +42,6 @@ def FocusOut(event):
 	caught_keys = []
 
 
-caught_keys_prev_prev = []
 caught_keys_prev = []
 caught_keys= []
 
@@ -51,12 +50,11 @@ pressed_keys = []
 clear_img = None
 
 def check_keys():
-	global caught_keys_prev, caught_keys_prev_prev, caught_keys, pressed_keys
-	# remove keys not caught for 3 frames
+	global caught_keys_prev, caught_keys, pressed_keys
+	# remove keys not caught for 2 frames
 	for key in pressed_keys:
 		if key not in caught_keys and\
-		  key not in caught_keys_prev and\
-		  key not in caught_keys_prev_prev:
+		  key not in caught_keys_prev:
 
 			pressed_keys.remove(key)
 
@@ -64,7 +62,7 @@ def check_keys():
 		if key not in pressed_keys:
 			pressed_keys.append(key)
 
-	caught_keys_prev_prev = caught_keys.copy()
+	caught_keys_prev = caught_keys.copy()
 
 def on_key_press(event):
 	global caught_keys
@@ -234,7 +232,7 @@ def move(sprite):
 	if "v" in pressed_keys:
 		sprite.change_image(clear_img)
 
-for i in range(100):
+for i in range(1000):
 	spr = Sprite("sprites/4.png", updateFunc=move)
 	a.add_sprite(spr)
 
@@ -243,7 +241,7 @@ while 1:
 	a.advance_frame()
 	check_keys()
 	endTime = time()
-
+	print(pressed_keys)
 	elapsedTime = endTime - startTime
-	print(1./elapsedTime)
+	#print(1./elapsedTime)
 	
