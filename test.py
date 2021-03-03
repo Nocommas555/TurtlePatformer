@@ -42,7 +42,6 @@ for i in range(1000):
 while 1:
 	startTime = time()
 	a.advance_frame()
-	check_keys()
 	endTime = time()
 	elapsedTime = endTime - startTime
 	print(1./elapsedTime)
