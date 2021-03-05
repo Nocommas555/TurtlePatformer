@@ -11,76 +11,64 @@ from time import time, sleep
 import os
 import json
 
-TARGET_FPS = 60
-InFocus = True
 
+Chelone = None
 
 def init(resolution_x:int, resolution_y:int):
+	global Chelone
 	# Create the window with the Tk class
 	root = tk.Tk()
 	
 	root.bind("<Key>", on_key_press)
 	root.bind("<KeyRelease>", on_key_release)
-	root.bind("<FocusIn>", FocusIn)
 	root.bind("<FocusOut>", FocusOut)
-
 	# Create the canvas and make it visible with pack()
 	canvas = tk.Canvas(root, width = resolution_x, height = resolution_y)
 	canvas.pack() # this makes it visible
 
-	clear_img = tk.PhotoImage(file = "sprites/clear.png")
+	Chelone = SpriteRenderer(root, canvas)
+	return Chelone
 
-	return SpriteRenderer(root, canvas)
 
-
-def FocusIn(event):
-	global InFocus
-	InFocus = True
-
-# Function that handles cleaning up our input after window goes out of focus
 def FocusOut(event):
-	global InFocus, pressed_keys, caught_keys
-	InFocus = False
-	pressed_keys = []
-	caught_keys = []
-
-
-caught_keys_prev = []
-caught_keys = []
-
-pressed_keys = []
-
-clear_img = None
+	Chelone.caught_keys_prev = []
+	Chelone.caught_keys = []
+	Chelone.pressed_keys = []
 
 def check_keys():
-	global caught_keys_prev, caught_keys, pressed_keys
-	# remove keys not caught for 2 frames
-	for key in pressed_keys:
-		if key not in caught_keys and\
-		  key not in caught_keys_prev:
 
-			pressed_keys.remove(key)
+	print(Chelone.caught_keys, Chelone.caught_keys_prev)
 
-	for key in caught_keys:
-		if key not in pressed_keys:
-			pressed_keys.append(key)
+	if Chelone.root.focus_get() != None:
+		# remove keys not caught for 2 frames
+		for key in Chelone.pressed_keys:
+			if key not in Chelone.caught_keys and\
+			  key not in Chelone.caught_keys_prev:
 
-	caught_keys_prev = caught_keys.copy()
+				Chelone.pressed_keys.remove(key)
+
+		for key in Chelone.caught_keys:
+			if key not in Chelone.pressed_keys:
+				Chelone.pressed_keys.append(key)
+
+		Chelone.caught_keys_prev = Chelone.caught_keys.copy()
+
+	else:
+		Chelone.caught_keys_prev = []
+		Chelone.caught_keys = []
+		Chelone.pressed_keys = []
 
 def on_key_press(event):
-	global caught_keys
-	caught_keys.append(event.keysym)
+	Chelone.caught_keys.append(event.keysym)
 
 
 def on_key_release(event):
-	global caught_keys
-	caught_keys.remove(event.keysym)
+	Chelone.caught_keys.remove(event.keysym)
 
 """Handles loading sprites and animations"""
 """There can be multiple instances at the same time"""
 class SpriteLoader():
 	_sprite_dir = "sprites/"
-
 	_storage = {}
 
 	class SpriteFrame():
@@ -228,6 +216,12 @@ class SpriteRenderer():
 	screen = None
 	_sprites = []
 	_prev_draw_time = None
+
+	caught_keys_prev = []
+	caught_keys = []
+	pressed_keys = []
+
+	TARGET_FPS = 60
 
 	def __init__(self, root: tk.Tk, screen:tk.Canvas):
 		self.root = root
