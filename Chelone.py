@@ -39,24 +39,19 @@ def check_keys():
 
 	print(Chelone.caught_keys, Chelone.caught_keys_prev)
 
-	if Chelone.root.focus_get() != None:
-		# remove keys not caught for 2 frames
-		for key in Chelone.pressed_keys:
-			if key not in Chelone.caught_keys and\
-			  key not in Chelone.caught_keys_prev:
+	# remove keys not caught for 2 frames
+	for key in Chelone.pressed_keys:
+		if key not in Chelone.caught_keys and\
+		  key not in Chelone.caught_keys_prev:
 
-				Chelone.pressed_keys.remove(key)
+			Chelone.pressed_keys.remove(key)
 
-		for key in Chelone.caught_keys:
-			if key not in Chelone.pressed_keys:
-				Chelone.pressed_keys.append(key)
+	for key in Chelone.caught_keys:
+		if key not in Chelone.pressed_keys:
+			Chelone.pressed_keys.append(key)
 
-		Chelone.caught_keys_prev = Chelone.caught_keys.copy()
+	Chelone.caught_keys_prev = Chelone.caught_keys.copy()
 
-	else:
-		Chelone.caught_keys_prev = []
-		Chelone.caught_keys = []
-		Chelone.pressed_keys = []
 
 def on_key_press(event):
 	Chelone.caught_keys.append(event.keysym)
