@@ -155,34 +155,39 @@ class Sprite():
 	"""Object that contains data about the sprite. Also can be used to have code ran on each frame"""
 	x = 0
 	y = 0
-	var = {}
 	frame = None
 	image_tk = None
 	parent_canvas = None
-	updateFunc = None
-	_passedUpdateFunc = None
-	_in_anim = False
-	
+	_anim = []
+	_anim_frame = 0
 	
 	# updateFunc is a function that takes self and gets called every frame
 	# setupFunc is a function that takes self and gets called once, at setup
 
-	def __init__(self, frame:SpriteLoader.SpriteFrame, 
-	  x:int = 0, y:int = 0, 
-	  updateFunc:Callable[..., None] = lambda a:None, 
-	  setupFunc:Callable[..., None] = lambda a:None):
+	def __init__(self, frame:SpriteLoader.SpriteFrame, x:int = 0, y:int = 0):
 
 		self.x = x
 		self.y = y
-		self.var = {}
 		self.frame = frame
 		self.image_tk = None
 		self.parent_canvas = None
-		self._passedUpdateFunc = updateFunc
-		self.updateFunc = updateFunc
-		self._in_anim = False
+		self._anim = [frame]
+		self._anim_frame = 0
+		
+		self.setup()
 
-		setupFunc(self)
+	# made to be extended
+	def setup(self):
+		pass
+
+	# made to be extended
+	def update(self):
+		pass
+
+
+	def _update(self):
+		self.update()
+		self.advance_anim()		
 
 	def move(self, x:int, y:int):
 		self.x += x
@@ -191,35 +196,31 @@ class Sprite():
 
 	def change_image(self, frame:SpriteLoader.SpriteFrame, stop_anim:bool = True):
 
-		if stop_anim and self._in_anim:
-			self.updateFunc = self._passedUpdateFunc
+		if stop_anim and len(self._anim)>1:
+			self._anim = [frame]
 
 		self.frame = frame
 		self.parent_canvas.itemconfig(self.image_tk, image = frame.image)
 
+	def advance_anim(self):
 
-	def shedule_anim(self, anim_frames:list):
+		if len(self._anim)>1:
+
+			# loop animation automatically
+			if (self._anim_frame >= len(self._anim)):
+				self._anim_frame = 0
+
+			if self._anim[self._anim_frame] != None:
+				self.change_image(self._anim[self._anim_frame], stop_anim = False)
+
+			self._anim_frame += 1
+		
+
+	def shedule_anim(self, anim_frames:list, start:int = 0):
 		global clear_img
 
-		self._in_anim = True
-
-		i = 0
-		tmp = self._passedUpdateFunc
-		
-		def anim_sheduler(sprite):
-			nonlocal i, tmp
-
-			if anim_frames[i] != None:
-				sprite.change_image(anim_frames[i], False)
-
-			i += 1
-
-			if i == len(anim_frames):
-				i = 0
-
-			tmp(sprite)
-
-		self.updateFunc = anim_sheduler
+		self._anim = anim_frames
+		self._anim_frame = start
 
 class SpriteRenderer():
 	"""Main drawing class. Handles every sprite"""
@@ -254,7 +255,7 @@ class SpriteRenderer():
 		for layer in self._sprites:
 			for sprite in layer:
 
-				sprite.updateFunc(sprite)
+				sprite._update()
 
 
 		self.root.update()

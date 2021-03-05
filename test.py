@@ -7,34 +7,37 @@ loader = SpriteLoader()
 a.add_sprite(Sprite(loader.load("Untitled.png"),10,10),40)
 
 
-flag = True
-def move(sprite):
-	global pressed_keys,flag, main_anim
+class Player(Sprite):
+	
+	def setup(self):
+		print("setup Player")
 
-	if 'w' in pressed_keys:
-		sprite.move(0,-1)
-	if 'a' in pressed_keys:
-		sprite.move(-1,0)
-	if 's' in pressed_keys:
-		sprite.move(0,1)
-	if 'd' in pressed_keys:
-		sprite.move(1,0)
+	def update(sprite):
 
-	if "q" in pressed_keys:
-		sprite.shedule_anim(loader.load("stick_figure"))
-		flag = False
+		if 'w' in pressed_keys:
+			sprite.move(0,-1)
+		if 'a' in pressed_keys:
+			sprite.move(-1,0)
+		if 's' in pressed_keys:
+			sprite.move(0,1)
+		if 'd' in pressed_keys:
+			sprite.move(1,0)
 
-	if "e" in pressed_keys:
-		sprite.change_image(loader.load("Untitled.png"))
+		if "q" in pressed_keys:
+			sprite.shedule_anim(loader.load("stick_figure"))
+			flag = False
 
-	if "g" in pressed_keys:
-		sprite.change_image(loader.load("stick_figure/2.png"))
+		if "e" in pressed_keys:
+			sprite.change_image(loader.load("Untitled.png"))
 
-	if "v" in pressed_keys:
-		sprite.change_image(clear_img)
+		if "g" in pressed_keys:
+			sprite.change_image(loader.load("stick_figure/2.png"))
+
+		if "v" in pressed_keys:
+			sprite.change_image(clear_img)
 
 for i in range(1000):
-	spr = Sprite(loader.load("test.gif"), updateFunc=move)
+	spr = Player(loader.load("test.gif"))
 	a.add_sprite(spr)
 
 
