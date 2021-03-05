@@ -27,7 +27,7 @@ def init(resolution_x:int, resolution_y:int):
 	canvas = tk.Canvas(root, width = resolution_x, height = resolution_y)
 	canvas.pack() # this makes it visible
 
-	clear_img = tk.PhotoImage(file ="sprites/clear.png")
+	clear_img = tk.PhotoImage(file = "sprites/clear.png")
 
 	return SpriteRenderer(root, canvas)
 
@@ -99,11 +99,11 @@ class SpriteLoader():
 		self._storage = {}
 
 	def _load_anim(self, path:str):
-		if not os.path.exists(path +"/anim_descr.json"):
+		if not os.path.exists(path + "/anim_descr.json"):
 			print("animation does not exist!")
 			return
 
-		anim_descr = json.load(open(path +"/anim_descr.json", "r"))
+		anim_descr = json.load(open(path + "/anim_descr.json", "r"))
 		self._storage[path] = []
 
 		for frame in anim_descr["frames"]:
@@ -115,7 +115,7 @@ class SpriteLoader():
 				frame["extra"] = {}
 
 			if frame["image"] != "None":
-				self._storage[path].append(self.SpriteFrame(path +'/'+ frame["image"], frame["hitboxes"], frame["extra"]))
+				self._storage[path].append(self.SpriteFrame(path + '/' + frame["image"], frame["hitboxes"], frame["extra"]))
 
 			else:
 				self._storage[path].append(None)
@@ -208,10 +208,10 @@ class Sprite():
 		def anim_sheduler(sprite):
 			nonlocal i, tmp
 
-			if anim_frames[i]!= None:
+			if anim_frames[i] != None:
 				sprite.change_image(anim_frames[i], False)
 
-			i +=1
+			i += 1
 
 			if i == len(anim_frames):
 				i = 0
@@ -240,7 +240,7 @@ class SpriteRenderer():
 		pass
 
 
-	frame_period =1.0/TARGET_FPS
+	frame_period = 1.0/TARGET_FPS
 	now = time()
 	next_frame = now + frame_period
 
