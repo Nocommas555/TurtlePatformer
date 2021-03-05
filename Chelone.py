@@ -14,6 +14,7 @@ import json
 TARGET_FPS = 60
 InFocus = True
 
+
 def init(resolution_x:int, resolution_y:int):
 	# Create the window with the Tk class
 	root = tk.Tk()
@@ -222,14 +223,14 @@ class Sprite():
 
 class SpriteRenderer():
 	"""Main drawing class. Handles every sprite"""
-	_root = None
-	_screen = None
+	root = None
+	screen = None
 	_sprites = []
 	_prev_draw_time = None
 
 	def __init__(self, root: tk.Tk, screen:tk.Canvas):
-		self._root = root
-		self._screen = screen
+		self.root = root
+		self.screen = screen
 		
 		# 50 different z layers
 		self._sprites = []
@@ -256,13 +257,13 @@ class SpriteRenderer():
 				sprite.updateFunc(sprite)
 
 
-		self._root.update()
+		self.root.update()
 		self.next_frame += self.frame_period
 
 		check_keys()
 
 	def move_camera(self, x, y):
-		self._screen.move("all", x, y)
+		self.screen.move("all", x, y)
 
 	def add_sprite(self, sprite:Sprite, layer:int = 25):
 		
@@ -272,15 +273,15 @@ class SpriteRenderer():
 
 		self._sprites[layer].append(sprite)
 
-		sprite.image_tk = self._screen.create_image(sprite.x, sprite.y, anchor = tk.NW, image = sprite.frame.image)
-		sprite.parent_canvas = self._screen
+		sprite.image_tk = self.screen.create_image(sprite.x, sprite.y, anchor = tk.NW, image = sprite.frame.image)
+		sprite.parent_canvas = self.screen
 
 		for i, z_layer in enumerate(self._sprites):
 			if len(z_layer) > 0 and i <= layer:
-				self._screen.tag_raise(sprite.image_tk, z_layer[0].image_tk)
+				self.screen.tag_raise(sprite.image_tk, z_layer[0].image_tk)
 
 	def bind(func:Callable, key:str):
-		self._root.bind(func, key)
+		self.root.bind(func, key)
 
 
 	
