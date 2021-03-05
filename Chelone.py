@@ -24,12 +24,12 @@ def init(resolution_x:int, resolution_y:int):
 	root.bind("<FocusOut>", FocusOut)
 
 	# Create the canvas and make it visible with pack()
-	canvas = tk.Canvas(root, width=resolution_x, height=resolution_y)
+	canvas = tk.Canvas(root, width = resolution_x, height = resolution_y)
 	canvas.pack() # this makes it visible
 
-	clear_img = tk.PhotoImage(file="sprites/clear.png")
+	clear_img = tk.PhotoImage(file ="sprites/clear.png")
 
-	return SpriteRenderer(root,canvas)
+	return SpriteRenderer(root, canvas)
 
 
 def FocusIn(event):
@@ -45,7 +45,7 @@ def FocusOut(event):
 
 
 caught_keys_prev = []
-caught_keys= []
+caught_keys = []
 
 pressed_keys = []
 
@@ -89,7 +89,7 @@ class SpriteLoader():
 		image = None
 
 		def __init__(self, file:str, hitboxes:list = [], extra:dict = {}):
-			self.image = tk.PhotoImage(file=file)
+			self.image = tk.PhotoImage(file = file)
 			self.hitboxes = []
 			self.extra = {}
 
@@ -99,11 +99,11 @@ class SpriteLoader():
 		self._storage = {}
 
 	def _load_anim(self, path:str):
-		if not os.path.exists(path+"/anim_descr.json"):
+		if not os.path.exists(path +"/anim_descr.json"):
 			print("animation does not exist!")
 			return
 
-		anim_descr = json.load(open(path+"/anim_descr.json", "r"))
+		anim_descr = json.load(open(path +"/anim_descr.json", "r"))
 		self._storage[path] = []
 
 		for frame in anim_descr["frames"]:
@@ -115,7 +115,7 @@ class SpriteLoader():
 				frame["extra"] = {}
 
 			if frame["image"] != "None":
-				self._storage[path].append(self.SpriteFrame(path+'/'+frame["image"],frame["hitboxes"], frame["extra"]))
+				self._storage[path].append(self.SpriteFrame(path +'/'+ frame["image"], frame["hitboxes"], frame["extra"]))
 
 			else:
 				self._storage[path].append(None)
@@ -159,10 +159,18 @@ class Sprite():
 	image_tk = None
 	parent_canvas = None
 	updateFunc = None
-	_passedUpdateFunc=None
+	_passedUpdateFunc = None
 	_in_anim = False
 	
-	def __init__(self, frame:SpriteLoader.SpriteFrame, x:int=0, y:int=0, updateFunc:Callable[..., None]=lambda a:None, setupFunc:Callable[..., None]=lambda a:None):
+	
+	# updateFunc is a function that takes self and gets called every frame
+	# setupFunc is a function that takes self and gets called once, at setup
+
+	def __init__(self, frame:SpriteLoader.SpriteFrame, 
+	  x:int = 0, y:int = 0, 
+	  updateFunc:Callable[..., None] = lambda a:None, 
+	  setupFunc:Callable[..., None] = lambda a:None):
+
 		self.x = x
 		self.y = y
 		self.var = {}
@@ -180,13 +188,13 @@ class Sprite():
 		self.y += y
 		self.parent_canvas.move(self.image_tk, x, y)
 
-	def change_image(self, frame:SpriteLoader.SpriteFrame, stop_anim:bool=True):
+	def change_image(self, frame:SpriteLoader.SpriteFrame, stop_anim:bool = True):
 
 		if stop_anim and self._in_anim:
 			self.updateFunc = self._passedUpdateFunc
 
 		self.frame = frame
-		self.parent_canvas.itemconfig(self.image_tk, image=frame.image)
+		self.parent_canvas.itemconfig(self.image_tk, image = frame.image)
 
 
 	def shedule_anim(self, anim_frames:list):
@@ -200,10 +208,10 @@ class Sprite():
 		def anim_sheduler(sprite):
 			nonlocal i, tmp
 
-			if anim_frames[i]!=None:
-				sprite.change_image(anim_frames[i],False)
+			if anim_frames[i]!= None:
+				sprite.change_image(anim_frames[i], False)
 
-			i+=1
+			i +=1
 
 			if i == len(anim_frames):
 				i = 0
@@ -232,15 +240,15 @@ class SpriteRenderer():
 		pass
 
 
-	frame_period=1.0/TARGET_FPS
-	now=time()
-	next_frame=now+frame_period
+	frame_period =1.0/TARGET_FPS
+	now = time()
+	next_frame = now + frame_period
 
 	def advance_frame(self):
 
-		while self.now<self.next_frame:
-			sleep(self.next_frame-self.now)
-			self.now=time()
+		while self.now < self.next_frame:
+			sleep(self.next_frame - self.now)
+			self.now = time()
 
 		for layer in self._sprites:
 			for sprite in layer:
@@ -249,12 +257,12 @@ class SpriteRenderer():
 
 
 		self._root.update()
-		self.next_frame+=self.frame_period
+		self.next_frame += self.frame_period
 
 		check_keys()
 
 	def move_camera(self, x, y):
-		self._screen.move("all",x,y)
+		self._screen.move("all", x, y)
 
 	def add_sprite(self, sprite:Sprite, layer:int = 25):
 		
@@ -264,15 +272,15 @@ class SpriteRenderer():
 
 		self._sprites[layer].append(sprite)
 
-		sprite.image_tk = self._screen.create_image(sprite.x, sprite.y, anchor=tk.NW, image=sprite.frame.image)
+		sprite.image_tk = self._screen.create_image(sprite.x, sprite.y, anchor = tk.NW, image = sprite.frame.image)
 		sprite.parent_canvas = self._screen
 
 		for i, z_layer in enumerate(self._sprites):
-			if len(z_layer)>0 and i<=layer:
+			if len(z_layer) > 0 and i <= layer:
 				self._screen.tag_raise(sprite.image_tk, z_layer[0].image_tk)
 
 	def bind(func:Callable, key:str):
-		self._root.bind(func,key)
+		self._root.bind(func, key)
 
 
 	
