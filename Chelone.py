@@ -37,8 +37,6 @@ def FocusOut(event):
 
 def check_keys():
 
-	print(Chelone.caught_keys, Chelone.caught_keys_prev)
-
 	# remove keys not caught for 2 frames
 	for key in Chelone.pressed_keys:
 		if key not in Chelone.caught_keys and\
