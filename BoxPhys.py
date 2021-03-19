@@ -2,7 +2,7 @@ physics_objects = []
 colliders = []
 
 # depth of area on the edges the box collier in which the objects are displaced
-COLLIDER_ACTIVE_BOUNDARY = 15
+COLLIDER_ACTIVE_BOUNDARY = 25
 
 class PhysicsObject():
 	x = 0
