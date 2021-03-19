@@ -75,6 +75,7 @@ class SpriteLoader():
 			self.image = tk.PhotoImage(file = file)
 			self.hitboxes = []
 			self.extra = {}
+			self.path = file
 
 
 	def __init__(self, sprite_dir:str = "sprites/"):
@@ -124,6 +125,21 @@ class SpriteLoader():
 
 		else:
 			print("the path is invalid, loading failed for " + path)
+
+	def create_colliders(self, sprite:Sprite, path:str = None):
+		if path == None:
+			path = sprite.frame.path
+
+		if path not in self._storage.keys():
+			self.load(path)
+		self._storage[path]
+
+		for key in self._storage[path]["hitboxes"].keys():
+			hitbox = self._storage[path]["hitboxes"][key]
+			sprite.colliders[key] = Collider(hitbox["x"], hitbox["y"],\
+				sprite, hitbox["width"], hitbox["height"], key, hitbox["type"])
+
+		return sprite.colliders
 		
 	def unload(self, path:str):
 		self._storage.pop(path)
