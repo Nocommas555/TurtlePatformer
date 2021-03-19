@@ -50,8 +50,8 @@ ground = Sprite(loader.load("gnd.png"),phys_type="immovable", x=0, y=400)
 Chelone.add_sprite(ground)
 ground.colliders["1"] = Collider(0,0,ground,1000,1000,"1","rigid")
 
-block = Sprite(loader.load("tmp.png"), x=500, y=150)
-Chelone.add_sprite(block)
+block = Sprite(loader.load("tmp.png"), phys_type="immovable", x=500, y=200)
+Chelone.add_sprite(block, 49)
 block.colliders["1"] = Collider(0,0,block,100,100,"2","rigid")
 
 while 1:

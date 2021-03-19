@@ -1,4 +1,4 @@
- '''
+'''
 Chelone is a graphics library created specifically for our platformer
 It is a wrapper over the included tkinter library that seeks to become an
 alternative to pyGame with more of a focus on sprites rather then  primitives
