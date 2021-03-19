@@ -70,12 +70,15 @@ class SpriteLoader():
 		hitboxes = []
 		extra = {}
 		image = None
+		path = ""
+		parent = None
 
-		def __init__(self, file:str, hitboxes:list = [], extra:dict = {}):
+		def __init__(self, file:str, parent, hitboxes:list = [], extra:dict = {}):
 			self.image = tk.PhotoImage(file = file)
 			self.hitboxes = []
 			self.extra = {}
 			self.path = file
+			self.parent = parent
 
 
 	def __init__(self, sprite_dir:str = "sprites/"):
@@ -99,7 +102,7 @@ class SpriteLoader():
 				frame["extra"] = {}
 
 			if frame["image"] != "None":
-				self._storage[path].append(self.SpriteFrame(path + '/' + frame["image"], frame["hitboxes"], frame["extra"]))
+				self._storage[path].append(self.SpriteFrame(path + '/' + frame["image"], self, frame["hitboxes"], frame["extra"]))
 
 			else:
 				self._storage[path].append(None)
@@ -117,7 +120,7 @@ class SpriteLoader():
 		if os.path.exists(path):
 
 			if os.path.isfile(path):
-				self._storage[path] = self.SpriteFrame(path)
+				self._storage[path] = self.SpriteFrame(path, self)
 				return self._storage[path]
 
 			else:
