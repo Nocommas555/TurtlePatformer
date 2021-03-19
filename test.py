@@ -40,9 +40,9 @@ class Player(Sprite):
 		if "g" in Chelone.pressed_keys:
 			sprite.change_image(loader.load("stick_figure/2.png"))
 
-for i in range(1):
-	spr = Player(loader.load("tmp.png"), gravity=-0.3)
-	Chelone.add_sprite(spr)
+#for i in range(1):
+spr = Player(loader.load("tmp.png"), gravity=-0.3)
+Chelone.add_sprite(spr)
 
 spr.colliders["1"] = Collider(0,0,spr,100,100,"1","rigid")
 
@@ -53,6 +53,10 @@ ground.colliders["1"] = Collider(0,0,ground,1000,1000,"1","rigid")
 block = Sprite(loader.load("tmp.png"), phys_type="immovable", x=500, y=200)
 Chelone.add_sprite(block, 49)
 block.colliders["1"] = Collider(0,0,block,100,100,"2","rigid")
+
+movable = Sprite(loader.load("tmp.png"), x=150, y=300)
+Chelone.add_sprite(movable, 49)
+movable.colliders["1"] = Collider(0,0, movable, 100,100,"2","rigid")
 
 while 1:
 	startTime = time()
