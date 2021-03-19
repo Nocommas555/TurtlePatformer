@@ -5,6 +5,7 @@ alternative to pyGame with more of a focus on sprites rather then primitives
 
 The engine includes basic loading, collision detection, animation, drawing, z-layering and complex backrounds
 '''
+from BoxPhys import *
 import tkinter as tk
 from typing import Union, Callable
 from time import time, sleep
@@ -132,7 +133,7 @@ class SpriteLoader():
 		for path in self._storage.keys():
 			self.unload(path)
 
-class Sprite():
+class Sprite(PhysicsObject):
 	"""Object that contains data about the sprite. Also can be used to have code ran on each frame"""
 	x = 0
 	y = 0
@@ -145,8 +146,8 @@ class Sprite():
 	# updateFunc is a function that takes self and gets called every frame
 	# setupFunc is a function that takes self and gets called once, at setup
 
-	def __init__(self, frame:SpriteLoader.SpriteFrame, x:int = 0, y:int = 0):
-
+	def __init__(self, frame:SpriteLoader.SpriteFrame, x:int = 0, y:int = 0, phys_type:str="default", gravity:float=-0.3, friction:float=0.1):
+		super().__init__(phys_type,{},x,y,[0,0],gravity,friction)
 		self.x = x
 		self.y = y
 		self.frame = frame
@@ -241,9 +242,10 @@ class SpriteRenderer():
 
 		for layer in self._sprites:
 			for sprite in layer:
-
 				sprite._update()
 
+
+		advance_phys_simulation()
 
 		self.root.update()
 		self.next_frame += self.frame_period
