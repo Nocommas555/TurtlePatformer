@@ -63,5 +63,4 @@ while 1:
 	Chelone.advance_frame()
 	endTime = time()
 	elapsedTime = endTime - startTime
-	print(block.colliders["1"].NW(), spr.colliders['1'].NW())
-	#print(1/elapsedTime)
+	print(1/elapsedTime)

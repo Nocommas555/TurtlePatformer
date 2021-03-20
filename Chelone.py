@@ -129,7 +129,7 @@ class SpriteLoader():
 		else:
 			print("the path is invalid, loading failed for " + path)
 
-	def create_colliders(self, sprite:Sprite, path:str = None):
+	def create_colliders(self, sprite, path:str = None):
 		if path == None:
 			path = sprite.frame.path
 
