@@ -61,14 +61,11 @@ class PhysicsObject():
 		right_dist = my_collider.right_edge() - other_collider.left_edge()
 		left_dist = other_collider.right_edge() - my_collider.left_edge()
 
-
-
 		
-		
-		if right_dist < COLLIDER_ACTIVE_BOUNDARY and right_dist > 0:
+		if right_dist < COLLIDER_ACTIVE_BOUNDARY and right_dist > 0 and right_dist < top_dist:
 			return [-right_dist, 0]
 
-		elif left_dist < COLLIDER_ACTIVE_BOUNDARY and left_dist > 0:
+		elif left_dist < COLLIDER_ACTIVE_BOUNDARY and left_dist > 0 and left_dist < top_dist:
 			return [left_dist, 0]
 
 		elif top_dist < COLLIDER_ACTIVE_BOUNDARY and top_dist > 0:
