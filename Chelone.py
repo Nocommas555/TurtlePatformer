@@ -14,9 +14,11 @@ import json
 
 
 Chelone = None
+_root = None
+_canvas = None
 
 def init(resolution_x:int, resolution_y:int):
-	global Chelone
+	global Chelone, _root, _canvas
 	# Create the window with the Tk class
 	root = tk.Tk()
 	
@@ -25,8 +27,10 @@ def init(resolution_x:int, resolution_y:int):
 	root.bind("<FocusOut>", FocusOut)
 	# Create the canvas and make it visible with pack()
 	canvas = tk.Canvas(root, width = resolution_x, height = resolution_y)
-	canvas.pack() # this makes it visible
+	canvas.pack(expand=tk.YES) # this makes it visible
 
+	_root = root
+	_canvas = canvas
 	Chelone = SpriteRenderer(root, canvas)
 	return Chelone
 
@@ -67,7 +71,7 @@ class SpriteLoader():
 
 	class SpriteFrame():
 		"""A frame of animation that has extra data for collision detection"""
-		hitboxes = []
+		hitboxes = {}
 		extra = {}
 		image = None
 		path = ""
@@ -75,8 +79,8 @@ class SpriteLoader():
 
 		def __init__(self, file:str, parent, hitboxes:list = [], extra:dict = {}):
 			self.image = tk.PhotoImage(file = file)
-			self.hitboxes = []
-			self.extra = {}
+			self.hitboxes = hitboxes
+			self.extra = extra
 			self.path = file
 			self.parent = parent
 
@@ -85,49 +89,45 @@ class SpriteLoader():
 		self._sprite_dir = sprite_dir
 		self._storage = {}
 
-	def _load_anim(self, path:str):
-		if not os.path.exists(path + "/anim_descr.json"):
-			print("animation does not exist!")
-			return
+	def load_anim(self, path:str):
 
-		anim_descr = json.load(open(path + "/anim_descr.json", "r"))
-		self._storage[path] = []
 
-		for frame in anim_descr["frames"]:
-			
-			if "hitboxes" not in frame.keys():
-				frame["hitboxes"] = []
-
-			if "extra" not in frame.keys():
-				frame["extra"] = {}
-
-			if frame["image"] != "None":
-				self._storage[path].append(self.SpriteFrame(path + '/' + frame["image"], self, frame["hitboxes"], frame["extra"]))
-
-			else:
-				self._storage[path].append(None)
-
-		return(self._storage[path])
+		return json.load(open(path))
 
 	def load(self, path:str):
 
 		path = self._sprite_dir + path
-		
-		# check if we already loaded the image/anim
+
+		# check if we already loaded the image
 		if path in self._storage.keys():
 			return self._storage[path]
 
-		if os.path.exists(path):
+		parent_path = "/".join(path.split("/")[:-1])
+		file = path.split("/")[-1]
 
+		if os.path.exists(path) and os.path.exists(parent_path+'/'+"img_descr.json"):
+			
+			img_descr = json.load(open(parent_path+'/'+"img_descr.json"))["images"][file]
+		
 			if os.path.isfile(path):
-				self._storage[path] = self.SpriteFrame(path, self)
+
+				hitboxes = {}
+				if "hitboxes" in img_descr:
+					hitboxes = img_descr["hitboxes"]
+
+				extra = {}
+				if "extra" in img_descr:
+					extra = img_descr["extra"]
+
+				self._storage[path] = self.SpriteFrame(path, self, hitboxes, extra)
+
+				if "scale" in img_descr:
+					self._storage[path].image = self._storage[path].image.zoom(img_descr["scale"])
+				
 				return self._storage[path]
 
 			else:
 				return self._load_anim(path)
-
-		else:
-			print("the path is invalid, loading failed for " + path)
 
 	def create_colliders(self, sprite, path:str = None):
 		if path == None:
@@ -135,10 +135,9 @@ class SpriteLoader():
 
 		if path not in self._storage.keys():
 			self.load(path)
-		self._storage[path]
 
-		for key in self._storage[path]["hitboxes"].keys():
-			hitbox = self._storage[path]["hitboxes"][key]
+		for key in self._storage[path].hitboxes.keys():
+			hitbox = self._storage[path].hitboxes[key]
 			sprite.colliders[key] = Collider(hitbox["x"], hitbox["y"],\
 				sprite, hitbox["width"], hitbox["height"], key, hitbox["type"])
 
@@ -174,8 +173,9 @@ class Sprite(PhysicsObject):
 		self.parent_canvas = None
 		self._anim = [frame]
 		self._anim_frame = 0
-		
 		self.setup()
+
+		frame.parent.create_colliders(self)
 
 	# made to be extended
 	def setup(self):
@@ -272,7 +272,7 @@ class SpriteRenderer():
 		check_keys()
 
 	def move_camera(self, x, y):
-		self.screen.move("all", x, y)
+		self.screen.move("all", -x, y)
 
 	def add_sprite(self, sprite:Sprite, layer:int = 25):
 		
