@@ -1,6 +1,6 @@
 from Chelone import *
 
-# setting up a basic scene to test
+# setting up a basic scene to test 
 a = init(1000,500)
 
 loader = SpriteLoader()
