@@ -54,7 +54,8 @@ def check_keys():
 
 
 def on_key_press(event):
-	Chelone.caught_keys.append(event.keysym)
+	if event.keysym not in Chelone.caught_keys:
+		Chelone.caught_keys.append(event.keysym)
 
 
 def on_key_release(event):
