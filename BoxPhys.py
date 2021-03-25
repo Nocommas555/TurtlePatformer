@@ -134,6 +134,10 @@ class Collider(object):
 
 		colliders.append(self)
 
+	def delete_self(self):
+		self.parent.colliders.pop(self.key)
+		colliders.remove(self)
+
 	# helper functions for edges of the collider
 	def left_edge(self):
 		return self.x+self.parent.x

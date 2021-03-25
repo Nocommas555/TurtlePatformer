@@ -14,8 +14,7 @@ import json
 
 
 Chelone = None
-_root = None
-_canvas = None
+
 
 def init(resolution_x:int, resolution_y:int):
 	global Chelone, _root, _canvas
@@ -27,10 +26,8 @@ def init(resolution_x:int, resolution_y:int):
 	root.bind("<FocusOut>", FocusOut)
 	# Create the canvas and make it visible with pack()
 	canvas = tk.Canvas(root, width = resolution_x, height = resolution_y)
-	canvas.pack(expand=tk.YES) # this makes it visible
+	canvas.pack() # this makes it visible
 
-	_root = root
-	_canvas = canvas
 	Chelone = SpriteRenderer(root, canvas)
 	return Chelone
 
@@ -90,9 +87,12 @@ class SpriteLoader():
 		self._storage = {}
 
 	def load_anim(self, path:str):
+		if os.path.exists(self._sprite_dir+path) and path[:-4] == "anim":
+			return ["/".join(self._sprite_dir+path)[:-1]+x if x!=None else None for x in json.load(open(path))]
 
-
-		return json.load(open(path))
+		else:
+			print("wrong anim path")
+			return [None]
 
 	def load(self, path:str):
 
@@ -138,8 +138,13 @@ class SpriteLoader():
 
 		for key in self._storage[path].hitboxes.keys():
 			hitbox = self._storage[path].hitboxes[key]
-			sprite.colliders[key] = Collider(hitbox["x"], hitbox["y"],\
-				sprite, hitbox["width"], hitbox["height"], key, hitbox["type"])
+
+			if hitbox == "remove":
+				sprite.colliders[key].delete_self()
+				
+			else:
+				sprite.colliders[key] = Collider(hitbox["x"], hitbox["y"],\
+					sprite, hitbox["width"], hitbox["height"], key, hitbox["type"])
 
 		return sprite.colliders
 		
@@ -202,6 +207,7 @@ class Sprite(PhysicsObject):
 
 		self.frame = frame
 		self.parent_canvas.itemconfig(self.image_tk, image = frame.image)
+		self.frame.parent.create_colliders(self)
 
 	def advance_anim(self):
 
@@ -212,12 +218,12 @@ class Sprite(PhysicsObject):
 				self._anim_frame = 0
 
 			if self._anim[self._anim_frame] != None:
-				self.change_image(self._anim[self._anim_frame], stop_anim = False)
+				self.change_image(self.frame.parent.load(self._anim[self._anim_frame]), stop_anim = False)
 
 			self._anim_frame += 1
 		
 
-	def shedule_anim(self, anim_frames:list, start:int = 0):
+	def start_anim(self, anim_frames:list, start:int = 0):
 		global clear_img
 
 		self._anim = anim_frames

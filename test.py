@@ -1,7 +1,7 @@
 from Chelone import *
 
 # setting up a basic scene to test
-Chelone = init(1000,500)
+Chelone = init(1620,800)
 
 loader = SpriteLoader()
 
@@ -49,6 +49,13 @@ class Player(Sprite):
 
 		sprite.last_x = sprite.x
 
+	def handle_collision(self, collided_obj, my_collider, other_collider):
+		if my_collider.id == "1":
+			super().handle_collision(collided_obj, my_collider, other_collider)
+			return
+
+
+		
 #for i in range(1):
 spr = Player(loader.load("tmp.png"), gravity=-0.3, x = 100)
 Chelone.add_sprite(spr)
