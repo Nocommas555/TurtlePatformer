@@ -11,13 +11,13 @@ class Player(Sprite):
 
 	def move(self, x, y):
 		super().move(x, y)
-		Chelone.move_camera(x,0)
+		Chelone.camera.move(x,0)
 
 	def setup(self):
 		print("setup Player")
 		self.flag = False
 		self.last_x = 0
-
+		
 	def update(sprite):
 		global Chelone
 
@@ -39,10 +39,10 @@ class Player(Sprite):
 			sprite.flag = False
 
 		if "q" in Chelone.pressed_keys:
-			Chelone.move_camera(3,0)
+			Chelone.camera.move(-3,3)
 
 		if "e" in Chelone.pressed_keys:
-			sprite.change_image(loader.load("Untitled.png"))
+			Chelone.camera.move(3,-3)
 
 		if "g" in Chelone.pressed_keys:
 			sprite.change_image(loader.load("stick_figure/2.png"))
@@ -75,4 +75,4 @@ while 1:
 	Chelone.advance_frame()
 	endTime = time()
 	elapsedTime = endTime - startTime
-	print(1/elapsedTime)
+	print(Chelone.camera.x, Chelone.camera.y)
