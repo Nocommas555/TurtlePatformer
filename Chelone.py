@@ -130,20 +130,18 @@ class SpriteLoader():
 			else:
 				return self._load_anim(path)
 
-	def create_colliders(self, sprite, path:str = None):
-		if path == None:
-			path = sprite.frame.path
-
-		if path not in self._storage.keys():
-			self.load(path)
-
-		for key in self._storage[path].hitboxes.keys():
-			hitbox = self._storage[path].hitboxes[key]
+	def create_colliders(self, sprite):
+		
+		for key in sprite.frame.hitboxes.keys():
+			hitbox = sprite.frame.hitboxes[key]
 
 			if hitbox == "remove":
 				sprite.colliders[key].delete_self()
 				
 			else:
+				if key in sprite.colliders:
+					sprite.colliders[key].delete_self()
+					
 				sprite.colliders[key] = Collider(hitbox["x"], hitbox["y"],\
 					sprite, hitbox["width"], hitbox["height"], key, hitbox["type"])
 
