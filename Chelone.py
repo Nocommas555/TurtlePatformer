@@ -240,11 +240,26 @@ class SpriteRenderer():
 	pressed_keys = []
 
 	TARGET_FPS = 60
+	camera = None
+
+	class Camera(object):
+		"""data associated with the camera"""
+		def __init__(self, screen, x=0, y=0):
+			self.x = 0
+			self.y = 0
+			self.screen = screen
+
+		def move(self, x, y):
+			self.x += x
+			self.y += -y
+			self.screen.move("all", -x, y)
+			
 
 	def __init__(self, root: tk.Tk, screen:tk.Canvas):
 		self.root = root
 		self.screen = screen
-		
+		self.camera = self.Camera(screen)
+
 		# 50 different z layers
 		self._sprites = []
 		for i in range(50):
@@ -275,9 +290,7 @@ class SpriteRenderer():
 		self.next_frame += self.frame_period
 
 		check_keys()
-
-	def move_camera(self, x, y):
-		self.screen.move("all", -x, y)
+		
 
 	def add_sprite(self, sprite:Sprite, layer:int = 25):
 		
@@ -287,7 +300,7 @@ class SpriteRenderer():
 
 		self._sprites[layer].append(sprite)
 
-		sprite.image_tk = self.screen.create_image(sprite.x, sprite.y, anchor = tk.NW, image = sprite.frame.image)
+		sprite.image_tk = self.screen.create_image(sprite.x+self.camera.x, sprite.y+self.camera.y, anchor = tk.NW, image = sprite.frame.image)
 		sprite.parent_canvas = self.screen
 
 		for i, z_layer in enumerate(self._sprites):
