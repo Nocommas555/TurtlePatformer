@@ -135,7 +135,7 @@ class Collider(object):
 		colliders.append(self)
 
 	def delete_self(self):
-		self.parent.colliders.pop(self.key)
+		self.parent.colliders.pop(self.id)
 		colliders.remove(self)
 
 	# helper functions for edges of the collider
