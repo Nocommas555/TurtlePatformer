@@ -164,14 +164,16 @@ class Sprite(PhysicsObject):
 	parent_canvas = None
 	_anim = []
 	_anim_frame = 0
-	
+	id = ""
+
 	# updateFunc is a function that takes self and gets called every frame
 	# setupFunc is a function that takes self and gets called once, at setup
 
-	def __init__(self, frame:SpriteLoader.SpriteFrame, x:int = 0, y:int = 0, phys_type:str="default", gravity:float=-0.3, friction:float=0.1):
+	def __init__(self, id:str, frame:SpriteLoader.SpriteFrame, x:int = 0, y:int = 0, phys_type:str="default", gravity:float=-0.3, friction:float=0.1):
 		super().__init__(phys_type,{},x,y,[0,0],gravity,friction)
 		self.x = x
 		self.y = y
+		self.id = id  
 		self.frame = frame
 		self.image_tk = None
 		self.parent_canvas = None
@@ -208,6 +210,12 @@ class Sprite(PhysicsObject):
 		self.parent_canvas.itemconfig(self.image_tk, image = frame.image)
 		self.frame.parent.create_colliders(self)
 
+	def start_anim(self, anim_frames:list, start:int = 0):
+		global clear_img
+
+		self._anim = anim_frames
+		self._anim_frame = start
+
 	def advance_anim(self):
 
 		if len(self._anim)>1:
@@ -219,14 +227,8 @@ class Sprite(PhysicsObject):
 			if self._anim[self._anim_frame] != None:
 				self.change_image(self.frame.parent.load(self._anim[self._anim_frame]), stop_anim = False)
 
-			self._anim_frame += 1
-		
+			self._anim_frame += 1		
 
-	def start_anim(self, anim_frames:list, start:int = 0):
-		global clear_img
-
-		self._anim = anim_frames
-		self._anim_frame = start
 
 class SpriteRenderer():
 	"""Main drawing class. Handles every sprite"""
@@ -291,7 +293,6 @@ class SpriteRenderer():
 
 		check_keys()
 		
-
 	def add_sprite(self, sprite:Sprite, layer:int = 25):
 		
 		#layer 0 reserved for gui, layer 50 onward does not exist
@@ -306,6 +307,16 @@ class SpriteRenderer():
 		for i, z_layer in enumerate(self._sprites):
 			if len(z_layer) > 0 and i <= layer:
 				self.screen.tag_raise(sprite.image_tk, z_layer[0].image_tk)
+
+	def remove_sprite(self, sprite_id):
+
+		for layer in self._sprites:
+			for sprite in layer:
+				if sprite.id == sprite_id:
+					sprite.delete_self()
+					self.screen.delete(sprite.image_tk)
+					layer.remove(sprite)
+
 
 	def bind(func:Callable, key:str):
 		self.root.bind(func, key)

@@ -49,6 +49,13 @@ class PhysicsObject():
 			self.vel[0] += x
 			self.vel[1] += y
 
+
+	def delete_self(self):
+		for collier in list(self.colliders.values()):
+			collier.delete_self()
+
+		physics_objects.remove(self)
+
 	# default, meant to be extended
 	def handle_trigger(self, collided_obj, my_collider, other_collider):
 		pass

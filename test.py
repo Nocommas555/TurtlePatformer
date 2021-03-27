@@ -17,7 +17,7 @@ class Player(Sprite):
 		print("setup Player")
 		self.flag = False
 		self.last_x = 0
-		
+
 	def update(sprite):
 		global Chelone
 
@@ -42,7 +42,7 @@ class Player(Sprite):
 			Chelone.camera.move(-3,3)
 
 		if "e" in Chelone.pressed_keys:
-			Chelone.camera.move(3,-3)
+			Chelone.remove_sprite("block_2")
 
 		if "g" in Chelone.pressed_keys:
 			sprite.change_image(loader.load("stick_figure/2.png"))
@@ -57,16 +57,16 @@ class Player(Sprite):
 
 		
 #for i in range(1):
-spr = Player(loader.load("tmp.png"), gravity=-0.3, x = 100)
+spr = Player("Player", loader.load("tmp.png"), gravity=-0.3, x = 100)
 Chelone.add_sprite(spr)
 
-ground = Sprite(loader.load("gnd.png"),phys_type="immovable", x=0, y=350)
+ground = Sprite("ground", loader.load("gnd.png"),phys_type="immovable", x=0, y=350)
 Chelone.add_sprite(ground)
 
-block = Sprite(loader.load("tmp.png"), phys_type="immovable", x=500, y=150)
+block = Sprite("block_1",loader.load("tmp.png"), phys_type="immovable", x=500, y=150)
 Chelone.add_sprite(block, 49)
 
-movable = Sprite(loader.load("tmp.png"), x=150, y=200)
+movable = Sprite("block_2",loader.load("tmp.png"), x=150, y=200)
 Chelone.add_sprite(movable, 49)
 
 
