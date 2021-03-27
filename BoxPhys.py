@@ -50,7 +50,7 @@ class PhysicsObject():
 			self.vel[1] += y
 
 	# default, meant to be extended
-	def handle_trigger(self, collided_obj, collider):
+	def handle_trigger(self, collided_obj, my_collider, other_collider):
 		pass
 
 	def get_collision_displacement(self, collided_obj, my_collider, other_collider):
@@ -78,6 +78,14 @@ class PhysicsObject():
 		return [0,0]
 
 	def handle_collision(self, collided_obj, my_collider, other_collider):
+
+		if my_collider.type == 'trigger':
+			self.handle_trigger(collided_obj, my_collider, other_collider)
+			return
+
+		if other_collider.type == 'trigger':
+			collided_obj.handle_trigger(self, other_collider, my_collider)
+			return
 
 		displacement = self.get_collision_displacement(collided_obj, my_collider, other_collider)
 
