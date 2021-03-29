@@ -22,7 +22,7 @@ class Player(Sprite):
 		global Chelone
 
 		if 'w' in Chelone.pressed_keys and not sprite.flag:
-			sprite.add_vel(0,-10)
+			sprite.add_vel(0,-23)
 			sprite.flag = True
 
 		if 'a' in Chelone.pressed_keys:
@@ -45,7 +45,7 @@ class Player(Sprite):
 			Chelone.camera.move(3,-3)
 
 		if "g" in Chelone.pressed_keys:
-			sprite.change_image(loader.load("stick_figure/2.png"))
+			sprite.start_anim(loader.load_anim("stick_figure/test.anim"))
 
 		sprite.last_x = sprite.x
 
@@ -92,9 +92,7 @@ class Laser(Sprite):
 		Chelone.remove_sprite(self.id)
 		print("Player attacked")
 
-
-#for i in range(1):
-spr = Player("Player",loader.load("tmp.png"), gravity=-0.3, x = 100)
+spr = Player("Player",loader.load("tmp.png"), gravity=-1, x = 100)
 Chelone.add_sprite(spr)
 
 drd1 = Droid_1("Droid 1",loader.load("droid.png"), x = 1000)
@@ -123,3 +121,4 @@ while 1:
 	Chelone.advance_frame()
 	endTime = time()
 	elapsedTime = endTime - startTime
+	print(1./elapsedTime)
