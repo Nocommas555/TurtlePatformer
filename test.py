@@ -55,9 +55,24 @@ class Player(Sprite):
 			return
 
 	def delete_self(self):
-		Chelone._sprites=[{},{}]
+		print("game_over")
+		saved_sprites = Chelone._sprites
+		Chelone._sprites = [{},{}]
 		game_over = Sprite("game_over", loader.load("game_over.png"), x=450+Chelone.camera.x, phys_type = "immovable")
 		Chelone.add_sprite(game_over,1)
+		saved_sprites[1][game_over.id]=game_over
+		super().delete_self()
+
+		# loop while dead
+		while "Return" not in Chelone.pressed_keys:
+			Chelone.advance_frame()
+
+		Chelone._sprites = saved_sprites
+		player = Player("Player", self.frame, x = self.x, y = self.y, gravity = self.gravity)
+		
+		Chelone.add_sprite(player)
+		Chelone.remove_sprite(game_over.id)
+		
 
 class Droid_1(Sprite):
 	def setup(self, kargs):
@@ -114,7 +129,6 @@ class Laser(Sprite):
 
 	def update(this):
 		this.move(this.velocity[0], this.velocity[1])
-		print(this.id)
 
 	def handle_trigger(self, collided_obj, my_collider, other_collider):
 		Chelone.remove_sprite(collided_obj.id)

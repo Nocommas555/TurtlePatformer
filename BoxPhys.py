@@ -218,7 +218,7 @@ def _remove_phys_obj():
 			collider.delete_self()
 
 		physics_objects.remove(phys_obj)
-
+		
 	_removing = []
 
 def remove_phys_obj(phys_obj):
