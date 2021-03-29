@@ -110,7 +110,7 @@ class Droid_1(Sprite):
 			if sprite.shoot_counter==0:
 				sprite.moving = False
 				if my_collider.id == "2":
-					laser = Laser("Laser", loader.load("laser.png"),x=sprite.x - 100, y = sprite.y+50, velocity = [-2, 0])			
+					laser = Laser("Laser", loader.load("laser.png"),x=sprite.x - 70, y = sprite.y+50, velocity = [-2, 0])			
 					Chelone.add_sprite(laser)
 				elif my_collider.id == "3":	
 					laser = Laser("Laser", loader.load("laser.png"),x=sprite.x + 100, y = sprite.y+50, velocity = [2, 0])			
