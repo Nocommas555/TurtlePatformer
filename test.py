@@ -108,8 +108,7 @@ class Laser(Sprite):
 
 	def update(this):
 		this.move(this.velocity[0], this.velocity[1])
-		print(this.colliders["1"].NW())
-	
+
 	def handle_trigger(self, collided_obj, my_collider, other_collider):
 		Chelone.remove_sprite(collided_obj.id)
 		Chelone.remove_sprite(self.id)
