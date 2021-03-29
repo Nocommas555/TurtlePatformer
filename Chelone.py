@@ -303,7 +303,7 @@ class SpriteRenderer():
 
 		self._sprites[layer].append(sprite)
 
-		sprite.image_tk = self.screen.create_image(sprite.x+self.camera.x, sprite.y+self.camera.y, anchor = tk.NW, image = sprite.frame.image)
+		sprite.image_tk = self.screen.create_image(sprite.x-self.camera.x, sprite.y-self.camera.y, anchor = tk.NW, image = sprite.frame.image)
 		sprite.parent_canvas = self.screen
 
 		for i, z_layer in enumerate(self._sprites):

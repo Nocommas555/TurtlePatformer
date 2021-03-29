@@ -61,7 +61,8 @@ class Droid_1(Sprite):
 		self.velocity = 1
 		self.delete = False
 		self.moving = True
-	
+		self.SHOOT_CD = 600
+		self.shoot_counter=0
 	def update(sprite):
 		global Chelone
 
@@ -75,21 +76,16 @@ class Droid_1(Sprite):
 
 
 		sprite.counter += 1	
-		if sprite.counter2 != 0:
-			sprite.counter2 += 1
-
+		
+		sprite.shoot_counter = max(0,sprite.shoot_counter-1)
 
 	def handle_trigger(sprite, collided_obj, my_collider, other_collider):
 		if type(collided_obj) == Player:
-			sprite.moving = False
-			if sprite.counter2 == 0:
-				laser = Laser("Laser",loader.load("laser.png"), x = sprite.x - 400, y = sprite.y)
+			if sprite.shoot_counter==0:
+				sprite.moving = False
+				laser = Laser("1", loader.load("laser.png"),x=sprite.x-100, y = sprite.y+50)			
 				Chelone.add_sprite(laser)
-				sprite.counter2 += 1
-			if sprite.counter2 == 300:
-				sprite.counter2 = 0
-					
-		
+				sprite.shoot_counter = sprite.SHOOT_CD
 
 class Laser(Sprite):
 	def setup(self):
@@ -98,11 +94,12 @@ class Laser(Sprite):
 
 	def update(this):
 		this.move(this.velocity[0], this.velocity[1])
+		print(this.colliders["1"].NW())
 	
 	def handle_trigger(self, collided_obj, my_collider, other_collider):
 		Chelone.remove_sprite(collided_obj.id)
 		Chelone.remove_sprite(self.id)
-		print("Player attacked")
+		print("Player attacked " + collided_obj.id)
 
 spr = Player("Player",loader.load("tmp.png"), gravity=-1, x = 100)
 Chelone.add_sprite(spr)
@@ -133,4 +130,3 @@ while 1:
 	Chelone.advance_frame()
 	endTime = time()
 	elapsedTime = endTime - startTime
-	print(1./elapsedTime)
