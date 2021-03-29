@@ -1,5 +1,6 @@
 physics_objects = []
 colliders = []
+_removing = []
 
 # depth of area on the edges the box collier in which the objects are displaced
 COLLIDER_ACTIVE_BOUNDARY = 100
@@ -51,10 +52,7 @@ class PhysicsObject():
 
 
 	def delete_self(self):
-		for collier in list(self.colliders.values()):
-			collier.delete_self()
-
-		physics_objects.remove(self)
+		remove_phys_obj(self)
 
 	# default, meant to be extended
 	def handle_trigger(self, collided_obj, my_collider, other_collider):
@@ -210,4 +208,18 @@ def advance_phys_simulation():
 		obj.advance_simulation()
 
 	_handle_all_collisions(colliders)
+	_remove_phys_obj()
 
+def _remove_phys_obj():
+	global _removing
+	
+	for phys_obj in _removing:
+		for collider in list(phys_obj.colliders.values()):
+			collider.delete_self()
+
+		physics_objects.remove(phys_obj)
+
+	_removing = []
+
+def remove_phys_obj(phys_obj):
+	_removing.append(phys_obj)
