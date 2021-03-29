@@ -84,6 +84,10 @@ class PhysicsObject():
 
 	def handle_collision(self, collided_obj, my_collider, other_collider):
 
+		# don't collide with self. allows overlapping hitboxes
+		if collided_obj.id == self.id:
+			return
+
 		if my_collider.type == 'trigger':
 			self.handle_trigger(collided_obj, my_collider, other_collider)
 			return
@@ -111,10 +115,6 @@ class PhysicsObject():
 
 		# can't do anything in this case. Shouldn't even happen tbh
 		if collided_obj.type == "immovable" and self.type == "immovable":
-			return
-
-		# don't collide with self. allows overlapping hitboxes
-		elif collided_obj == self:
 			return
 
 		# move the other obj outside of yourself
@@ -218,7 +218,7 @@ def _remove_phys_obj():
 			collider.delete_self()
 
 		physics_objects.remove(phys_obj)
-		
+
 	_removing = []
 
 def remove_phys_obj(phys_obj):

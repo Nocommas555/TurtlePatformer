@@ -21,6 +21,8 @@ class Player(Sprite):
 	def update(sprite):
 		global Chelone
 
+
+		Chelone.relayer(sprite, sprite.layer)
 		if 'w' in Chelone.pressed_keys and not sprite.flag:
 			sprite.add_vel(0,-23)
 			sprite.flag = True
@@ -45,7 +47,7 @@ class Player(Sprite):
 			Chelone.camera.move(3,-3)
 
 		if "g" in Chelone.pressed_keys:
-			sprite.start_anim(loader.load_anim("stick_figure/test.anim"))
+			sprite.start_anim(loader.load_anim("anakin/idle.anim"))
 
 		sprite.last_x = sprite.x
 
@@ -136,7 +138,7 @@ class Laser(Sprite):
 		print("Laser attacked " + collided_obj.id)
 
 spr = Player("Player",loader.load("tmp.png"), gravity=-1, x = 100)
-Chelone.add_sprite(spr)
+Chelone.add_sprite(spr, 10)
 
 drd1 = Droid_1("Droid",loader.load("droid.png"), x = 1000)
 Chelone.add_sprite(drd1)
@@ -148,13 +150,13 @@ Chelone.add_sprite(drd1)
 #Chelone.add_sprite(drd3)
 
 ground = Sprite("Ground",loader.load("gnd.png"),phys_type="immovable", x=0, y=650)
-Chelone.add_sprite(ground)
+Chelone.add_sprite(ground, 49)
 
 block = Sprite("Block",loader.load("tmp.png"), phys_type="immovable", x=500, y=150)
-Chelone.add_sprite(block, 49)
+Chelone.add_sprite(block, 30)
 
 movable = Sprite("Movable",loader.load("tmp.png"), x=150, y=200)
-Chelone.add_sprite(movable, 49)
+Chelone.add_sprite(movable, 10)
 
 #laser = Laser("Laser",loader.load("laser.png"), x = 900)
 #Chelone.add_sprite(laser)
