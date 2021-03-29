@@ -90,10 +90,10 @@ class Droid_1(Sprite):
 			if sprite.shoot_counter==0:
 				sprite.moving = False
 				if my_collider.id == "2":
-					laser = Laser("1", loader.load("laser.png"),x=sprite.x - 100, y = sprite.y+50, velocity = [-2, 0])			
+					laser = Laser("Laser", loader.load("laser.png"),x=sprite.x - 100, y = sprite.y+50, velocity = [-2, 0])			
 					Chelone.add_sprite(laser)
 				elif my_collider.id == "3":	
-					laser = Laser("1", loader.load("laser.png"),x=sprite.x + 100, y = sprite.y+50, velocity = [2, 0])			
+					laser = Laser("Laser", loader.load("laser.png"),x=sprite.x + 100, y = sprite.y+50, velocity = [2, 0])			
 					Chelone.add_sprite(laser)
 				sprite.shoot_counter = sprite.SHOOT_CD
 
@@ -105,6 +105,7 @@ class Laser(Sprite):
 			self.velocity = kargs["velocity"]
 
 		self.gravity = 0
+		print(self.id)
 
 	def update(this):
 		this.move(this.velocity[0], this.velocity[1])
@@ -117,7 +118,7 @@ class Laser(Sprite):
 spr = Player("Player",loader.load("tmp.png"), gravity=-1, x = 100)
 Chelone.add_sprite(spr)
 
-drd1 = Droid_1("Droid 1",loader.load("droid.png"), x = 1000)
+drd1 = Droid_1("Droid",loader.load("droid.png"), x = 1000)
 Chelone.add_sprite(drd1)
 
 #drd2 = Droid_1("Droid 2",loader.load("droid.png"), x = 1200)
@@ -139,6 +140,7 @@ Chelone.add_sprite(movable, 49)
 #Chelone.add_sprite(laser)
 
 Chelone.camera.move(-300,0)
+print(Chelone.get_unique_id("Player"))
 
 while 1:
 	startTime = time()
