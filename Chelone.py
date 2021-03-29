@@ -210,6 +210,9 @@ class Sprite(PhysicsObject):
 		self.parent_canvas.itemconfig(self.image_tk, image = frame.image)
 		self.frame.parent.create_colliders(self)
 
+		if "offset" in self.frame.extra.keys():
+			self.move(self.frame.extra["offset"]["x"], self.frame.extra["offset"]["y"])
+
 	def start_anim(self, anim_frames:list, start:int = 0):
 		global clear_img
 
