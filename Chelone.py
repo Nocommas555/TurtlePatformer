@@ -11,7 +11,7 @@ from typing import Union, Callable
 from time import time, sleep
 import os
 import json
-
+import re
 
 Chelone = None
 
@@ -173,7 +173,7 @@ class Sprite(PhysicsObject):
 		super().__init__(phys_type,{},x,y,[0,0],gravity,friction)
 		self.x = x
 		self.y = y
-		self.id = id  
+		self.id = Chelone.get_unique_id(id)  
 		self.frame = frame
 		self.image_tk = None
 		self.parent_canvas = None
@@ -267,7 +267,7 @@ class SpriteRenderer():
 		# 50 different z layers
 		self._sprites = []
 		for i in range(50):
-			self._sprites.append([])
+			self._sprites.append({})
 
 	def draw_gui(self):
 		pass
@@ -284,7 +284,7 @@ class SpriteRenderer():
 			self.now = time()
 
 		for layer in self._sprites:
-			for sprite in layer:
+			for sprite in layer.values():
 				sprite._update()
 
 
@@ -294,30 +294,38 @@ class SpriteRenderer():
 		self.next_frame += self.frame_period
 
 		check_keys()
-		
+	
+	def get_unique_id(self, id:str):
+		items = 0
+		for layer in self._sprites:
+			items += sum(1 if re.match(id+'_[\d]+', x) else 0 for x in layer.keys())
+
+		return id+"_"+str(items)
+
+
 	def add_sprite(self, sprite:Sprite, layer:int = 25):
 		
 		#layer 0 reserved for gui, layer 50 onward does not exist
 		if layer < 1 or layer > 49:
 			return
 
-		self._sprites[layer].append(sprite)
+		self._sprites[layer][sprite.id]=sprite
 
 		sprite.image_tk = self.screen.create_image(sprite.x-self.camera.x, sprite.y-self.camera.y, anchor = tk.NW, image = sprite.frame.image)
 		sprite.parent_canvas = self.screen
 
 		for i, z_layer in enumerate(self._sprites):
 			if len(z_layer) > 0 and i <= layer:
-				self.screen.tag_raise(sprite.image_tk, z_layer[0].image_tk)
+				self.screen.tag_raise(sprite.image_tk, list(z_layer.values())[0].image_tk)
 
 	def remove_sprite(self, sprite_id):
 
 		for layer in self._sprites:
-			for sprite in layer:
+			for sprite in list(layer.values()):
 				if sprite.id == sprite_id:
 					sprite.delete_self()
 					self.screen.delete(sprite.image_tk)
-					layer.remove(sprite)
+					layer.pop(sprite.id)
 
 
 	def bind(func:Callable, key:str):
