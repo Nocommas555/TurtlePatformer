@@ -13,7 +13,7 @@ class Player(Sprite):
 		super().move(x, y)
 		Chelone.camera.move(x,0)
 
-	def setup(self):
+	def setup(self, kargs):
 		print("setup Player")
 		self.flag = False
 		self.last_x = 0
@@ -55,7 +55,7 @@ class Player(Sprite):
 			return
 
 class Droid_1(Sprite):
-	def setup(self):
+	def setup(self, kargs):
 		self.counter = 0
 		self.counter2 = 0
 		self.velocity = 1
@@ -88,8 +88,12 @@ class Droid_1(Sprite):
 				sprite.shoot_counter = sprite.SHOOT_CD
 
 class Laser(Sprite):
-	def setup(self):
-		self.velocity = [-1, 0]
+	def setup(self, kargs):
+		if "velocity" not in kargs.keys():
+			self.velocity = [-1, 0]
+		else:
+			self.velocity = kargs["velocity"]
+
 		self.gravity = 0
 
 	def update(this):
@@ -113,7 +117,7 @@ Chelone.add_sprite(drd1)
 #drd3 = Droid_1("Droid 3",loader.load("droid.png"), x = 1400)
 #Chelone.add_sprite(drd3)
 
-ground = Sprite("Ground",loader.load("gnd.png"),phys_type="immovable", x=0, y=350)
+ground = Sprite("Ground",loader.load("gnd.png"),phys_type="immovable", x=0, y=650)
 Chelone.add_sprite(ground)
 
 block = Sprite("Block",loader.load("tmp.png"), phys_type="immovable", x=500, y=150)
@@ -124,6 +128,8 @@ Chelone.add_sprite(movable, 49)
 
 #laser = Laser("Laser",loader.load("laser.png"), x = 900)
 #Chelone.add_sprite(laser)
+
+Chelone.camera.move(-300,0)
 
 while 1:
 	startTime = time()
