@@ -212,8 +212,6 @@ class Sprite(PhysicsObject):
 		self.parent_canvas.itemconfig(self.image_tk, image = frame.image)
 		self.frame.parent.create_colliders(self)
 
-		
-		print(self._current_offset)
 		if self._current_offset["x"]!=0 or self._current_offset["y"]!=0:
 			self.parent_canvas.move(self.image_tk,self._current_offset["x"], self._current_offset["y"])
 			self._current_offset["x"] = 0
@@ -233,14 +231,11 @@ class Sprite(PhysicsObject):
 		self._anim_frame = start
 
 	def advance_anim(self):
-
 		if len(self._anim)>1:
 
 			# loop animation automatically
 			if (self._anim_frame >= len(self._anim)):
 				self._anim_frame = 0
-
-			print(self._anim[self._anim_frame])
 
 			if self._anim[self._anim_frame] != None:
 				self.change_image(self.frame.parent.load(self._anim[self._anim_frame]), stop_anim = False)
