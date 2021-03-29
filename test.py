@@ -19,10 +19,7 @@ class Player(Sprite):
 		self.last_x = 0
 		
 	def update(sprite):
-		global Chelone
 
-
-		Chelone.relayer(sprite, sprite.layer)
 		if 'w' in Chelone.pressed_keys and not sprite.flag:
 			sprite.add_vel(0,-23)
 			sprite.flag = True
@@ -156,7 +153,7 @@ block = Sprite("Block",loader.load("tmp.png"), phys_type="immovable", x=500, y=1
 Chelone.add_sprite(block, 30)
 
 movable = Sprite("Movable",loader.load("tmp.png"), x=150, y=200)
-Chelone.add_sprite(movable, 10)
+Chelone.add_sprite(movable, 30)
 
 #laser = Laser("Laser",loader.load("laser.png"), x = 900)
 #Chelone.add_sprite(laser)

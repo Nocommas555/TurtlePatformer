@@ -320,10 +320,10 @@ class SpriteRenderer():
 
 		return id + "_" + str(self._ids[id])
 
-	def relayer(self, sprite:Sprite, layer:int):
-		for i, z_layer in enumerate(self._sprites):
-			if len(z_layer) > 0 and i <= layer:
-				self.screen.tag_raise(sprite.image_tk, list(z_layer.values())[0].image_tk)
+	def relayer(self):
+		for layer in self._sprites[::-1]:
+			for spr in layer.values():
+				self.screen.tag_raise(spr.image_tk)
 
 	def add_sprite(self, sprite:Sprite, layer:int = 25):
 		
@@ -336,7 +336,7 @@ class SpriteRenderer():
 
 		sprite.image_tk = self.screen.create_image(sprite.x-self.camera.x, sprite.y-self.camera.y, anchor = tk.NW, image = sprite.frame.image)
 		sprite.parent_canvas = self.screen
-		self.relayer(sprite, layer)
+		self.relayer()
 
 	def remove_sprite(self, sprite_id):
 
