@@ -54,6 +54,11 @@ class Player(Sprite):
 			super().handle_collision(collided_obj, my_collider, other_collider)
 			return
 
+	def delete_self(self):
+		Chelone._sprites=[{},{}]
+		game_over = Sprite("game_over", loader.load("game_over.png"), x=450+Chelone.camera.x, phys_type = "immovable")
+		Chelone.add_sprite(game_over,1)
+
 class Droid_1(Sprite):
 	def setup(self, kargs):
 		self.counter = 0

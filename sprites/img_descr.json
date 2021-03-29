@@ -1,6 +1,7 @@
 {
 	"images":{
 		"clear.png":{"hitboxes":{}, "extra":{}},
+		"game_over.png":{"hitboxes":{}, "extra":{}, "scale":3},
 		"gnd.png":{"hitboxes":{"1":{"x":0,"y":0,"width":2560,"height":180,"type":"rigid"}}, "extra":{}, "scale":10},
 		"tmp.png":{"hitboxes":{"1":{"x":0,"y":0,"width":100,"height":100,"type":"rigid"}}, "extra":{}},
 		"Untitled.png":{"hitboxes":{"1":{"x":0,"y":0,"width":100,"height":100,"type":"rigid"}}, "extra":{}},
