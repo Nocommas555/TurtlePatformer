@@ -165,6 +165,7 @@ class Sprite(PhysicsObject):
 	_anim = []
 	_anim_frame = 0
 	id = ""
+	_current_offset = {"x":0,"y":0}
 
 	# updateFunc is a function that takes self and gets called every frame
 	# setupFunc is a function that takes self and gets called once, at setup
@@ -173,6 +174,7 @@ class Sprite(PhysicsObject):
 		super().__init__(phys_type,{},x,y,[0,0],gravity,friction)
 		self.x = x
 		self.y = y
+		self.layer = 25
 		self.id = Chelone.get_unique_id(id)  
 		self.frame = frame
 		self.image_tk = None
@@ -210,8 +212,19 @@ class Sprite(PhysicsObject):
 		self.parent_canvas.itemconfig(self.image_tk, image = frame.image)
 		self.frame.parent.create_colliders(self)
 
+		
+		print(self._current_offset)
+		if self._current_offset["x"]!=0 or self._current_offset["y"]!=0:
+			self.parent_canvas.move(self.image_tk,self._current_offset["x"], self._current_offset["y"])
+			self._current_offset["x"] = 0
+			self._current_offset["y"] = 0
+
+
 		if "offset" in self.frame.extra.keys():
-			self.move(self.frame.extra["offset"]["x"], self.frame.extra["offset"]["y"])
+			self.parent_canvas.move(self.image_tk,-self.frame.extra["offset"]["x"], -self.frame.extra["offset"]["y"])
+			self._current_offset["x"] = self.frame.extra["offset"]["x"]
+			self._current_offset["y"] = self.frame.extra["offset"]["y"]
+
 
 	def start_anim(self, anim_frames:list, start:int = 0):
 		global clear_img
@@ -307,20 +320,23 @@ class SpriteRenderer():
 
 		return id + "_" + str(self._ids[id])
 
+	def relayer(self, sprite:Sprite, layer:int):
+		for i, z_layer in enumerate(self._sprites):
+			if len(z_layer) > 0 and i <= layer:
+				self.screen.tag_raise(sprite.image_tk, list(z_layer.values())[0].image_tk)
+
 	def add_sprite(self, sprite:Sprite, layer:int = 25):
 		
 		#layer 0 reserved for gui, layer 50 onward does not exist
 		if layer < 1 or layer > 49:
 			return
 
+		sprite.layer = layer
 		self._sprites[layer][sprite.id]=sprite
 
 		sprite.image_tk = self.screen.create_image(sprite.x-self.camera.x, sprite.y-self.camera.y, anchor = tk.NW, image = sprite.frame.image)
 		sprite.parent_canvas = self.screen
-
-		for i, z_layer in enumerate(self._sprites):
-			if len(z_layer) > 0 and i <= layer:
-				self.screen.tag_raise(sprite.image_tk, list(z_layer.values())[0].image_tk)
+		self.relayer(sprite, layer)
 
 	def remove_sprite(self, sprite_id):
 
