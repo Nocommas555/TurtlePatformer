@@ -169,7 +169,7 @@ class Sprite(PhysicsObject):
 	# updateFunc is a function that takes self and gets called every frame
 	# setupFunc is a function that takes self and gets called once, at setup
 
-	def __init__(self, id:str, frame:SpriteLoader.SpriteFrame, x:int = 0, y:int = 0, phys_type:str="default", gravity:float=-0.3, friction:float=0.1):
+	def __init__(self, id:str, frame:SpriteLoader.SpriteFrame, x:int = 0, y:int = 0, phys_type:str="default", gravity:float=-0.3, friction:float=0.1, **kargs):
 		super().__init__(phys_type,{},x,y,[0,0],gravity,friction)
 		self.x = x
 		self.y = y
@@ -179,12 +179,12 @@ class Sprite(PhysicsObject):
 		self.parent_canvas = None
 		self._anim = [frame]
 		self._anim_frame = 0
-		self.setup()
+		self.setup(kargs)
 
 		frame.parent.create_colliders(self)
 
 	# made to be extended
-	def setup(self):
+	def setup(self, kargs):
 		pass
 
 	# made to be extended
