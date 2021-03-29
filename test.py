@@ -61,8 +61,9 @@ class Droid_1(Sprite):
 		self.velocity = 1
 		self.delete = False
 		self.moving = True
-		self.SHOOT_CD = 600
+		self.SHOOT_CD = 240
 		self.shoot_counter=0
+		self.player_seen = False
 	def update(sprite):
 		global Chelone
 
@@ -79,12 +80,21 @@ class Droid_1(Sprite):
 		
 		sprite.shoot_counter = max(0,sprite.shoot_counter-1)
 
+		if sprite.player_seen == False and sprite.shoot_counter == 0:
+			sprite.moving = True
+
+		sprite.player_seen = False
+
 	def handle_trigger(sprite, collided_obj, my_collider, other_collider):
 		if type(collided_obj) == Player:
 			if sprite.shoot_counter==0:
 				sprite.moving = False
-				laser = Laser("1", loader.load("laser.png"),x=sprite.x-100, y = sprite.y+50)			
-				Chelone.add_sprite(laser)
+				if my_collider.id == "2":
+					laser = Laser("1", loader.load("laser.png"),x=sprite.x - 100, y = sprite.y+50, velocity = [-2, 0])			
+					Chelone.add_sprite(laser)
+				elif my_collider.id == "3":	
+					laser = Laser("1", loader.load("laser.png"),x=sprite.x + 100, y = sprite.y+50, velocity = [2, 0])			
+					Chelone.add_sprite(laser)
 				sprite.shoot_counter = sprite.SHOOT_CD
 
 class Laser(Sprite):
