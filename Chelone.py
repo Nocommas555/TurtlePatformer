@@ -238,6 +238,7 @@ class SpriteRenderer():
 	screen = None
 	_sprites = []
 	_prev_draw_time = None
+	_ids = {}
 
 	caught_keys_prev = []
 	caught_keys = []
@@ -296,12 +297,12 @@ class SpriteRenderer():
 		check_keys()
 	
 	def get_unique_id(self, id:str):
-		items = 0
-		for layer in self._sprites:
-			items += sum(1 if re.match(id+'_[\d]+', x) else 0 for x in layer.keys())
+		if id not in self._ids:
+			self._ids[id] = 1
+		else:
+			self._ids[id] += 1
 
-		return id+"_"+str(items)
-
+		return id + "_" + str(self._ids[id])
 
 	def add_sprite(self, sprite:Sprite, layer:int = 25):
 		

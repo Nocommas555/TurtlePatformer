@@ -105,15 +105,16 @@ class Laser(Sprite):
 			self.velocity = kargs["velocity"]
 
 		self.gravity = 0
-		print(self.id)
+		
 
 	def update(this):
 		this.move(this.velocity[0], this.velocity[1])
+		print(this.id)
 
 	def handle_trigger(self, collided_obj, my_collider, other_collider):
 		Chelone.remove_sprite(collided_obj.id)
 		Chelone.remove_sprite(self.id)
-		print("Player attacked " + collided_obj.id)
+		print("Laser attacked " + collided_obj.id)
 
 spr = Player("Player",loader.load("tmp.png"), gravity=-1, x = 100)
 Chelone.add_sprite(spr)
