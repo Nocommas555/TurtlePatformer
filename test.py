@@ -57,10 +57,12 @@ class Player(Sprite):
 class Droid_1(Sprite):
 	def setup(self, kargs):
 		self.counter = 0
+		self.counter2 = 0
 		self.velocity = 1
 		self.delete = False
 		self.moving = True
-	
+		self.SHOOT_CD = 600
+		self.shoot_counter=0
 	def update(sprite):
 		global Chelone
 
@@ -73,11 +75,17 @@ class Droid_1(Sprite):
 				sprite.move(sprite.velocity, 0)
 
 
-		sprite.counter += 1
+		sprite.counter += 1	
+		
+		sprite.shoot_counter = max(0,sprite.shoot_counter-1)
 
 	def handle_trigger(sprite, collided_obj, my_collider, other_collider):
 		if type(collided_obj) == Player:
-			sprite.moving = False
+			if sprite.shoot_counter==0:
+				sprite.moving = False
+				laser = Laser("1", loader.load("laser.png"),x=sprite.x-100, y = sprite.y+50)			
+				Chelone.add_sprite(laser)
+				sprite.shoot_counter = sprite.SHOOT_CD
 
 class Laser(Sprite):
 	def setup(self, kargs):
@@ -90,11 +98,12 @@ class Laser(Sprite):
 
 	def update(this):
 		this.move(this.velocity[0], this.velocity[1])
+		print(this.colliders["1"].NW())
 	
 	def handle_trigger(self, collided_obj, my_collider, other_collider):
 		Chelone.remove_sprite(collided_obj.id)
 		Chelone.remove_sprite(self.id)
-		print("Player attacked")
+		print("Player attacked " + collided_obj.id)
 
 spr = Player("Player",loader.load("tmp.png"), gravity=-1, x = 100)
 Chelone.add_sprite(spr)
@@ -102,11 +111,11 @@ Chelone.add_sprite(spr)
 drd1 = Droid_1("Droid 1",loader.load("droid.png"), x = 1000)
 Chelone.add_sprite(drd1)
 
-drd2 = Droid_1("Droid 2",loader.load("droid.png"), x = 1200)
-Chelone.add_sprite(drd2)
+#drd2 = Droid_1("Droid 2",loader.load("droid.png"), x = 1200)
+#Chelone.add_sprite(drd2)
 
-drd3 = Droid_1("Droid 3",loader.load("droid.png"), x = 1400)
-Chelone.add_sprite(drd3)
+#drd3 = Droid_1("Droid 3",loader.load("droid.png"), x = 1400)
+#Chelone.add_sprite(drd3)
 
 ground = Sprite("Ground",loader.load("gnd.png"),phys_type="immovable", x=0, y=650)
 Chelone.add_sprite(ground)
@@ -117,8 +126,8 @@ Chelone.add_sprite(block, 49)
 movable = Sprite("Movable",loader.load("tmp.png"), x=150, y=200)
 Chelone.add_sprite(movable, 49)
 
-laser = Laser("Laser",loader.load("laser.png"), x = 900, velocity = [-1,1])
-Chelone.add_sprite(laser)
+#laser = Laser("Laser",loader.load("laser.png"), x = 900)
+#Chelone.add_sprite(laser)
 
 Chelone.camera.move(-300,0)
 
@@ -127,4 +136,3 @@ while 1:
 	Chelone.advance_frame()
 	endTime = time()
 	elapsedTime = endTime - startTime
-	print(1./elapsedTime)
