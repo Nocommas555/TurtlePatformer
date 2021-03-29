@@ -88,8 +88,8 @@ class SpriteLoader():
 		self._storage = {}
 
 	def load_anim(self, path:str):
-		if os.path.exists(self._sprite_dir+path) and path[:-4] == "anim":
-			return ["/".join(self._sprite_dir+path)[:-1]+x if x!=None else None for x in json.load(open(path))]
+		if os.path.exists(self._sprite_dir+path):
+			return ["/".join(path.split("/")[:-1])+"/"+x if x!="None" else None for x in json.load(open(self._sprite_dir+path))]
 
 		else:
 			print("wrong anim path")
@@ -223,6 +223,8 @@ class Sprite(PhysicsObject):
 			# loop animation automatically
 			if (self._anim_frame >= len(self._anim)):
 				self._anim_frame = 0
+
+			print(self._anim[self._anim_frame])
 
 			if self._anim[self._anim_frame] != None:
 				self.change_image(self.frame.parent.load(self._anim[self._anim_frame]), stop_anim = False)

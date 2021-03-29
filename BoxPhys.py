@@ -96,14 +96,20 @@ class PhysicsObject():
 
 		displacement = self.get_collision_displacement(collided_obj, my_collider, other_collider)
 
+		
 		# nullify velocities in the direction of collision
 		if displacement[0]!=0:
 			collided_obj.vel[0] = 0
 			self.vel[0] = 0
-		elif displacement[1]!=0:
-			collided_obj.vel[1]=0
-			self.vel[1] = 0
 
+		elif displacement[1]!=0:
+			if displacement[1]<0:
+				collided_obj.vel[1] = max(0, collided_obj.vel[1])
+				self.vel[1] = min(0, self.vel[1])
+			else:
+				collided_obj.vel[1] = min(0, collided_obj.vel[1])
+				self.vel[1] = max(0, self.vel[1])
+			
 
 		# can't do anything in this case. Shouldn't even happen tbh
 		if collided_obj.type == "immovable" and self.type == "immovable":
