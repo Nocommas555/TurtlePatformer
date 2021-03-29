@@ -17,7 +17,9 @@ class Player(Sprite):
 		print("setup Player")
 		self.flag = False
 		self.last_x = 0
-		
+		self.anim_state = "idle"
+		self.start_anim(loader.load_anim("anakin/idle.anim"))
+
 	def update(sprite):
 
 		if 'w' in Chelone.pressed_keys and not sprite.flag:
@@ -25,14 +27,26 @@ class Player(Sprite):
 			sprite.flag = True
 
 		if 'a' in Chelone.pressed_keys:
-			sprite.move(-3,0)
+			sprite.move(-5,0)
+			if sprite.anim_state != "run_left":
+				sprite.anim_state = "run_left"
+				if sprite.anim_state == "run_right":
+					sprite.start_anim(loader.load_anim("anakin/run.anim"), sprite._anim_frame)
+				else:
+					sprite.start_anim(loader.load_anim("anakin/run.anim"))
 
-		if 's' in Chelone.pressed_keys:
-			sprite.move(0,10)
-		if 'd' in Chelone.pressed_keys:
-			sprite.move(3,0)
-
-			
+		elif 'd' in Chelone.pressed_keys:
+			sprite.move(5,0)
+			if sprite.anim_state != "run_right":
+				sprite.anim_state = "run_right"
+				if sprite.anim_state == "run_left":
+					sprite.start_anim(loader.load_anim("anakin/run.anim"), sprite._anim_frame)
+				else:
+					sprite.start_anim(loader.load_anim("anakin/run.anim"))
+		else:
+			if sprite.anim_state != "idle":
+				sprite.anim_state = "idle"
+				sprite.start_anim(loader.load_anim("anakin/idle.anim"))
 
 		if sprite.flag and 'w' not in Chelone.pressed_keys:
 			sprite.flag = False
@@ -42,9 +56,6 @@ class Player(Sprite):
 
 		if "e" in Chelone.pressed_keys:
 			Chelone.camera.move(3,-3)
-
-		if "g" in Chelone.pressed_keys:
-			sprite.start_anim(loader.load_anim("anakin/idle.anim"))
 
 		sprite.last_x = sprite.x
 
@@ -152,8 +163,8 @@ Chelone.add_sprite(ground, 49)
 block = Sprite("Block",loader.load("tmp.png"), phys_type="immovable", x=500, y=150)
 Chelone.add_sprite(block, 30)
 
-movable = Sprite("Movable",loader.load("tmp.png"), x=150, y=200)
-Chelone.add_sprite(movable, 30)
+# movable = Sprite("Movable",loader.load("tmp.png"), x=150, y=200)
+# Chelone.add_sprite(movable, 30)
 
 #laser = Laser("Laser",loader.load("laser.png"), x = 900)
 #Chelone.add_sprite(laser)
