@@ -6,7 +6,8 @@
 		"Untitled.png":{"hitboxes":{"1":{"x":0,"y":0,"width":100,"height":100,"type":"rigid"}}, "extra":{}},
 		"droid.png":{"hitboxes":{
 			"1":{"x":0,"y":0,"width":100,"height":100,"type":"rigid"},
-			"2":{"x":-200,"y":0,"width":500,"height":100,"type":"trigger"}}, 
+			"2":{"x":-300,"y":0,"width":300,"height":100,"type":"trigger"},
+			"3":{"x":100,"y":0,"width":300,"height":100,"type":"trigger"}}, 
 			"extra":{}},
 		"laser.png":{"hitboxes":{"1":{"x":0,"y":0,"width":100,"height":20,"type":"trigger"}}, "extra":{}, "scale":4}
 	}
