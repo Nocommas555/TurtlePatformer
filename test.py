@@ -79,6 +79,7 @@ class Player(Sprite):
 			Chelone.root.update()
 
 		Chelone.next_frame = time()
+		Chelone.now = time()
 		Chelone._sprites = saved_sprites
 		super().delete_self()
 		player = Player("Player", loader.load("tmp.png"), x = 250, y = 0, gravity = self.gravity)
