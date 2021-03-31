@@ -1,5 +1,5 @@
 from Chelone import *
-
+from time import time
 # setting up a basic scene to test
 Chelone = init(1620,800)
 
@@ -67,21 +67,24 @@ class Player(Sprite):
 	def delete_self(self):
 		print("game_over")
 		saved_sprites = Chelone._sprites
-		Chelone._sprites = [{},{}]
-		game_over = Sprite("game_over", loader.load("game_over.png"), x=450+Chelone.camera.x, phys_type = "immovable")
+		Chelone._sprites = [{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}]
+		game_over = Sprite("game_over", loader.load("game_over.png"), x=450+Chelone.camera.x, phys_type = "immovable", layer = 1)
 		Chelone.add_sprite(game_over,1)
 		saved_sprites[1][game_over.id]=game_over
-		super().delete_self()
+
 
 		# loop while dead
 		while "Return" not in Chelone.pressed_keys:
-			Chelone.advance_frame()
+			check_keys()
+			Chelone.root.update()
 
+		Chelone.next_frame = time()
 		Chelone._sprites = saved_sprites
-		player = Player("Player", self.frame, x = 250, y = 0, gravity = self.gravity)
+		super().delete_self()
+		player = Player("Player", loader.load("tmp.png"), x = 250, y = 0, gravity = self.gravity)
 		Chelone.camera.move(-Chelone.camera.x - 300, 0)
 		Chelone.add_sprite(player)
-		Chelone.remove_sprite(game_over.id)
+		game_over.delete_self()
 		
 
 class Droid_1(Sprite):
@@ -121,10 +124,8 @@ class Droid_1(Sprite):
 				sprite.moving = False
 				if my_collider.id == "2":
 					laser = Laser("Laser", loader.load("laser.png"),x=sprite.x - 70, y = sprite.y+50, velocity = [-2, 0])			
-					Chelone.add_sprite(laser)
 				elif my_collider.id == "3":	
 					laser = Laser("Laser", loader.load("laser.png"),x=sprite.x + 100, y = sprite.y+50, velocity = [2, 0])			
-					Chelone.add_sprite(laser)
 				sprite.shoot_counter = sprite.SHOOT_CD
 
 class Laser(Sprite):
@@ -141,15 +142,13 @@ class Laser(Sprite):
 		this.move(this.velocity[0], this.velocity[1])
 
 	def handle_trigger(self, collided_obj, my_collider, other_collider):
-		Chelone.remove_sprite(collided_obj.id)
-		Chelone.remove_sprite(self.id)
+		self.delete_self()
+		collided_obj.delete_self()
 		print("Laser attacked " + collided_obj.id)
 
-spr = Player("Player",loader.load("tmp.png"), gravity=-1, x = 100)
-Chelone.add_sprite(spr, 10)
+spr = Player("Player",loader.load("tmp.png"), gravity=-1, x = 100, layer = 10)
 
 drd1 = Droid_1("Droid",loader.load("droid.png"), x = 1000)
-Chelone.add_sprite(drd1)
 
 #drd2 = Droid_1("Droid 2",loader.load("droid.png"), x = 1200)
 #Chelone.add_sprite(drd2)
@@ -157,11 +156,9 @@ Chelone.add_sprite(drd1)
 #drd3 = Droid_1("Droid 3",loader.load("droid.png"), x = 1400)
 #Chelone.add_sprite(drd3)
 
-ground = Sprite("Ground",loader.load("gnd.png"),phys_type="immovable", x=0, y=650)
-Chelone.add_sprite(ground, 49)
+ground = Sprite("Ground",loader.load("gnd.png"),phys_type="immovable", x=0, y=650, layer=49)
 
 block = Sprite("Block",loader.load("tmp.png"), phys_type="immovable", x=500, y=150)
-Chelone.add_sprite(block, 30)
 
 # movable = Sprite("Movable",loader.load("tmp.png"), x=150, y=200)
 # Chelone.add_sprite(movable, 30)
