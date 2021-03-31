@@ -170,7 +170,7 @@ class Sprite(PhysicsObject):
 	# updateFunc is a function that takes self and gets called every frame
 	# setupFunc is a function that takes self and gets called once, at setup
 
-	def __init__(self, id:str, frame:SpriteLoader.SpriteFrame, x:int = 0, y:int = 0, phys_type:str="default", gravity:float=-0.3, friction:float=0.1, **kargs):
+	def __init__(self, id:str, frame:SpriteLoader.SpriteFrame, x:int = 0, y:int = 0, phys_type:str="default", gravity:float=-0.3, friction:float=0.1, layer = 25,**kargs):
 		super().__init__(phys_type,{},x,y,[0,0],gravity,friction)
 		self.x = x
 		self.y = y
@@ -180,11 +180,11 @@ class Sprite(PhysicsObject):
 		self.image_tk = None
 		self.parent_canvas = None
 		self._anim = [frame]
-		self._anim_frame = 0
-		self.setup(kargs)
-
+		self._anim_frame = 0		
 		frame.parent.create_colliders(self)
+		Chelone.add_sprite(self, layer)
 
+		self.setup(kargs)
 	# made to be extended
 	def setup(self, kargs):
 		pass
@@ -193,6 +193,12 @@ class Sprite(PhysicsObject):
 	def update(self):
 		pass
 
+	def delete_self(self):
+		super().delete_self()
+		self.parent_canvas.delete(self.image_tk)
+
+		if self.id in Chelone._sprites[self.layer]:
+			Chelone._sprites[self.layer].pop(self.id)
 
 	def _update(self):
 		self.update()
@@ -205,17 +211,17 @@ class Sprite(PhysicsObject):
 
 	def change_image(self, frame:SpriteLoader.SpriteFrame, stop_anim:bool = True):
 
+		if self._current_offset["x"]!=0 or self._current_offset["y"]!=0:
+			self.parent_canvas.move(self.image_tk,self._current_offset["x"], self._current_offset["y"])
+			self._current_offset["x"] = 0
+			self._current_offset["y"] = 0
+
 		if stop_anim and len(self._anim)>1:
 			self._anim = [frame]
 
 		self.frame = frame
 		self.parent_canvas.itemconfig(self.image_tk, image = frame.image)
 		self.frame.parent.create_colliders(self)
-
-		if self._current_offset["x"]!=0 or self._current_offset["y"]!=0:
-			self.parent_canvas.move(self.image_tk,self._current_offset["x"], self._current_offset["y"])
-			self._current_offset["x"] = 0
-			self._current_offset["y"] = 0
 
 
 		if "offset" in self.frame.extra.keys():
@@ -226,7 +232,10 @@ class Sprite(PhysicsObject):
 
 	def start_anim(self, anim_frames:list, start:int = 0):
 		global clear_img
-
+		self._current_offset["x"] = 0
+		self._current_offset["y"] = 0
+		self.parent_canvas.delete(self.image_tk)
+		self.image_tk = self.parent_canvas.create_image(self.x-Chelone.camera.x, self.y-Chelone.camera.y, anchor = tk.NW, image = self.frame.image)
 		self._anim = anim_frames
 		self._anim_frame = start
 
@@ -322,25 +331,17 @@ class SpriteRenderer():
 
 	def add_sprite(self, sprite:Sprite, layer:int = 25):
 		
-		#layer 0 reserved for gui, layer 50 onward does not exist
 		if layer < 1 or layer > 49:
 			return
 
 		sprite.layer = layer
 		self._sprites[layer][sprite.id]=sprite
 
-		sprite.image_tk = self.screen.create_image(sprite.x-self.camera.x, sprite.y-self.camera.y, anchor = tk.NW, image = sprite.frame.image)
+		if sprite.image_tk == None:
+			sprite.image_tk = self.screen.create_image(sprite.x-self.camera.x, sprite.y-self.camera.y, anchor = tk.NW, image = sprite.frame.image)
+		
 		sprite.parent_canvas = self.screen
 		self.relayer()
-
-	def remove_sprite(self, sprite_id):
-
-		for layer in self._sprites:
-			for sprite in list(layer.values()):
-				if sprite.id == sprite_id:
-					sprite.delete_self()
-					self.screen.delete(sprite.image_tk)
-					layer.pop(sprite.id)
 
 
 	def bind(func:Callable, key:str):
