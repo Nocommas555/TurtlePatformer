@@ -31,18 +31,18 @@ class Player(Sprite):
 			if sprite.anim_state != "run_left":
 				sprite.anim_state = "run_left"
 				if sprite.anim_state == "run_right":
-					sprite.start_anim(loader.load_anim("anakin/run.anim"), sprite._anim_frame)
+					sprite.start_anim(loader.load_anim("anakin/run_left.anim"), sprite._anim_frame)
 				else:
-					sprite.start_anim(loader.load_anim("anakin/run.anim"))
+					sprite.start_anim(loader.load_anim("anakin/run_left.anim"))
 
 		elif 'd' in Chelone.pressed_keys:
 			sprite.move(5,0)
 			if sprite.anim_state != "run_right":
 				sprite.anim_state = "run_right"
 				if sprite.anim_state == "run_left":
-					sprite.start_anim(loader.load_anim("anakin/run.anim"), sprite._anim_frame)
+					sprite.start_anim(loader.load_anim("anakin/run_right.anim"), sprite._anim_frame)
 				else:
-					sprite.start_anim(loader.load_anim("anakin/run.anim"))
+					sprite.start_anim(loader.load_anim("anakin/run_right.anim"))
 		else:
 			if sprite.anim_state != "idle":
 				sprite.anim_state = "idle"
@@ -78,8 +78,8 @@ class Player(Sprite):
 			Chelone.advance_frame()
 
 		Chelone._sprites = saved_sprites
-		player = Player("Player", self.frame, x = self.x, y = self.y, gravity = self.gravity)
-		
+		player = Player("Player", self.frame, x = 250, y = 0, gravity = self.gravity)
+		Chelone.camera.move(-Chelone.camera.x - 300, 0)
 		Chelone.add_sprite(player)
 		Chelone.remove_sprite(game_over.id)
 		
