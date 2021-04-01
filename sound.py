@@ -1,16 +1,21 @@
  #plays file via vlc
-def _playsoundLinux(sound):
+
+def _playsound_linux(file_source):
 	import os
-	os.system('cvlc ' + sound)
+	os.system('cvlc ' + file_source)
+
+def _playsound_crappy_win(file_source):
+    import winsound
+    winsound.PlaySound(file_source, winsound.SND_FILENAME)
 
 from platform import system
 system = system()
 print(system)
-
 if system == 'Linux':
-	playsound = _playsoundLinux
-
+	playsound = _playsound_linux
+elif system == 'Windows':
+	playsound = _playsound_crappy_win
 del system
 
 #test
-playsound('/home/vlad/Desktop/sound/file_example_MP3_1MG.mp3')
+playsound('/home/vlad/Desktop/sound/file_test_name.wav')
