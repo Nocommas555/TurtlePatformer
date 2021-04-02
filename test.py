@@ -1,5 +1,5 @@
 from Chelone import *
-
+from sound import playsound
 from time import time
 # setting up a basic scene to test
 Chelone = init(1600,800)
@@ -180,7 +180,6 @@ block = Sprite("Block",loader.load("tmp.png"), phys_type="immovable", x=500, y=3
 #Chelone.add_sprite(laser)
 
 print(Chelone.get_unique_id("Player"))
-
 while 1:
 	startTime = time()
 	Chelone.advance_frame()

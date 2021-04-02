@@ -10,7 +10,6 @@ def _playsound_win(file_source):
 
 from platform import system
 system = system()
-print(system)
 if system == 'Linux':
 	playsound = _playsound_linux
 elif system == 'Windows':
