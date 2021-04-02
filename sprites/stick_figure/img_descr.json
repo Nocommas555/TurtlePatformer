@@ -1,0 +1,9 @@
+{
+	"images":{
+		"1.png":{"hitboxes":{"1":{"x":0,"y":0,"width":60,"height":150,"type":"rigid"}},"extra":{},"scale":3},
+		"2.png":{"hitboxes":{"1":{"x":0,"y":0,"width":60,"height":150,"type":"rigid"}},"extra":{},"scale":3},
+		"3.png":{"hitboxes":{"1":{"x":0,"y":0,"width":60,"height":150,"type":"rigid"}},"extra":{},"scale":3},
+		"4.png":{"hitboxes":{"1":{"x":0,"y":0,"width":60,"height":150,"type":"rigid"}},"extra":{},"scale":3},
+		"5.png":{"hitboxes":{"1":{"x":0,"y":0,"width":60,"height":150,"type":"rigid"}},"extra":{},"scale":3}
+	}
+}
