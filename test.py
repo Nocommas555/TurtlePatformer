@@ -8,7 +8,7 @@ loader = SpriteLoader()
 class Player(Sprite):
 	grounded = False
 	w_pressed = False
-	camera_lagbehind = [0.01, 0.125]
+	camera_lagbehind = [0.01, 0.05]
 	camera_offset = [600, 300]
 
 	def setup(self, kargs):
@@ -21,7 +21,7 @@ class Player(Sprite):
 		if "camera_lagbehind" in kargs:
 			self.camera_lagbehind = kargs["camera_lagbehind"]
 		else:
-			self.camera_lagbehind = [0.05, 0.125]
+			self.camera_lagbehind = [0.05, 0.05]
 
 
 		if "camera_offset" in kargs:
