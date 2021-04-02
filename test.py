@@ -78,7 +78,7 @@ class Player(Sprite):
 		print("game_over")
 		saved_sprites = Chelone._sprites
 		Chelone._sprites = [{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}]
-		game_over = Sprite("game_over", loader.load("game_over.png"), x=450+Chelone.camera.x, phys_type = "immovable", layer = 1)
+		game_over = Sprite("game_over", loader.load("game_over.png"), x=450+Chelone.camera.x, y=Chelone.camera.y, phys_type = "immovable", layer = 1)
 		Chelone.add_sprite(game_over,1)
 		saved_sprites[1][game_over.id]=game_over
 
