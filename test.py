@@ -1,4 +1,5 @@
 from Chelone import *
+
 from time import time
 # setting up a basic scene to test
 Chelone = init(1600,800)
