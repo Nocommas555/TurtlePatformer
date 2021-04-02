@@ -6,8 +6,8 @@ Chelone = init(1620,800)
 loader = SpriteLoader()
 
 class Player(Sprite):
-	flag = False
-	last_x = 0
+	grounded = False
+	w_pressed = False
 
 	def move(self, x, y):
 		super().move(x, y)
@@ -15,16 +15,15 @@ class Player(Sprite):
 
 	def setup(self, kargs):
 		print("setup Player")
-		self.flag = False
-		self.last_x = 0
+		self.grounded = False
+		self.w_pressed = False
 		self.anim_state = "idle"
 		self.start_anim(loader.load_anim("anakin/idle.anim"))
 
 	def update(sprite):
 
-		if 'w' in Chelone.pressed_keys and not sprite.flag:
+		if 'w' in Chelone.pressed_keys and sprite.grounded and not sprite.w_pressed:
 			sprite.add_vel(0,-23)
-			sprite.flag = True
 
 		if 'a' in Chelone.pressed_keys:
 			sprite.move(-5,0)
@@ -48,21 +47,25 @@ class Player(Sprite):
 				sprite.anim_state = "idle"
 				sprite.start_anim(loader.load_anim("anakin/idle.anim"))
 
-		if sprite.flag and 'w' not in Chelone.pressed_keys:
-			sprite.flag = False
-
 		if "q" in Chelone.pressed_keys:
 			Chelone.camera.move(-3,3)
 
 		if "e" in Chelone.pressed_keys:
 			Chelone.camera.move(3,-3)
 
-		sprite.last_x = sprite.x
+		sprite.grounded = False
+		sprite.w_pressed = 'w' in Chelone.pressed_keys
 
-	def handle_collision(self, collided_obj, my_collider, other_collider):
-		if my_collider.id == "1":
-			super().handle_collision(collided_obj, my_collider, other_collider)
-			return
+	def handle_collision(self, collided_obj, my_collider, other_collider, handled=False):
+		
+
+		displacement = self.get_collision_displacement(collided_obj, my_collider, other_collider)
+		super().handle_collision(collided_obj,my_collider,other_collider,handled)
+		
+		print(displacement)
+		if displacement[1]<0 and not self.vel[1]<0 and my_collider.type!="trigger" and other_collider.type != "trigger":
+			self.grounded=True
+
 
 	def delete_self(self):
 		print("game_over")
@@ -143,11 +146,12 @@ class Laser(Sprite):
 		this.move(this.velocity[0], this.velocity[1])
 
 	def handle_trigger(self, collided_obj, my_collider, other_collider):
-		self.delete_self()
-		collided_obj.delete_self()
-		print("Laser attacked " + collided_obj.id)
+		if type(collided_obj) != Droid_1:
+			self.delete_self()
+			collided_obj.delete_self()
+			print("Laser attacked " + collided_obj.id)
 
-spr = Player("Player",loader.load("tmp.png"), gravity=-1, x = 100, layer = 10)
+spr = Player("Player",loader.load("tmp.png"), gravity=-0.7, x = 100, layer = 10)
 
 drd1 = Droid_1("Droid",loader.load("droid.png"), x = 1000)
 
@@ -159,7 +163,7 @@ drd1 = Droid_1("Droid",loader.load("droid.png"), x = 1000)
 
 ground = Sprite("Ground",loader.load("gnd.png"),phys_type="immovable", x=0, y=650, layer=49)
 
-block = Sprite("Block",loader.load("tmp.png"), phys_type="immovable", x=500, y=150)
+block = Sprite("Block",loader.load("tmp.png"), phys_type="immovable", x=500, y=350)
 
 # movable = Sprite("Movable",loader.load("tmp.png"), x=150, y=200)
 # Chelone.add_sprite(movable, 30)
