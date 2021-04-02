@@ -20,32 +20,32 @@ class Player(Sprite):
 		self.anim_state = "idle"
 		self.start_anim(loader.load_anim("anakin/idle.anim"))
 
-	def update(sprite):
+	def update(self):
 
-		if 'w' in Chelone.pressed_keys and sprite.grounded and not sprite.w_pressed:
-			sprite.add_vel(0,-23)
+		if 'w' in Chelone.pressed_keys and self.grounded and not self.w_pressed:
+			self.add_vel(0,-23)
 
 		if 'a' in Chelone.pressed_keys:
-			sprite.move(-5,0)
-			if sprite.anim_state != "run_left":
-				sprite.anim_state = "run_left"
-				if sprite.anim_state == "run_right":
-					sprite.start_anim(loader.load_anim("anakin/run_left.anim"), sprite._anim_frame)
+			self.move(-5,0)
+			if self.anim_state != "run_left":
+				self.anim_state = "run_left"
+				if self.anim_state == "run_right":
+					self.start_anim(loader.load_anim("anakin/run_left.anim"), self._anim_frame)
 				else:
-					sprite.start_anim(loader.load_anim("anakin/run_left.anim"))
+					self.start_anim(loader.load_anim("anakin/run_left.anim"))
 
 		elif 'd' in Chelone.pressed_keys:
-			sprite.move(5,0)
-			if sprite.anim_state != "run_right":
-				sprite.anim_state = "run_right"
-				if sprite.anim_state == "run_left":
-					sprite.start_anim(loader.load_anim("anakin/run_right.anim"), sprite._anim_frame)
+			self.move(5,0)
+			if self.anim_state != "run_right":
+				self.anim_state = "run_right"
+				if self.anim_state == "run_left":
+					self.start_anim(loader.load_anim("anakin/run_right.anim"), self._anim_frame)
 				else:
-					sprite.start_anim(loader.load_anim("anakin/run_right.anim"))
+					self.start_anim(loader.load_anim("anakin/run_right.anim"))
 		else:
-			if sprite.anim_state != "idle":
-				sprite.anim_state = "idle"
-				sprite.start_anim(loader.load_anim("anakin/idle.anim"))
+			if self.anim_state != "idle":
+				self.anim_state = "idle"
+				self.start_anim(loader.load_anim("anakin/idle.anim"))
 
 		if "q" in Chelone.pressed_keys:
 			Chelone.camera.move(-3,3)
@@ -53,8 +53,8 @@ class Player(Sprite):
 		if "e" in Chelone.pressed_keys:
 			Chelone.camera.move(3,-3)
 
-		sprite.grounded = False
-		sprite.w_pressed = 'w' in Chelone.pressed_keys
+		self.grounded = False
+		self.w_pressed = 'w' in Chelone.pressed_keys
 
 	def handle_collision(self, collided_obj, my_collider, other_collider, handled=False):
 		
@@ -101,36 +101,37 @@ class Droid_1(Sprite):
 		self.SHOOT_CD = 240
 		self.shoot_counter=0
 		self.player_seen = False
-	def update(sprite):
+	
+	def update(self):
 		global Chelone
 
-		if sprite.counter < 300 and sprite.moving == True:
-			sprite.move(-sprite.velocity, 0)
-		elif sprite.moving == True:
-			if sprite.counter >= 600:
-				sprite.counter = 0
+		if self.counter < 300 and self.moving == True:
+			self.move(-self.velocity, 0)
+		elif self.moving == True:
+			if self.counter >= 600:
+				self.counter = 0
 			else:	
-				sprite.move(sprite.velocity, 0)
+				self.move(self.velocity, 0)
 
 
-		sprite.counter += 1	
+		self.counter += 1	
 		
-		sprite.shoot_counter = max(0,sprite.shoot_counter-1)
+		self.shoot_counter = max(0,self.shoot_counter-1)
 
-		if sprite.player_seen == False and sprite.shoot_counter == 0:
-			sprite.moving = True
+		if self.player_seen == False and self.shoot_counter == 0:
+			self.moving = True
 
-		sprite.player_seen = False
+		self.player_seen = False
 
-	def handle_trigger(sprite, collided_obj, my_collider, other_collider):
+	def handle_trigger(self, collided_obj, my_collider, other_collider):
 		if type(collided_obj) == Player:
-			if sprite.shoot_counter==0:
-				sprite.moving = False
+			if self.shoot_counter==0:
+				self.moving = False
 				if my_collider.id == "2":
-					laser = Laser("Laser", loader.load("laser.png"),x=sprite.x - 70, y = sprite.y+50, velocity = [-2, 0])			
+					laser = Laser("Laser", loader.load("laser.png"),x=self.x - 70, y = self.y+50, velocity = [-2, 0])			
 				elif my_collider.id == "3":	
-					laser = Laser("Laser", loader.load("laser.png"),x=sprite.x + 100, y = sprite.y+50, velocity = [2, 0])			
-				sprite.shoot_counter = sprite.SHOOT_CD
+					laser = Laser("Laser", loader.load("laser.png"),x=self.x + 100, y = self.y+50, velocity = [2, 0])			
+				self.shoot_counter = self.SHOOT_CD
 
 class Laser(Sprite):
 	def setup(self, kargs):
