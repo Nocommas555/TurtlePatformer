@@ -1,9 +1,0 @@
-{
-	"images":{
-		"1.png":{"hitboxes":{"body":{"x":15,"y":42, "width":93, "height":140, "type":"rigid"}},"extra":{},"scale":3},
-		"2.png":{"hitboxes":{"body":{"x":15,"y":42, "width":93, "height":140, "type":"rigid"}},"extra":{"offset":{"x":-3, "y":0}},"scale":3},
-		"3.png":{"hitboxes":{"body":{"x":15,"y":42, "width":93, "height":140, "type":"rigid"}},"extra":{},"scale":3},
-		"4.png":{"hitboxes":{"body":{"x":15,"y":42, "width":93, "height":140, "type":"rigid"}},"extra":{},"scale":3},
-		"5.png":{"hitboxes":{"body":{"x":15,"y":42, "width":93, "height":140, "type":"rigid"}},"extra":{"offset":{"x":0, "y":-3}},"scale":3}
-	}
-}
