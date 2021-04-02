@@ -17,8 +17,9 @@ class Player(Sprite):
 		print("setup Player")
 		self.flag = False
 		self.last_x = 0
-		self.anim_state = "idle"
-		self.start_anim(loader.load_anim("anakin/idle.anim"))
+		self.anim_state = "idle_right"
+		self.start_anim(loader.load_anim("anakin/idle_right.anim"))
+		self.orientation = "right"
 
 	def update(sprite):
 
@@ -34,6 +35,7 @@ class Player(Sprite):
 					sprite.start_anim(loader.load_anim("anakin/run_left.anim"), sprite._anim_frame)
 				else:
 					sprite.start_anim(loader.load_anim("anakin/run_left.anim"))
+			sprite.orientation = "left"
 
 		elif 'd' in Chelone.pressed_keys:
 			sprite.move(5,0)
@@ -43,10 +45,16 @@ class Player(Sprite):
 					sprite.start_anim(loader.load_anim("anakin/run_right.anim"), sprite._anim_frame)
 				else:
 					sprite.start_anim(loader.load_anim("anakin/run_right.anim"))
+			sprite.orientation = "right"
+
 		else:
-			if sprite.anim_state != "idle":
-				sprite.anim_state = "idle"
-				sprite.start_anim(loader.load_anim("anakin/idle.anim"))
+			if sprite.anim_state != "idle_right":
+				if sprite.orientation == "left":
+					sprite.anim_state = "idle_left"
+					sprite.start_anim(loader.load_anim("anakin/idle_left.anim"))
+				else:
+					sprite.anim_state = "idle_right"
+					sprite.start_anim(loader.load_anim("anakin/idle_right.anim"))
 
 		if sprite.flag and 'w' not in Chelone.pressed_keys:
 			sprite.flag = False
