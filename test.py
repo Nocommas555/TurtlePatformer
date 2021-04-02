@@ -32,10 +32,10 @@ class Player(Sprite):
 	def update(self):
 
 		if 'w' in Chelone.pressed_keys and self.grounded and not self.w_pressed:
-			self.add_vel(0,-23)
+			self.add_vel(0,-30)
 
 		if 'a' in Chelone.pressed_keys:
-			self.move(-5,0)
+			self.move(-7,0)
 			if self.anim_state != "run_left":
 				self.anim_state = "run_left"
 				if self.anim_state == "run_right":
@@ -44,7 +44,7 @@ class Player(Sprite):
 					self.start_anim(loader.load_anim("anakin/run_left.anim"))
 
 		elif 'd' in Chelone.pressed_keys:
-			self.move(5,0)
+			self.move(7,0)
 			if self.anim_state != "run_right":
 				self.anim_state = "run_right"
 				if self.anim_state == "run_left":
@@ -158,7 +158,7 @@ class Laser(Sprite):
 			collided_obj.delete_self()
 			print("Laser attacked " + collided_obj.id)
 
-spr = Player("Player",loader.load("tmp.png"), gravity=-0.7, x = 100, layer = 10)
+spr = Player("Player",loader.load("tmp.png"), gravity=-1, x = 100, layer = 10)
 
 drd1 = Droid_1("Droid",loader.load("droid.png"), x = 1000)
 
