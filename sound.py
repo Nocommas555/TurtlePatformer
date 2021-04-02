@@ -16,8 +16,3 @@ if system == 'Linux':
 elif system == 'Windows':
 	playsound = _playsound_win
 del system
-
-#test
-playsound('piano2.wav')
-sleep(0.5)
-playsound('piano2.wav')
