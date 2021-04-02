@@ -69,7 +69,6 @@ class Player(Sprite):
 		displacement = self.get_collision_displacement(collided_obj, my_collider, other_collider)
 		super().handle_collision(collided_obj,my_collider,other_collider,handled)
 		
-		print(displacement)
 		if displacement[1]<0 and not self.vel[1]<0 and my_collider.type!="trigger" and other_collider.type != "trigger":
 			self.grounded=True
 
@@ -186,4 +185,3 @@ while 1:
 	Chelone.advance_frame()
 	endTime = time()
 	elapsedTime = endTime - startTime
-	print(Chelone.camera.x, Chelone.camera.y)
