@@ -1,12 +1,12 @@
- #plays file via vlc
+from time import sleep
 
 def _playsound_linux(file_source):
-	import os
-	os.system('cvlc ' + file_source)
+	import subprocess
+	subprocess.Popen(["aplay", file_source])
 
-def _playsound_crappy_win(file_source):
-    import winsound
-    winsound.PlaySound(file_source, winsound.SND_FILENAME)
+def _playsound_win(file_source):
+    import subprocess
+    subprocess.Popen(["python", "sound_win_slave.py", file_source])
 
 from platform import system
 system = system()
@@ -14,8 +14,10 @@ print(system)
 if system == 'Linux':
 	playsound = _playsound_linux
 elif system == 'Windows':
-	playsound = _playsound_crappy_win
+	playsound = _playsound_win
 del system
 
 #test
-playsound('/home/vlad/Desktop/sound/file_test_name.wav')
+playsound('piano2.wav')
+sleep(0.5)
+playsound('piano2.wav')
