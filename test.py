@@ -57,13 +57,12 @@ class Player(Sprite):
 			self.orientation = "right"
 
 		else:
-			if self.anim_state != "idle_left" and self.anim_state != "idle_right":
-				if self.orientation == "left":
-					self.anim_state = "idle_left"
-					self.start_anim(loader.load_anim("anakin/idle_left.anim"))
-				else:
-					self.anim_state = "idle_right"
-					self.start_anim(loader.load_anim("anakin/idle_right.anim"))
+			if self.orientation == "left":
+				self.anim_state = "idle_left"
+				self.start_anim(loader.load_anim("anakin/idle_left.anim"))
+			else:
+				self.anim_state = "idle_right"
+				self.start_anim(loader.load_anim("anakin/idle_right.anim"))
 
 		# smooth camera follow
 		Chelone.camera.move(-self.camera_lagbehind[0]*(Chelone.camera.x-self.x+self.camera_offset[0]), self.camera_lagbehind[1]*(Chelone.camera.y-self.y+self.camera_offset[1]))
