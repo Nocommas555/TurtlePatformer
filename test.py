@@ -16,8 +16,9 @@ class Player(Sprite):
 		print("setup Player")
 		self.grounded = False
 		self.w_pressed = False
-		self.anim_state = "idle"
-		self.start_anim(loader.load_anim("anakin/idle.anim"))
+		self.anim_state = "idle_right"
+		self.start_anim(loader.load_anim("anakin/idle_right.anim"))
+		self.orientation = "right"
 
 		if "camera_lagbehind" in kargs:
 			self.camera_lagbehind = kargs["camera_lagbehind"]
@@ -43,6 +44,7 @@ class Player(Sprite):
 					self.start_anim(loader.load_anim("anakin/run_left.anim"), self._anim_frame)
 				else:
 					self.start_anim(loader.load_anim("anakin/run_left.anim"))
+			self.orientation = "left"
 
 		elif 'd' in Chelone.pressed_keys:
 			self.move(7,0)
@@ -52,10 +54,16 @@ class Player(Sprite):
 					self.start_anim(loader.load_anim("anakin/run_right.anim"), self._anim_frame)
 				else:
 					self.start_anim(loader.load_anim("anakin/run_right.anim"))
+			self.orientation = "right"
+
 		else:
-			if self.anim_state != "idle":
-				self.anim_state = "idle"
-				self.start_anim(loader.load_anim("anakin/idle.anim"))
+			if self.anim_state != "idle_left" and self.anim_state != "idle_right":
+				if self.orientation == "left":
+					self.anim_state = "idle_left"
+					self.start_anim(loader.load_anim("anakin/idle_left.anim"))
+				else:
+					self.anim_state = "idle_right"
+					self.start_anim(loader.load_anim("anakin/idle_right.anim"))
 
 		# smooth camera follow
 		Chelone.camera.move(-self.camera_lagbehind[0]*(Chelone.camera.x-self.x+self.camera_offset[0]), self.camera_lagbehind[1]*(Chelone.camera.y-self.y+self.camera_offset[1]))
