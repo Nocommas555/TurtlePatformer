@@ -1,17 +1,15 @@
 from Chelone import *
 from time import time
 # setting up a basic scene to test
-Chelone = init(1620,800)
+Chelone = init(1600,800)
 
 loader = SpriteLoader()
 
 class Player(Sprite):
 	grounded = False
 	w_pressed = False
-
-	def move(self, x, y):
-		super().move(x, y)
-		Chelone.camera.move(x,0)
+	camera_lagbehind = [0.01, 0.125]
+	camera_offset = [600, 300]
 
 	def setup(self, kargs):
 		print("setup Player")
@@ -19,6 +17,17 @@ class Player(Sprite):
 		self.w_pressed = False
 		self.anim_state = "idle"
 		self.start_anim(loader.load_anim("anakin/idle.anim"))
+
+		if "camera_lagbehind" in kargs:
+			self.camera_lagbehind = kargs["camera_lagbehind"]
+		else:
+			self.camera_lagbehind = [0.05, 0.125]
+
+
+		if "camera_offset" in kargs:
+			self.camera_offset = kargs["camera_offset"]
+		else:
+			self.camera_offset = [600, 300]
 
 	def update(self):
 
@@ -47,11 +56,9 @@ class Player(Sprite):
 				self.anim_state = "idle"
 				self.start_anim(loader.load_anim("anakin/idle.anim"))
 
-		if "q" in Chelone.pressed_keys:
-			Chelone.camera.move(-3,3)
+		# smooth camera follow
+		Chelone.camera.move(-self.camera_lagbehind[0]*(Chelone.camera.x-self.x+self.camera_offset[0]), self.camera_lagbehind[1]*(Chelone.camera.y-self.y+self.camera_offset[1]))
 
-		if "e" in Chelone.pressed_keys:
-			Chelone.camera.move(3,-3)
 
 		self.grounded = False
 		self.w_pressed = 'w' in Chelone.pressed_keys
@@ -143,8 +150,8 @@ class Laser(Sprite):
 		self.gravity = 0
 		
 
-	def update(this):
-		this.move(this.velocity[0], this.velocity[1])
+	def update(self):
+		self.move(self.velocity[0], self.velocity[1])
 
 	def handle_trigger(self, collided_obj, my_collider, other_collider):
 		if type(collided_obj) != Droid_1:
@@ -172,7 +179,6 @@ block = Sprite("Block",loader.load("tmp.png"), phys_type="immovable", x=500, y=3
 #laser = Laser("Laser",loader.load("laser.png"), x = 900)
 #Chelone.add_sprite(laser)
 
-Chelone.camera.move(-300,0)
 print(Chelone.get_unique_id("Player"))
 
 while 1:
@@ -180,3 +186,4 @@ while 1:
 	Chelone.advance_frame()
 	endTime = time()
 	elapsedTime = endTime - startTime
+	print(Chelone.camera.x, Chelone.camera.y)
