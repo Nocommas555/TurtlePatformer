@@ -216,8 +216,6 @@ class Sprite(PhysicsObject):
 			self._current_offset["x"] = 0
 			self._current_offset["y"] = 0
 
-		if stop_anim and len(self._anim)>1:
-			self._anim = [frame]
 
 		self.frame = frame
 		self.parent_canvas.itemconfig(self.image_tk, image = frame.image)

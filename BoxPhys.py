@@ -82,7 +82,7 @@ class PhysicsObject():
 
 		return [0,0]
 
-	def handle_collision(self, collided_obj, my_collider, other_collider):
+	def handle_collision(self, collided_obj, my_collider, other_collider, handled=False):
 
 		# don't collide with self. allows overlapping hitboxes
 		if collided_obj.id == self.id:
@@ -92,43 +92,41 @@ class PhysicsObject():
 			self.handle_trigger(collided_obj, my_collider, other_collider)
 			return
 
-		if other_collider.type == 'trigger':
-			collided_obj.handle_trigger(self, other_collider, my_collider)
-			return
+		if not handled and other_collider.type != "trigger":
 
-		displacement = self.get_collision_displacement(collided_obj, my_collider, other_collider)
+			displacement = self.get_collision_displacement(collided_obj, my_collider, other_collider)
 
 		
-		# nullify velocities in the direction of collision
-		if displacement[0]!=0:
-			collided_obj.vel[0] = 0
-			self.vel[0] = 0
+			# nullify velocities in the direction of collision
+			if displacement[0]!=0:
+				collided_obj.vel[0] = 0
+				self.vel[0] = 0
 
-		elif displacement[1]!=0:
-			if displacement[1]<0:
-				collided_obj.vel[1] = max(0, collided_obj.vel[1])
-				self.vel[1] = min(0, self.vel[1])
+			elif displacement[1]!=0:
+				if displacement[1]<0:
+					collided_obj.vel[1] = max(0, collided_obj.vel[1])
+					self.vel[1] = min(0, self.vel[1])
+				else:
+					collided_obj.vel[1] = min(0, collided_obj.vel[1])
+					self.vel[1] = max(0, self.vel[1])
+				
+
+			# can't do anything in this case. Shouldn't even happen tbh
+			if collided_obj.type == "immovable" and self.type == "immovable":
+				return
+
+			# move the other obj outside of yourself
+			elif collided_obj.type == "default" and self.type == "immovable":
+				collided_obj.move(-displacement[0], -displacement[1])
+
+			# move yourself outside of the other obj
+			elif collided_obj.type == "immovable" and self.type == "default":
+				self.move(displacement[0], displacement[1])
+
+			# two default type objects, move the same distance
 			else:
-				collided_obj.vel[1] = min(0, collided_obj.vel[1])
-				self.vel[1] = max(0, self.vel[1])
-			
-
-		# can't do anything in this case. Shouldn't even happen tbh
-		if collided_obj.type == "immovable" and self.type == "immovable":
-			return
-
-		# move the other obj outside of yourself
-		elif collided_obj.type == "default" and self.type == "immovable":
-			collided_obj.move(-displacement[0], -displacement[1])
-
-		# move yourself outside of the other obj
-		elif collided_obj.type == "immovable" and self.type == "default":
-			self.move(displacement[0], displacement[1])
-
-		# two default type objects, move the same distance
-		else:
-			self.move(displacement[0]/2, displacement[1]/2)
-			collided_obj.move(-displacement[0]/2, -displacement[1]/2)
+				self.move(displacement[0]/2, displacement[1]/2)
+				collided_obj.move(-displacement[0]/2, -displacement[1]/2)
 
 
 class Collider(object):
@@ -201,7 +199,8 @@ def _handle_all_collisions(arr:list):
 	for i in range(len(arr)):
 		for j in range(i + 1, len(arr)):
 			if _colliders_intersect(arr[i], arr[j]):
-				arr[i].parent.handle_collision(arr[j].parent, arr[i], arr[j])
+				arr[i].parent.handle_collision(arr[j].parent, arr[i], arr[j], True)
+				arr[j].parent.handle_collision(arr[i].parent, arr[j], arr[i], False)
 
 def advance_phys_simulation():
 	for obj in physics_objects:
@@ -212,7 +211,6 @@ def advance_phys_simulation():
 
 def _remove_phys_obj():
 	global _removing
-	
 	for phys_obj in _removing:
 		for collider in list(phys_obj.colliders.values()):
 			collider.delete_self()
