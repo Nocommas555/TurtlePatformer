@@ -155,7 +155,44 @@ class SpriteLoader():
 		for path in self._storage.keys():
 			self.unload(path)
 
-class Sprite(PhysicsObject):
+class AnimStateSystem():
+	states = {}
+	anim_state = "None"
+	orientation = "right"
+	state_anim_directory = ""
+	_anim_frame = 0
+	_anim = []
+	"""interface for handling anim state changes and their functions"""
+	def __init__(self, start_state:str = "None", state_anim_directory:str = ""):
+		
+		self.states["None"] = lambda: 0 # noop
+		self.state_anim_directory = state_anim_directory
+		self.update_anim_state(self.anim_state)
+		self._anim_frame = 0
+		self._anim = []
+
+	def flip(self):
+		if self.anim_state != "None":
+			self.start_anim(self.state_anim_directory + "/" + self.anim_state + "_" + self.orientation + ".anim", self._anim_frame)
+
+		if self.orientation == "left":
+			self.orientation = "right"
+		else:
+			self.orientation = "left"
+
+
+	def _update_state(self):
+		self.states[self.anim_state]()
+
+	def update_anim_state(self, state):
+		self.anim_state = state
+		if state != "None":
+			self.start_anim(self.state_anim_directory + "/" + state + "_" + self.orientation + ".anim")
+
+	def start_anim(self, anim_frames:Union[str, list], start_frame:int):
+		pass
+
+class Sprite(PhysicsObject, AnimStateSystem):
 	"""Object that contains data about the sprite. Also can be used to have code ran on each frame"""
 	x = 0
 	y = 0
@@ -170,21 +207,26 @@ class Sprite(PhysicsObject):
 	# updateFunc is a function that takes self and gets called every frame
 	# setupFunc is a function that takes self and gets called once, at setup
 
-	def __init__(self, id:str, frame:SpriteLoader.SpriteFrame, x:int = 0, y:int = 0, phys_type:str="default", gravity:float=-0.3, friction:float=0.1, layer = 25,**kargs):
-		super().__init__(phys_type,{},x,y,[0,0],gravity,friction)
-		self.x = x
-		self.y = y
+	def __init__(self, id:str, frame:SpriteLoader.SpriteFrame, x:int = 0, y:int = 0, phys_type:str="default", gravity:float=-0.3, friction:float=0.1, layer = 25, state_anim_directory:str=".", **kargs):
+		
+		PhysicsObject.__init__(self,phys_type,{},x,y,[0,0],gravity,friction)
+
 		self.layer = 25
 		self.id = Chelone.get_unique_id(id)  
 		self.frame = frame
 		self.image_tk = None
-		self.parent_canvas = None
-		self._anim = [frame]
-		self._anim_frame = 0		
+		self.parent_canvas = None	
 		frame.parent.create_colliders(self)
 		Chelone.add_sprite(self, layer)
 
 		self.setup(kargs)
+		
+		# because setup should define anim states, we should setup AnimStateSystem 
+		AnimStateSystem.__init__(self, state_anim_directory = state_anim_directory)
+
+		self._anim = [frame]
+		self._anim_frame = 0	
+
 	# made to be extended
 	def setup(self, kargs):
 		pass
@@ -194,7 +236,7 @@ class Sprite(PhysicsObject):
 		pass
 
 	def delete_self(self):
-		super().delete_self()
+		PhysicsObject.delete_self(self)
 		self.parent_canvas.delete(self.image_tk)
 
 		if self.id in Chelone._sprites[self.layer]:
@@ -202,7 +244,8 @@ class Sprite(PhysicsObject):
 
 	def _update(self):
 		self.update()
-		self.advance_anim()		
+		self.advance_anim()
+		self._update_state()	
 
 	def move(self, x:int, y:int):
 		self.x += x
@@ -221,6 +264,10 @@ class Sprite(PhysicsObject):
 		self.parent_canvas.itemconfig(self.image_tk, image = frame.image)
 		self.frame.parent.create_colliders(self)
 
+		if stop_anim:
+			self._anim = [frame]
+			self._anim_frame = 0
+			self.update_anim_state("None")
 
 		if "offset" in self.frame.extra.keys():
 			self.parent_canvas.move(self.image_tk,-self.frame.extra["offset"]["x"], -self.frame.extra["offset"]["y"])
@@ -228,8 +275,12 @@ class Sprite(PhysicsObject):
 			self._current_offset["y"] = self.frame.extra["offset"]["y"]
 
 
-	def start_anim(self, anim_frames:list, start:int = 0):
+	def start_anim(self, anim_frames:Union[str,list], start:int = 0):
 		global clear_img
+		
+		if isinstance(anim_frames, str):
+			anim_frames = self.frame.parent.load_anim(anim_frames)
+
 		self._current_offset["x"] = 0
 		self._current_offset["y"] = 0
 		self.parent_canvas.delete(self.image_tk)
