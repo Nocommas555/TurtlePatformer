@@ -14,10 +14,12 @@ class Player(Sprite):
 
 	def setup(self, kargs):
 		print("setup Player")
+		
+		# set up anim states
+		self.states = {"run": self.run_state, "idle": self.idle_state}
+
 		self.grounded = False
 		self.w_pressed = False
-		self.anim_state = "idle_right"
-		self.start_anim(loader.load_anim("anakin/idle_right.anim"))
 		self.orientation = "right"
 
 		if "camera_lagbehind" in kargs:
@@ -38,39 +40,38 @@ class Player(Sprite):
 
 		if 'a' in Chelone.pressed_keys:
 			self.move(-7,0)
-			if self.anim_state != "run_left":
-				self.anim_state = "run_left"
-				if self.anim_state == "run_right":
-					self.start_anim(loader.load_anim("anakin/run_left.anim"), self._anim_frame)
-				else:
-					self.start_anim(loader.load_anim("anakin/run_left.anim"))
-			self.orientation = "left"
+			
+			if self.orientation == "right":
+				self.flip()
+
+			if self.anim_state != "run":
+				self.update_anim_state("run")
 
 		elif 'd' in Chelone.pressed_keys:
 			self.move(7,0)
-			if self.anim_state != "run_right":
-				self.anim_state = "run_right"
-				if self.anim_state == "run_left":
-					self.start_anim(loader.load_anim("anakin/run_right.anim"), self._anim_frame)
-				else:
-					self.start_anim(loader.load_anim("anakin/run_right.anim"))
-			self.orientation = "right"
+			
+			if self.orientation == "left":
+				self.flip()
+			
+			if self.anim_state != "run":
+				self.update_anim_state("run")
 
 		else:
-			if self.orientation == "left":
-				self.anim_state = "idle_left"
-				self.start_anim(loader.load_anim("anakin/idle_left.anim"))
-			else:
-				self.anim_state = "idle_right"
-				self.start_anim(loader.load_anim("anakin/idle_right.anim"))
+			if self.anim_state != "idle":
+				self.update_anim_state("idle")
 
 		# smooth camera follow
 		Chelone.camera.move(-self.camera_lagbehind[0]*(Chelone.camera.x-self.x+self.camera_offset[0]), self.camera_lagbehind[1]*(Chelone.camera.y-self.y+self.camera_offset[1]))
 
-
+		print(self.orientation)
 		self.grounded = False
 		self.w_pressed = 'w' in Chelone.pressed_keys
 
+	def run_state(self):
+		pass
+
+	def idle_state(self):
+		pass
 	def handle_collision(self, collided_obj, my_collider, other_collider, handled=False):
 		
 
@@ -166,7 +167,7 @@ class Laser(Sprite):
 			collided_obj.delete_self()
 			print("Laser attacked " + collided_obj.id)
 
-spr = Player("Player",loader.load("tmp.png"), gravity=-1, x = 100, layer = 10)
+spr = Player("Player",loader.load("tmp.png"), gravity=-1, x = 100, layer = 10, state_anim_directory = "anakin")
 
 drd1 = Droid_1("Droid",loader.load("droid.png"), x = 1000)
 
