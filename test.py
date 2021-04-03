@@ -1,196 +1,230 @@
-from Chelone import *
-from sound import playsound
+'''
+    Basic test scene made using Chelone
+'''
 from time import time
-# setting up a basic scene to test
-Chelone = init(1600,800)
 
+from Chelone import init, Sprite, SpriteLoader, check_keys
+from sound import playsound #noqa, will be used later
+
+
+# setting up global objects for rendering and loading, respectively
+chelone = init(1600, 800)
 loader = SpriteLoader()
 
+
 class Player(Sprite):
-	grounded = False
-	w_pressed = False
-	camera_lagbehind = [0.01, 0.05]
-	camera_offset = [600, 300]
+    """
+        A class for the main character.
+        Handles smooth camera, game over, movement and attacks
+    """
 
-	def setup(self, kargs):
-		print("setup Player")
-		
-		# set up anim states
-		self.states = {"run": self.run_state, "idle": self.idle_state}
+    grounded = False
+    w_pressed = False
+    camera_lagbehind = [0.01, 0.05]
+    camera_offset = [600, 300]
 
-		self.grounded = False
-		self.w_pressed = False
-		self.orientation = "right"
+    def setup(self, kargs):
+        print("setup Player")
 
-		if "camera_lagbehind" in kargs:
-			self.camera_lagbehind = kargs["camera_lagbehind"]
-		else:
-			self.camera_lagbehind = [0.05, 0.05]
+        # set up anim states
+        self.states = {"run": self.run_state, "idle": self.idle_state}
 
+        self.grounded = False
+        self.w_pressed = False
+        self.orientation = "right"
 
-		if "camera_offset" in kargs:
-			self.camera_offset = kargs["camera_offset"]
-		else:
-			self.camera_offset = [600, 300]
+        if "camera_lagbehind" in kargs:
+            self.camera_lagbehind = kargs["camera_lagbehind"]
+        else:
+            self.camera_lagbehind = [0.05, 0.05]
 
-	def update(self):
+        if "camera_offset" in kargs:
+            self.camera_offset = kargs["camera_offset"]
+        else:
+            self.camera_offset = [600, 300]
 
-		if 'w' in Chelone.pressed_keys and self.grounded and not self.w_pressed:
-			self.add_vel(0,-30)
+    def update(self):
 
-		if 'a' in Chelone.pressed_keys:
-			self.move(-7,0)
-			
-			if self.orientation != "left":
-				self.flip()
+        if 'w' in chelone.pressed_keys and\
+          self.grounded and not self.w_pressed:
 
-			if self.anim_state != "run":
-				self.update_anim_state("run")
+            self.add_vel(0, -30)
 
-		elif 'd' in Chelone.pressed_keys:
-			self.move(7,0)
-			
-			if self.orientation != "right":
-				self.flip()
-			
-			if self.anim_state != "run":
-				self.update_anim_state("run")
+        if 'a' in chelone.pressed_keys:
+            self.move(-7, 0)
 
-		else:
-			if self.anim_state != "idle":
-				self.update_anim_state("idle")
+            if self.orientation != "left":
+                self.flip()
 
+            if self.anim_state != "run":
+                self.update_anim_state("run")
 
-		# smooth camera follow
-		Chelone.camera.move(-self.camera_lagbehind[0]*(Chelone.camera.x-self.x+self.camera_offset[0]), self.camera_lagbehind[1]*(Chelone.camera.y-self.y+self.camera_offset[1]))
+        elif 'd' in chelone.pressed_keys:
+            self.move(7, 0)
 
-		self.grounded = False
-		self.w_pressed = 'w' in Chelone.pressed_keys
+            if self.orientation != "right":
+                self.flip()
 
-	def run_state(self):
-		pass
+            if self.anim_state != "run":
+                self.update_anim_state("run")
 
-	def idle_state(self):
-		pass
-		
-	def handle_collision(self, collided_obj, my_collider, other_collider, handled=False):
-		
+        else:
+            if self.anim_state != "idle":
+                self.update_anim_state("idle")
 
-		displacement = self.get_collision_displacement(collided_obj, my_collider, other_collider)
-		super().handle_collision(collided_obj,my_collider,other_collider,handled)
-		
-		if displacement[1]<0 and not self.vel[1]<0 and my_collider.type!="trigger" and other_collider.type != "trigger":
-			self.grounded=True
+        # smooth camera follow
+        camera_desired = [
+            self.x-self.camera_offset[0],
+            self.y-self.camera_offset[1]
+        ]
 
+        chelone.camera.move(
+            -self.camera_lagbehind[0]*(chelone.camera.x-camera_desired[0]),
+            self.camera_lagbehind[1]*(chelone.camera.y-camera_desired[1])
+        )
 
-	def delete_self(self):
-		print("game_over")
-		saved_sprites = Chelone._sprites
-		Chelone._sprites = [{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}]
-		game_over = Sprite("game_over", loader.load("game_over.png"), x=450+Chelone.camera.x, y=Chelone.camera.y, phys_type = "immovable", layer = 1)
-		Chelone.add_sprite(game_over,1)
-		saved_sprites[1][game_over.id]=game_over
+        self.grounded = False
+        self.w_pressed = 'w' in chelone.pressed_keys
 
+    def run_state(self):
+        pass
 
-		# loop while dead
-		while "Return" not in Chelone.pressed_keys:
-			check_keys()
-			Chelone.root.update()
+    def idle_state(self):
+        pass
 
-		Chelone.next_frame = time()
-		Chelone.now = time()
-		Chelone._sprites = saved_sprites
-		super().delete_self()
-		player = Player("Player", loader.load("tmp.png"), x = 250, y = 0, gravity = self.gravity, state_anim_directory = self.state_anim_directory)
-		Chelone.camera.move(-Chelone.camera.x - 300, 0)
-		Chelone.add_sprite(player)
-		game_over.delete_self()
-		
+    def handle_collision(self, collided_obj, my_collider, other_collider, handled=False):
+        displacement = self.get_collision_displacement(collided_obj, my_collider, other_collider)
+        super().handle_collision(collided_obj, my_collider, other_collider, handled)
 
-class Droid_1(Sprite):
-	def setup(self, kargs):
-		self.counter = 0
-		self.counter2 = 0
-		self.velocity = 1
-		self.delete = False
-		self.moving = True
-		self.SHOOT_CD = 240
-		self.shoot_counter=0
-		self.player_seen = False
-	
-	def update(self):
-		global Chelone
+        # pylint: disable=chained-comparison
+        if displacement[1] < 0 and self.vel[1] >= 0:
+            if my_collider.type != "trigger" and other_collider.type != "trigger":
+                self.grounded = True
 
-		if self.counter < 300 and self.moving == True:
-			self.move(-self.velocity, 0)
-		elif self.moving == True:
-			if self.counter >= 600:
-				self.counter = 0
-			else:	
-				self.move(self.velocity, 0)
+    def delete_self(self):
+        print("game_over")
+        saved_sprites = chelone._sprites
+        chelone._sprites = [{} for i in range(50)]
+        game_over = Sprite(
+            id="game_over", frame=loader.load("game_over.png"),
+            x=450+chelone.camera.x, y=chelone.camera.y, phys_type="immovable", layer=1,
+        )
+        chelone.add_sprite(game_over, 1)
 
 
-		self.counter += 1	
-		
-		self.shoot_counter = max(0,self.shoot_counter-1)
+        # loop while dead
+        while "Return" not in chelone.pressed_keys:
+            check_keys()
+            chelone.root.update()
 
-		if self.player_seen == False and self.shoot_counter == 0:
-			self.moving = True
+        chelone.next_frame = time()
+        chelone.now = time()
+        chelone._sprites = saved_sprites
 
-		self.player_seen = False
+        super().delete_self()
 
-	def handle_trigger(self, collided_obj, my_collider, other_collider):
-		if type(collided_obj) == Player:
-			if self.shoot_counter==0:
-				self.moving = False
-				if my_collider.id == "2":
-					laser = Laser("Laser", loader.load("laser.png"),x=self.x - 70, y = self.y+50, velocity = [-2, 0])			
-				elif my_collider.id == "3":	
-					laser = Laser("Laser", loader.load("laser.png"),x=self.x + 100, y = self.y+50, velocity = [2, 0])			
-				self.shoot_counter = self.SHOOT_CD
+        player = Player(
+            id="Player", frame=loader.load("tmp.png"),\
+            x=250, y=0, gravity=self.gravity,\
+            state_anim_directory=self.state_anim_directory
+        )
+        chelone.add_sprite(player)
+        game_over.delete_self()
+
+
+class Droid(Sprite):
+
+    def setup(self, kargs):
+
+        self.patrol_range = kargs.get("patrol_range", [self.x-300, self.x])
+        self.speed = kargs.get("speed", 0)
+        self.shooting_cooldown_limit = kargs.get("shooting_cooldown", 240)
+        self.shooting_cooldown = self.shooting_cooldown_limit
+
+        # make sure we spawn in our patrol range
+        self.move(self.patrol_range[1] - self.x, 0)
+        self.orientation = "left"
+
+
+    def update(self):
+        if self.shooting_cooldown >= self.shooting_cooldown_limit:
+            if self.orientation == "left":
+                self.move(-self.speed, 0)
+            else:
+                self.move(self.speed, 0)
+
+        if self.x < self.patrol_range[0]:
+            self.orientation = "right"
+
+        elif self.x > self.patrol_range[1]:
+            self.orientation = "left"
+
+        if self.shooting_cooldown < self.shooting_cooldown_limit:
+            self.shooting_cooldown += 1
+
+        print(self.shooting_cooldown)
+
+    def handle_trigger(self, collided_obj, my_collider, other_collider):
+
+        if isinstance(collided_obj, Player):
+            if self.shooting_cooldown >= self.shooting_cooldown_limit:
+                self.shooting_cooldown = 0
+                if my_collider.id == "left_search":
+                    Laser(
+                        id="Laser", frame=loader.load("laser.png"), gravity=0,
+                        x=self.x-50,
+                        y=self.y+self.colliders['body'].height/2,
+                        velocity=[-3, 0]
+                    )
+
+                elif my_collider.id == "right_search":
+                    Laser(
+                        id="Laser", frame=loader.load("laser.png"), gravity=0,
+                        x=self.x+self.colliders['body'].width+50,
+                        y=self.y+self.colliders['body'].height/2,
+                        velocity=[3, 0]
+                    )
+
+
 
 class Laser(Sprite):
-	def setup(self, kargs):
-		if "velocity" not in kargs.keys():
-			self.velocity = [-1, 0]
-		else:
-			self.velocity = kargs["velocity"]
+    def setup(self, kargs):
 
-		self.gravity = 0
-		
+        self.velocity = kargs.get("velocity", [-3, 0])
+        self.gravity = 0
 
-	def update(self):
-		self.move(self.velocity[0], self.velocity[1])
 
-	def handle_trigger(self, collided_obj, my_collider, other_collider):
-		if type(collided_obj) != Droid_1:
-			self.delete_self()
-			collided_obj.delete_self()
-			print("Laser attacked " + collided_obj.id)
+    def update(self):
+        self.move(self.velocity[0], self.velocity[1])
 
-spr = Player("Player",loader.load("tmp.png"), gravity=-1, x = 100, layer = 10, state_anim_directory = "anakin")
+    def handle_trigger(self, collided_obj, my_collider, other_collider):
+        if not isinstance(collided_obj, Droid):
+            self.delete_self()
+            collided_obj.delete_self()
+            print("Laser attacked " + collided_obj.id)
 
-drd1 = Droid_1("Droid",loader.load("droid.png"), x = 1000)
+spr = Player("Player", loader.load("tmp.png"), gravity=-1, x=100, layer=10, state_anim_directory="anakin")
 
-#drd2 = Droid_1("Droid 2",loader.load("droid.png"), x = 1200)
-#Chelone.add_sprite(drd2)
+drd1 = Droid("Droid", loader.load("droid.png"), patrol_range=[700, 1300], speed=1)
 
-#drd3 = Droid_1("Droid 3",loader.load("droid.png"), x = 1400)
-#Chelone.add_sprite(drd3)
+#drd2 = Droid_1("Droid 2", loader.load("droid.png"), x = 1200)
+#chelone.add_sprite(drd2)
 
-ground = Sprite("Ground",loader.load("gnd.png"),phys_type="immovable", x=0, y=650, layer=49)
+#drd3 = Droid_1("Droid 3", loader.load("droid.png"), x = 1400)
+#chelone.add_sprite(drd3)
 
-block = Sprite("Block",loader.load("tmp.png"), phys_type="immovable", x=500, y=350)
+ground = Sprite("Ground", loader.load("gnd.png"), phys_type="immovable", x=0, y=650, layer=49)
 
-# movable = Sprite("Movable",loader.load("tmp.png"), x=150, y=200)
-# Chelone.add_sprite(movable, 30)
+block = Sprite("Block", loader.load("tmp.png"), phys_type="immovable", x=500, y=350)
 
-#laser = Laser("Laser",loader.load("laser.png"), x = 900)
-#Chelone.add_sprite(laser)
+# movable = Sprite("Movable", loader.load("tmp.png"), x=150, y=200)
+# chelone.add_sprite(movable, 30)
 
-print(Chelone.get_unique_id("Player"))
+#laser = Laser("Laser", loader.load("laser.png"), x = 900)
+#chelone.add_sprite(laser)
+
 while 1:
-	startTime = time()
-	Chelone.advance_frame()
-	endTime = time()
-	elapsedTime = endTime - startTime
+    startTime = time()
+    chelone.advance_frame()
+    endTime = time()
+    elapsedTime = endTime - startTime

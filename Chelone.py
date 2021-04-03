@@ -13,11 +13,11 @@ import os
 import json
 import re
 
-Chelone = None
+chelone = None
 
 
 def init(resolution_x:int, resolution_y:int):
-	global Chelone, _root, _canvas
+	global chelone, _root, _canvas
 	# Create the window with the Tk class
 	root = tk.Tk()
 	
@@ -28,38 +28,38 @@ def init(resolution_x:int, resolution_y:int):
 	canvas = tk.Canvas(root, width = resolution_x, height = resolution_y)
 	canvas.pack() # this makes it visible
 
-	Chelone = SpriteRenderer(root, canvas)
-	return Chelone
+	chelone = SpriteRenderer(root, canvas)
+	return chelone
 
 
 def FocusOut(event):
-	Chelone.caught_keys_prev = []
-	Chelone.caught_keys = []
-	Chelone.pressed_keys = []
+	chelone.caught_keys_prev = []
+	chelone.caught_keys = []
+	chelone.pressed_keys = []
 
 def check_keys():
 
 	# remove keys not caught for 2 frames
-	for key in Chelone.pressed_keys:
-		if key not in Chelone.caught_keys and\
-		  key not in Chelone.caught_keys_prev:
+	for key in chelone.pressed_keys:
+		if key not in chelone.caught_keys and\
+		  key not in chelone.caught_keys_prev:
 
-			Chelone.pressed_keys.remove(key)
+			chelone.pressed_keys.remove(key)
 
-	for key in Chelone.caught_keys:
-		if key not in Chelone.pressed_keys:
-			Chelone.pressed_keys.append(key)
+	for key in chelone.caught_keys:
+		if key not in chelone.pressed_keys:
+			chelone.pressed_keys.append(key)
 
-	Chelone.caught_keys_prev = Chelone.caught_keys.copy()
+	chelone.caught_keys_prev = chelone.caught_keys.copy()
 
 
 def on_key_press(event):
-	if event.keysym not in Chelone.caught_keys:
-		Chelone.caught_keys.append(event.keysym)
+	if event.keysym not in chelone.caught_keys:
+		chelone.caught_keys.append(event.keysym)
 
 
 def on_key_release(event):
-	Chelone.caught_keys.remove(event.keysym)
+	chelone.caught_keys.remove(event.keysym)
 
 """Handles loading sprites and animations"""
 """There can be multiple instances at the same time"""
@@ -211,13 +211,18 @@ class Sprite(PhysicsObject, AnimStateSystem):
 		
 		PhysicsObject.__init__(self,phys_type,{},x,y,[0,0],gravity,friction)
 
+		self.id = chelone.get_unique_id(id)  
+		
 		self.layer = 25
-		self.id = Chelone.get_unique_id(id)  
 		self.frame = frame
 		self.image_tk = None
-		self.parent_canvas = None	
+		self.parent_canvas = None
+		
+		self.states = {}
+		self.orientation = "right"
+		
 		frame.parent.create_colliders(self)
-		Chelone.add_sprite(self, layer)
+		chelone.add_sprite(self, layer)
 
 		self.setup(kargs)
 		
@@ -239,8 +244,8 @@ class Sprite(PhysicsObject, AnimStateSystem):
 		PhysicsObject.delete_self(self)
 		self.parent_canvas.delete(self.image_tk)
 
-		if self.id in Chelone._sprites[self.layer]:
-			Chelone._sprites[self.layer].pop(self.id)
+		if self.id in chelone._sprites[self.layer]:
+			chelone._sprites[self.layer].pop(self.id)
 
 	def _update(self):
 		self.update()
@@ -284,7 +289,7 @@ class Sprite(PhysicsObject, AnimStateSystem):
 		self._current_offset["x"] = 0
 		self._current_offset["y"] = 0
 		self.parent_canvas.delete(self.image_tk)
-		self.image_tk = self.parent_canvas.create_image(self.x-Chelone.camera.x, self.y-Chelone.camera.y, anchor = tk.NW, image = self.frame.image)
+		self.image_tk = self.parent_canvas.create_image(self.x-chelone.camera.x, self.y-chelone.camera.y, anchor = tk.NW, image = self.frame.image)
 		self._anim = anim_frames
 		self._anim_frame = start
 
