@@ -41,7 +41,7 @@ class Player(Sprite):
 		if 'a' in Chelone.pressed_keys:
 			self.move(-7,0)
 			
-			if self.orientation == "right":
+			if self.orientation != "left":
 				self.flip()
 
 			if self.anim_state != "run":
@@ -50,7 +50,7 @@ class Player(Sprite):
 		elif 'd' in Chelone.pressed_keys:
 			self.move(7,0)
 			
-			if self.orientation == "left":
+			if self.orientation != "right":
 				self.flip()
 			
 			if self.anim_state != "run":
@@ -64,7 +64,6 @@ class Player(Sprite):
 		# smooth camera follow
 		Chelone.camera.move(-self.camera_lagbehind[0]*(Chelone.camera.x-self.x+self.camera_offset[0]), self.camera_lagbehind[1]*(Chelone.camera.y-self.y+self.camera_offset[1]))
 
-		print(self.orientation)
 		self.grounded = False
 		self.w_pressed = 'w' in Chelone.pressed_keys
 
@@ -73,6 +72,7 @@ class Player(Sprite):
 
 	def idle_state(self):
 		pass
+		
 	def handle_collision(self, collided_obj, my_collider, other_collider, handled=False):
 		
 
@@ -101,7 +101,7 @@ class Player(Sprite):
 		Chelone.now = time()
 		Chelone._sprites = saved_sprites
 		super().delete_self()
-		player = Player("Player", loader.load("tmp.png"), x = 250, y = 0, gravity = self.gravity)
+		player = Player("Player", loader.load("tmp.png"), x = 250, y = 0, gravity = self.gravity, state_anim_directory = self.state_anim_directory)
 		Chelone.camera.move(-Chelone.camera.x - 300, 0)
 		Chelone.add_sprite(player)
 		game_over.delete_self()

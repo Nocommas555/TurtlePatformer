@@ -172,13 +172,13 @@ class AnimStateSystem():
 		self._anim = []
 
 	def flip(self):
-		if self.anim_state != "None":
-			self.start_anim(self.state_anim_directory + "/" + self.anim_state + "_" + self.orientation + ".anim", self._anim_frame)
-
 		if self.orientation == "left":
 			self.orientation = "right"
 		else:
 			self.orientation = "left"
+
+		if self.anim_state != "None":
+			self.start_anim(self.state_anim_directory + "/" + self.anim_state + "_" + self.orientation + ".anim", self._anim_frame)
 
 
 	def _update_state(self):
