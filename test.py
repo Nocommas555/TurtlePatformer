@@ -60,6 +60,7 @@ class Player(Sprite):
 			if self.anim_state != "idle":
 				self.update_anim_state("idle")
 
+
 		# smooth camera follow
 		Chelone.camera.move(-self.camera_lagbehind[0]*(Chelone.camera.x-self.x+self.camera_offset[0]), self.camera_lagbehind[1]*(Chelone.camera.y-self.y+self.camera_offset[1]))
 
