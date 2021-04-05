@@ -86,9 +86,11 @@ class Player(Sprite):
         self.grounded = False
         self.w_pressed = 'w' in chelone.pressed_keys
 
+    # TODO: Move update logic to states
     def run_state(self):
         pass
 
+    # TODO: Move update logic to states
     def idle_state(self):
         pass
 
@@ -133,6 +135,29 @@ class Player(Sprite):
 
 
 class Droid(Sprite):
+    """
+        Basic enemy. Partrols an area and shoots the player if it sees him.
+    """
+
+    class Laser(Sprite):
+        """
+            Projectile that the Droid enemy shoots.
+        """
+        def setup(self, kargs):
+
+            self.velocity = kargs.get("velocity", [-3, 0])
+            self.gravity = 0
+
+
+        def update(self):
+            self.move(self.velocity[0], self.velocity[1])
+
+        def handle_trigger(self, collided_obj, my_collider, other_collider):
+            if not isinstance(collided_obj, Droid):
+                self.delete_self()
+                collided_obj.delete_self()
+                print("Laser attacked " + collided_obj.id)
+
 
     def setup(self, kargs):
 
@@ -170,7 +195,7 @@ class Droid(Sprite):
             if self.shooting_cooldown >= self.shooting_cooldown_limit:
                 self.shooting_cooldown = 0
                 if my_collider.id == "left_search":
-                    Laser(
+                    self.Laser(
                         id="Laser", frame=loader.load("laser.png"), gravity=0,
                         x=self.x-50,
                         y=self.y+self.colliders['body'].height/2,
@@ -178,7 +203,7 @@ class Droid(Sprite):
                     )
 
                 elif my_collider.id == "right_search":
-                    Laser(
+                    self.Laser(
                         id="Laser", frame=loader.load("laser.png"), gravity=0,
                         x=self.x+self.colliders['body'].width+50,
                         y=self.y+self.colliders['body'].height/2,
@@ -187,21 +212,7 @@ class Droid(Sprite):
 
 
 
-class Laser(Sprite):
-    def setup(self, kargs):
 
-        self.velocity = kargs.get("velocity", [-3, 0])
-        self.gravity = 0
-
-
-    def update(self):
-        self.move(self.velocity[0], self.velocity[1])
-
-    def handle_trigger(self, collided_obj, my_collider, other_collider):
-        if not isinstance(collided_obj, Droid):
-            self.delete_self()
-            collided_obj.delete_self()
-            print("Laser attacked " + collided_obj.id)
 
 spr = Player("Player", loader.load("tmp.png"), gravity=-1, x=100, layer=10, state_anim_directory="anakin")
 
