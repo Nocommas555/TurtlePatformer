@@ -28,21 +28,16 @@ class Player(Sprite):
 
         # set up anim states
         self.states = {"run": self.run_state, "idle": self.idle_state}
+        self.anim_state = "idle"
 
         self.grounded = False
         self.w_pressed = False
         self.orientation = "right"
 
-        if "camera_lagbehind" in kargs:
-            self.camera_lagbehind = kargs["camera_lagbehind"]
-        else:
-            self.camera_lagbehind = [0.05, 0.05]
+        self.camera_lagbehind = kargs.get("camera_lagbehind", [0.05, 0.05])
 
-        if "camera_offset" in kargs:
-            self.camera_offset = kargs["camera_offset"]
-        else:
-            self.camera_offset = [600, 300]
-
+        self.camera_offset = kargs.get("camera_offset", [600,300])
+        
     def update(self):
 
         if 'w' in chelone.pressed_keys and\
@@ -50,29 +45,23 @@ class Player(Sprite):
 
             self.add_vel(0, -30)
 
-        if 'a' in chelone.pressed_keys:
-            self.move(-7, 0)
+        self.update_smooth_camera()
 
-            if self.orientation != "left":
-                self.flip()
+        self.grounded = False
+        self.w_pressed = 'w' in chelone.pressed_keys
 
-            if self.anim_state != "run":
-                self.update_anim_state("run")
+    def run_state(self):
+        movement = self.move_on_command()
+        if not movement[0] and not movement[1]:
+            self.update_anim_state('idle')
 
-        elif 'd' in chelone.pressed_keys:
-            self.move(7, 0)
+    def idle_state(self):
+        movement = self.move_on_command()
+        if movement[0] or movement[1]:
+            self.update_anim_state('run')
 
-            if self.orientation != "right":
-                self.flip()
-
-            if self.anim_state != "run":
-                self.update_anim_state("run")
-
-        else:
-            if self.anim_state != "idle":
-                self.update_anim_state("idle")
-
-        # smooth camera follow
+    # smooth camera follow
+    def update_smooth_camera(self):
         camera_desired = [
             self.x-self.camera_offset[0],
             self.y-self.camera_offset[1]
@@ -83,16 +72,24 @@ class Player(Sprite):
             self.camera_lagbehind[1]*(chelone.camera.y-camera_desired[1])
         )
 
-        self.grounded = False
-        self.w_pressed = 'w' in chelone.pressed_keys
 
-    # TODO: Move update logic to states
-    def run_state(self):
-        pass
+    def move_on_command(self):
+        ret = [False, False]
+        if 'a' in chelone.pressed_keys:
+            ret[0] = True
+            self.move(-7, 0)
 
-    # TODO: Move update logic to states
-    def idle_state(self):
-        pass
+            if self.orientation != "left":
+                self.flip()
+
+        elif 'd' in chelone.pressed_keys:
+            ret[1] = True
+            self.move(7, 0)
+
+            if self.orientation != "right":
+                self.flip()
+        
+        return ret
 
     def handle_collision(self, collided_obj, my_collider, other_collider, handled=False):
         displacement = self.get_collision_displacement(collided_obj, my_collider, other_collider)
@@ -187,7 +184,6 @@ class Droid(Sprite):
         if self.shooting_cooldown < self.shooting_cooldown_limit:
             self.shooting_cooldown += 1
 
-        print(self.shooting_cooldown)
 
     def handle_trigger(self, collided_obj, my_collider, other_collider):
 

@@ -92,7 +92,7 @@ class SpriteLoader():
 			return ["/".join(path.split("/")[:-1])+"/"+x if x!="None" else None for x in json.load(open(self._sprite_dir+path))]
 
 		else:
-			print("wrong anim path")
+			print("wrong anim path: " + path)
 			return [None]
 
 	def load(self, path:str):
@@ -157,13 +157,11 @@ class SpriteLoader():
 
 class AnimStateSystem():
 	states = {}
-	anim_state = "None"
-	orientation = "right"
 	state_anim_directory = ""
 	_anim_frame = 0
 	_anim = []
 	"""interface for handling anim state changes and their functions"""
-	def __init__(self, start_state:str = "None", state_anim_directory:str = ""):
+	def __init__(self, state_anim_directory:str):
 		
 		self.states["None"] = lambda: 0 # noop
 		self.state_anim_directory = state_anim_directory
@@ -220,6 +218,7 @@ class Sprite(PhysicsObject, AnimStateSystem):
 		
 		self.states = {}
 		self.orientation = "right"
+		self.anim_state = "None"
 		
 		frame.parent.create_colliders(self)
 		chelone.add_sprite(self, layer)
