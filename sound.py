@@ -14,12 +14,12 @@ def kill_all_sounds():
 def _playsound_linux(file_source):
 	sounds[next_id] = subprocess.Popen(["aplay", file_source])
 	next_id+=1
-	return next_id
+	return next_id-1
 
 def _playsound_win(file_source):
 	sounds[next_id] = subprocess.Popen(["python", "sound_win_slave.py", file_source])
 	next_id+=1
-	return next_id
+	return next_id-1
 
 from platform import system
 system = system()
