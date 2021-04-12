@@ -4,13 +4,13 @@
 from time import time
 
 from Chelone import init, Sprite, SpriteLoader, check_keys
-from sound import playsound #noqa, will be used later
+from sound import playsound, sound_finished #noqa, will be used later
 
 
 # setting up global objects for rendering and loading, respectively
 chelone = init(1600, 800)
 loader = SpriteLoader()
-
+playsound("sounds/test.wav")
 
 class Player(Sprite):
     """

@@ -5,400 +5,438 @@ alternative to pyGame with more of a focus on sprites rather then  primitives
 
 The engine includes basic loading, collision detection, animation, drawing, z-layering and complex backrounds
 '''
-from BoxPhys import *
 import tkinter as tk
 from typing import Union, Callable
 from time import time, sleep
 import os
 import json
-import re
+
+from BoxPhys import Collider, PhysicsObject, advance_phys_simulation
 
 chelone = None
 
+def init(resolution_x: int, resolution_y: int):
+    '''initializes the tk screen, canvas and SpriteRenderer class'''
+    global chelone
 
-def init(resolution_x:int, resolution_y:int):
-	global chelone, _root, _canvas
-	# Create the window with the Tk class
-	root = tk.Tk()
-	
-	root.bind("<Key>", on_key_press)
-	root.bind("<KeyRelease>", on_key_release)
-	root.bind("<FocusOut>", FocusOut)
-	# Create the canvas and make it visible with pack()
-	canvas = tk.Canvas(root, width = resolution_x, height = resolution_y)
-	canvas.pack() # this makes it visible
+    # Create the window with the Tk class
+    root = tk.Tk()
 
-	chelone = SpriteRenderer(root, canvas)
-	return chelone
+    root.bind("<Key>", on_key_press)
+    root.bind("<KeyRelease>", on_key_release)
+    root.bind("<FocusOut>", FocusOut)
 
+    # Create the canvas and make it visible with pack()
+    canvas = tk.Canvas(root, width=resolution_x, height=resolution_y)
+    canvas.pack()
 
-def FocusOut(event):
-	chelone.caught_keys_prev = []
-	chelone.caught_keys = []
-	chelone.pressed_keys = []
+    chelone = SpriteRenderer(root, canvas)
+    return chelone
+
+def FocusOut(event): # noqa, event var needed for callback signature
+    ''' clears input on unfocusing window. should maybe halt the game in the future '''
+    chelone.caught_keys_prev = []
+    chelone.caught_keys = []
+    chelone.pressed_keys = []
+
 
 def check_keys():
+    '''debouncer for buggy built-in key detection'''
 
-	# remove keys not caught for 2 frames
-	for key in chelone.pressed_keys:
-		if key not in chelone.caught_keys and\
-		  key not in chelone.caught_keys_prev:
+    # remove keys not caught for 2 frames
+    for key in chelone.pressed_keys:
+        if key not in chelone.caught_keys and\
+          key not in chelone.caught_keys_prev:
 
-			chelone.pressed_keys.remove(key)
+            chelone.pressed_keys.remove(key)
 
-	for key in chelone.caught_keys:
-		if key not in chelone.pressed_keys:
-			chelone.pressed_keys.append(key)
+    # add keys that are not already pressed
+    for key in chelone.caught_keys:
+        if key not in chelone.pressed_keys:
+            chelone.pressed_keys.append(key)
 
-	chelone.caught_keys_prev = chelone.caught_keys.copy()
-
-
-def on_key_press(event):
-	if event.keysym not in chelone.caught_keys:
-		chelone.caught_keys.append(event.keysym)
+    # save current keys to check the next
+    chelone.caught_keys_prev = chelone.caught_keys.copy()
 
 
-def on_key_release(event):
-	chelone.caught_keys.remove(event.keysym)
+def on_key_press(event): # noqa, event var needed for callback signature
+    '''handles capturing key presses'''
+    if event.keysym not in chelone.caught_keys:
+        chelone.caught_keys.append(event.keysym)
 
-"""Handles loading sprites and animations"""
-"""There can be multiple instances at the same time"""
+
+def on_key_release(event): # noqa, event var needed for callback signature
+    '''handles capturing key releases'''
+    chelone.caught_keys.remove(event.keysym)
+
+
 class SpriteLoader():
-	_sprite_dir = "sprites/"
-	_storage = {}
-
-	class SpriteFrame():
-		"""A frame of animation that has extra data for collision detection"""
-		hitboxes = {}
-		extra = {}
-		image = None
-		path = ""
-		parent = None
-
-		def __init__(self, file:str, parent, hitboxes:list = [], extra:dict = {}):
-			self.image = tk.PhotoImage(file = file)
-			self.hitboxes = hitboxes
-			self.extra = extra
-			self.path = file
-			self.parent = parent
+    '''
+    Handles loading sprites and animations
+    There can be multiple instances at the same time
+    '''
+    _sprite_dir = "/sprites"
+    _storage = {}
 
 
-	def __init__(self, sprite_dir:str = "sprites/"):
-		self._sprite_dir = sprite_dir
-		self._storage = {}
+    class SpriteFrame():
+        '''A frame of animation that has extra data for collision detection'''
+        hitboxes = {}
+        extra = {}
+        image = None
+        path = ""
+        parent = None
 
-	def load_anim(self, path:str):
-		if os.path.exists(self._sprite_dir+path):
-			return ["/".join(path.split("/")[:-1])+"/"+x if x!="None" else None for x in json.load(open(self._sprite_dir+path))]
+        def __init__(self, file: str, parent, hitboxes: list = None, extra: dict = None):
 
-		else:
-			print("wrong anim path: " + path)
-			return [None]
+            if hitboxes is None:
+                hitboxes = []
 
-	def load(self, path:str):
+            if extra is None:
+                extra = {}
 
-		path = self._sprite_dir + path
+            self.image = tk.PhotoImage(file=file)
+            self.hitboxes = hitboxes
+            self.extra = extra
+            self.path = file
+            self.parent = parent
 
-		# check if we already loaded the image
-		if path in self._storage.keys():
-			return self._storage[path]
 
-		parent_path = "/".join(path.split("/")[:-1])
-		file = path.split("/")[-1]
+    def __init__(self, sprite_dir: str = "sprites/"):
+        self._sprite_dir = sprite_dir
+        self._storage = {}
 
-		if os.path.exists(path) and os.path.exists(parent_path+'/'+"img_descr.json"):
-			
-			img_descr = json.load(open(parent_path+'/'+"img_descr.json"))["images"][file]
-		
-			if os.path.isfile(path):
+    def load_anim(self, path: str):
+        '''loads animation as an array of paths to frames'''
 
-				hitboxes = {}
-				if "hitboxes" in img_descr:
-					hitboxes = img_descr["hitboxes"]
+        if os.path.exists(self._sprite_dir+path):
+            return[
+                "/".join(path.split("/")[:-1])+"/"+x
+                if x != "None" else None
+                for x in json.load(open(self._sprite_dir+path))
+            ]
 
-				extra = {}
-				if "extra" in img_descr:
-					extra = img_descr["extra"]
+        else:
+            print("wrong anim path: " + path)
+            return [None]
 
-				self._storage[path] = self.SpriteFrame(path, self, hitboxes, extra)
+    def load(self, path: str):
+        '''loads a SpriteFrame from a relative path'''
 
-				if "scale" in img_descr:
-					self._storage[path].image = self._storage[path].image.zoom(img_descr["scale"])
-				
-				return self._storage[path]
+        path = self._sprite_dir + path
 
-			else:
-				return self._load_anim(path)
+        # check if we already loaded the image
+        if path in self._storage.keys():
+            return self._storage[path]
 
-	def create_colliders(self, sprite):
-		
-		for key in sprite.frame.hitboxes.keys():
-			hitbox = sprite.frame.hitboxes[key]
+        parent_path = "/".join(path.split("/")[:-1])
+        file = path.split("/")[-1]
 
-			if hitbox == "remove":
-				sprite.colliders[key].delete_self()
-				
-			else:
-				if key in sprite.colliders:
-					sprite.colliders[key].delete_self()
-					
-				sprite.colliders[key] = Collider(hitbox["x"], hitbox["y"],\
-					sprite, hitbox["width"], hitbox["height"], key, hitbox["type"])
+        if os.path.exists(path) and os.path.exists(parent_path+'/'+"img_descr.json"):
 
-		return sprite.colliders
-		
-	def unload(self, path:str):
-		self._storage.pop(path)
+            img_descr = json.load(open(parent_path+'/'+"img_descr.json"))["images"][file]
 
-	def unload_all(self):
+            if os.path.isfile(path):
 
-		for path in self._storage.keys():
-			self.unload(path)
+                hitboxes = {}
+                if "hitboxes" in img_descr:
+                    hitboxes = img_descr["hitboxes"]
+
+                extra = {}
+                if "extra" in img_descr:
+                    extra = img_descr["extra"]
+
+                self._storage[path] = self.SpriteFrame(path, self, hitboxes, extra)
+
+                if "scale" in img_descr:
+                    self._storage[path].image = self._storage[path].image.zoom(img_descr["scale"])
+
+                return self._storage[path]
+
+            else:
+                return self._load_anim(path)
+
+    def create_colliders(self, sprite):
+        '''creates/updates colliders of a Sprite using it's current Frame hitbox parameters'''
+
+        for key in sprite.frame.hitboxes.keys():
+            hitbox = sprite.frame.hitboxes[key]
+
+            if hitbox == "remove":
+                sprite.colliders[key].delete_self()
+
+            else:
+                if key in sprite.colliders:
+                    sprite.colliders[key].delete_self()
+
+                sprite.colliders[key] = Collider(hitbox["x"], hitbox["y"],\
+                    sprite, hitbox["width"], hitbox["height"], key, hitbox["type"])
+
+        return sprite.colliders
+
+    def unload(self, path: str):
+        '''remove all loaded Frames from memory. will cause the associated picture to dissapear on the canvas'''
+        self._storage.pop(path)
+
+    def unload_all(self):
+        '''unloads all Frames'''
+
+        for path in self._storage.keys():
+            self.unload(path)
 
 class AnimStateSystem():
-	states = {}
-	state_anim_directory = ""
-	_anim_frame = 0
-	_anim = []
-	"""interface for handling anim state changes and their functions"""
-	def __init__(self, state_anim_directory:str):
-		
-		self.states["None"] = lambda: 0 # noop
-		self.state_anim_directory = state_anim_directory
-		self.update_anim_state(self.anim_state)
-		self._anim_frame = 0
-		self._anim = []
+    '''interface for handling anim state changes and their functions'''
+    states = {}
+    state_anim_directory = ""
+    _anim_frame = 0
+    _anim = []
 
-	def flip(self):
-		if self.orientation == "left":
-			self.orientation = "right"
-		else:
-			self.orientation = "left"
+    def __init__(self, state_anim_directory: str):
 
-		if self.anim_state != "None":
-			self.start_anim(self.state_anim_directory + "/" + self.anim_state + "_" + self.orientation + ".anim", self._anim_frame)
+        self.states["None"] = lambda: 0 # noop
+        self.state_anim_directory = state_anim_directory
+        self.update_anim_state(self.anim_state)
+        self._anim_frame = 0
+        self._anim = []
+
+    def flip(self):
+        if self.orientation == "left":
+            self.orientation = "right"
+        else:
+            self.orientation = "left"
+
+        if self.anim_state != "None":
+            self.start_anim(self.state_anim_directory + "/" + self.anim_state + "_" + self.orientation + ".anim", self._anim_frame)
 
 
-	def _update_state(self):
-		self.states[self.anim_state]()
+    def _update_state(self):
+        self.states[self.anim_state]()
 
-	def update_anim_state(self, state):
-		self.anim_state = state
-		if state != "None":
-			self.start_anim(self.state_anim_directory + "/" + state + "_" + self.orientation + ".anim")
+    def update_anim_state(self, state):
+        self.anim_state = state
+        if state != "None":
+            self.start_anim(self.state_anim_directory + "/" + state + "_" + self.orientation + ".anim")
 
-	def start_anim(self, anim_frames:Union[str, list], start_frame:int):
-		pass
+    def start_anim(self, anim_frames:Union[str, list], start_frame:int):
+        pass
 
 class Sprite(PhysicsObject, AnimStateSystem):
-	"""Object that contains data about the sprite. Also can be used to have code ran on each frame"""
-	x = 0
-	y = 0
-	frame = None
-	image_tk = None
-	parent_canvas = None
-	_anim = []
-	_anim_frame = 0
-	id = ""
-	_current_offset = {"x":0,"y":0}
+    '''Basic scene object. Intended to be inherited to extend functionality'''
+    x = 0
+    y = 0
+    frame = None
+    image_tk = None
+    parent_canvas = None
+    _anim = []
+    _anim_frame = 0
+    id = ""
+    _current_offset = {"x":0,"y":0}
 
-	# updateFunc is a function that takes self and gets called every frame
-	# setupFunc is a function that takes self and gets called once, at setup
+    # updateFunc is a function that takes self and gets called every frame
+    # setupFunc is a function that takes self and gets called once, at setup
 
-	def __init__(self, id:str, frame:SpriteLoader.SpriteFrame, x:int = 0, y:int = 0, phys_type:str="default", gravity:float=-0.3, friction:float=0.1, layer = 25, state_anim_directory:str=".", **kargs):
-		
-		PhysicsObject.__init__(self,phys_type,{},x,y,[0,0],gravity,friction)
+    def __init__(self, id: str, frame: SpriteLoader.SpriteFrame, x: int = 0, y: int = 0, phys_type: str="default", gravity: float=-0.3, friction: float=0.1, layer = 25, state_anim_directory:str=".", **kargs):
 
-		self.id = chelone.get_unique_id(id)  
-		
-		self.layer = 25
-		self.frame = frame
-		self.image_tk = None
-		self.parent_canvas = None
-		
-		self.states = {}
-		self.orientation = "right"
-		self.anim_state = "None"
-		
-		frame.parent.create_colliders(self)
-		chelone.add_sprite(self, layer)
+        PhysicsObject.__init__(self, phys_type, {}, x, y, [0, 0], gravity, friction)
 
-		self.setup(kargs)
-		
-		# because setup should define anim states, we should setup AnimStateSystem 
-		AnimStateSystem.__init__(self, state_anim_directory = state_anim_directory)
+        self.id = chelone.get_unique_id(id)
 
-		self._anim = [frame]
-		self._anim_frame = 0	
+        self.layer = 25
+        self.frame = frame
+        self.image_tk = None
+        self.parent_canvas = None
 
-	# made to be extended
-	def setup(self, kargs):
-		pass
+        self.states = {}
+        self.orientation = "right"
+        self.anim_state = "None"
 
-	# made to be extended
-	def update(self):
-		pass
+        frame.parent.create_colliders(self)
+        chelone.add_sprite(self, layer)
 
-	def delete_self(self):
-		PhysicsObject.delete_self(self)
-		self.parent_canvas.delete(self.image_tk)
+        self.setup(kargs)
 
-		if self.id in chelone._sprites[self.layer]:
-			chelone._sprites[self.layer].pop(self.id)
+        # because setup should define anim states, we should setup AnimStateSystem
+        AnimStateSystem.__init__(self, state_anim_directory=state_anim_directory)
 
-	def _update(self):
-		self.update()
-		self.advance_anim()
-		self._update_state()	
+        self._anim = [frame]
+        self._anim_frame = 0
 
-	def move(self, x:int, y:int):
-		self.x += x
-		self.y += y
-		self.parent_canvas.move(self.image_tk, x, y)
+    # made to be extended
+    def setup(self, kargs):
+        pass
 
-	def change_image(self, frame:SpriteLoader.SpriteFrame, stop_anim:bool = True):
+    # made to be extended
+    def update(self):
+        pass
 
-		if self._current_offset["x"]!=0 or self._current_offset["y"]!=0:
-			self.parent_canvas.move(self.image_tk,self._current_offset["x"], self._current_offset["y"])
-			self._current_offset["x"] = 0
-			self._current_offset["y"] = 0
+    def delete_self(self):
+        '''deletes this object and it's colliders'''
+
+        PhysicsObject.delete_self(self)
+        self.parent_canvas.delete(self.image_tk)
+
+        if self.id in chelone._sprites[self.layer]:
+            chelone._sprites[self.layer].pop(self.id)
+
+    def update_all(self):
+        '''function to call everything that needs to be updated in a frame'''
+        self.update()
+        self.advance_anim()
+        self._update_state()
+
+    def move(self, x: int, y: int):
+        '''moves the sprite a set amount of pixels'''
+        self.x += x
+        self.y += y
+        self.parent_canvas.move(self.image_tk, x, y)
+
+    def change_image(self, frame: SpriteLoader.SpriteFrame, stop_anim: bool = True):
+        '''changes the current picture of the sprite'''
+
+        # restore original offset
+        if self._current_offset["x"]!=0 or self._current_offset["y"]!=0:
+            self.parent_canvas.move(self.image_tk,self._current_offset["x"], self._current_offset["y"])
+            self._current_offset["x"] = 0
+            self._current_offset["y"] = 0
+
+        self.frame = frame
+        self.parent_canvas.itemconfig(self.image_tk, image = frame.image)
+        self.frame.parent.create_colliders(self)
+
+        if stop_anim:
+            self._anim = [frame]
+            self._anim_frame = 0
+            self.update_anim_state("None")
+
+        # offsetting pictures that need it
+        if "offset" in self.frame.extra.keys():
+            self.parent_canvas.move(self.image_tk,-self.frame.extra["offset"]["x"], -self.frame.extra["offset"]["y"])
+            self._current_offset["x"] = self.frame.extra["offset"]["x"]
+            self._current_offset["y"] = self.frame.extra["offset"]["y"]
 
 
-		self.frame = frame
-		self.parent_canvas.itemconfig(self.image_tk, image = frame.image)
-		self.frame.parent.create_colliders(self)
+    def start_anim(self, anim_frames: Union[str,list], start: int = 0):
+        '''starts a new animation from path to .anim file or array of Frame paths'''
 
-		if stop_anim:
-			self._anim = [frame]
-			self._anim_frame = 0
-			self.update_anim_state("None")
+        if isinstance(anim_frames, str):
+            anim_frames = self.frame.parent.load_anim(anim_frames)
 
-		if "offset" in self.frame.extra.keys():
-			self.parent_canvas.move(self.image_tk,-self.frame.extra["offset"]["x"], -self.frame.extra["offset"]["y"])
-			self._current_offset["x"] = self.frame.extra["offset"]["x"]
-			self._current_offset["y"] = self.frame.extra["offset"]["y"]
+        self._current_offset["x"] = 0
+        self._current_offset["y"] = 0
+        self.parent_canvas.delete(self.image_tk)
+        self.image_tk = self.parent_canvas.create_image(self.x-chelone.camera.x, self.y-chelone.camera.y, anchor = tk.NW, image = self.frame.image)
+        self._anim = anim_frames
+        self._anim_frame = start
 
+    def advance_anim(self):
+        '''advances current scheduled animation a frame forward'''
 
-	def start_anim(self, anim_frames:Union[str,list], start:int = 0):
-		global clear_img
-		
-		if isinstance(anim_frames, str):
-			anim_frames = self.frame.parent.load_anim(anim_frames)
+        # check if we are in an anim
+        if len(self._anim)>1:
 
-		self._current_offset["x"] = 0
-		self._current_offset["y"] = 0
-		self.parent_canvas.delete(self.image_tk)
-		self.image_tk = self.parent_canvas.create_image(self.x-chelone.camera.x, self.y-chelone.camera.y, anchor = tk.NW, image = self.frame.image)
-		self._anim = anim_frames
-		self._anim_frame = start
+            # loop animation automatically
+            if (self._anim_frame >= len(self._anim)):
+                self._anim_frame = 0
 
-	def advance_anim(self):
-		if len(self._anim)>1:
+            if self._anim[self._anim_frame] != None:
+                self.change_image(self.frame.parent.load(self._anim[self._anim_frame]), stop_anim = False)
 
-			# loop animation automatically
-			if (self._anim_frame >= len(self._anim)):
-				self._anim_frame = 0
-
-			if self._anim[self._anim_frame] != None:
-				self.change_image(self.frame.parent.load(self._anim[self._anim_frame]), stop_anim = False)
-
-			self._anim_frame += 1		
+            self._anim_frame += 1
 
 
 class SpriteRenderer():
-	"""Main drawing class. Handles every sprite"""
-	root = None
-	screen = None
-	_sprites = []
-	_prev_draw_time = None
-	_ids = {}
+    '''Main drawing class. Handles every sprite'''
+    root = None
+    screen = None
+    _sprites = []
+    _prev_draw_time = None
+    _ids = {}
 
-	caught_keys_prev = []
-	caught_keys = []
-	pressed_keys = []
+    caught_keys_prev = []
+    caught_keys = []
+    pressed_keys = []
 
-	TARGET_FPS = 60
-	camera = None
+    TARGET_FPS = 60
+    camera = None
 
-	class Camera(object):
-		"""data associated with the camera"""
-		def __init__(self, screen, x=0, y=0):
-			self.x = 0
-			self.y = 0
-			self.screen = screen
+    class Camera(object):
+        '''data object with info about the camera'''
+        def __init__(self, screen, x=0, y=0):
+            self.x = 0
+            self.y = 0
+            self.screen = screen
 
-		def move(self, x, y):
-			self.x += x
-			self.y += -y
-			self.screen.move("all", -x, y)
-			
-
-	def __init__(self, root: tk.Tk, screen:tk.Canvas):
-		self.root = root
-		self.screen = screen
-		self.camera = self.Camera(screen)
-
-		# 50 different z layers
-		self._sprites = []
-		for i in range(50):
-			self._sprites.append({})
-
-	def draw_gui(self):
-		pass
+        def move(self, x, y):
+            self.x += x
+            self.y += -y
+            self.screen.move("all", -x, y)
 
 
-	frame_period = 1.0/TARGET_FPS
-	now = time()
-	next_frame = now + frame_period
+    def __init__(self, root: tk.Tk, screen:tk.Canvas):
+        self.root = root
+        self.screen = screen
+        self.camera = self.Camera(screen)
 
-	def advance_frame(self):
+        # 50 different z layers
+        self._sprites = []
+        for i in range(50):
+            self._sprites.append({})
 
-		while self.now < self.next_frame:
-			sleep(self.next_frame - self.now)
-			self.now = time()
+        self.restart_fps_timer()
 
-		for layer in self._sprites:
-			for sprite in layer.values():
-				sprite._update()
-
-
-		advance_phys_simulation()
-
-		self.root.update()
-		self.next_frame += self.frame_period
-
-		check_keys()
-	
-	def get_unique_id(self, id:str):
-		if id not in self._ids:
-			self._ids[id] = 1
-		else:
-			self._ids[id] += 1
-
-		return id + "_" + str(self._ids[id])
-
-	def relayer(self):
-		for layer in self._sprites[::-1]:
-			for spr in layer.values():
-				self.screen.tag_raise(spr.image_tk)
-
-	def add_sprite(self, sprite:Sprite, layer:int = 25):
-		
-		if layer < 1 or layer > 49:
-			return
-
-		sprite.layer = layer
-		self._sprites[layer][sprite.id]=sprite
-
-		if sprite.image_tk == None:
-			sprite.image_tk = self.screen.create_image(sprite.x-self.camera.x, sprite.y-self.camera.y, anchor = tk.NW, image = sprite.frame.image)
-		
-		sprite.parent_canvas = self.screen
-		self.relayer()
+    def restart_fps_timer(self):
+        self.frame_period = 1.0/self.TARGET_FPS
+        self.now = time()
+        self.next_frame = self.now + self.frame_period
 
 
-	def bind(func:Callable, key:str):
-		self.root.bind(func, key)
+    def advance_frame(self):
+
+        while self.now < self.next_frame:
+            sleep(self.next_frame - self.now)
+            self.now = time()
+
+        for layer in self._sprites:
+            for sprite in layer.values():
+                sprite.update_all()
 
 
-	
+        advance_phys_simulation()
+
+        self.root.update()
+        self.next_frame += self.frame_period
+
+        check_keys()
+
+    def get_unique_id(self, id:str):
+        if id not in self._ids:
+            self._ids[id] = 1
+        else:
+            self._ids[id] += 1
+
+        return id + "_" + str(self._ids[id])
+
+    def relayer(self):
+        for layer in self._sprites[::-1]:
+            for spr in layer.values():
+                self.screen.tag_raise(spr.image_tk)
+
+    def add_sprite(self, sprite:Sprite, layer:int = 25):
+
+        if layer < 1 or layer > 49:
+            return
+
+        sprite.layer = layer
+        self._sprites[layer][sprite.id]=sprite
+
+        if sprite.image_tk == None:
+            sprite.image_tk = self.screen.create_image(sprite.x-self.camera.x, sprite.y-self.camera.y, anchor = tk.NW, image = sprite.frame.image)
+
+        sprite.parent_canvas = self.screen
+        self.relayer()
+
+
+    def bind(func:Callable, key:str):
+        self.root.bind(func, key)
+
+
