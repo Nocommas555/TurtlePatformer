@@ -207,10 +207,23 @@ class Droid(Sprite):
                     )
 
 
+class background_sound(Sprite):
 
+    def setup(self, kargs):
+
+        self.sound = kargs['sound']
+
+        self.playing_sound = playsound(self.sound)
+
+    def update(self):
+
+        if(sound_finished(self.playing_sound)):
+            self.playing_sound = playsound(self.sound)
 
 
 spr = Player("Player", loader.load("tmp.png"), gravity=-1, x=100, layer=10, state_anim_directory="anakin")
+
+background_sound("background", loadre.load("clear.png"), phys_type = "inmovable", sound = "sounds/imperial_march.wav") 
 
 drd1 = Droid("Droid", loader.load("droid.png"), patrol_range=[700, 1300], speed=1)
 
