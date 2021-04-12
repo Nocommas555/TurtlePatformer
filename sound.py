@@ -39,6 +39,6 @@ if system == 'Linux':
 	playsound = _playsound_linux
 elif system == 'Windows':
 	playsound = _playsound_win
-elif system = 'Darwin':
+elif system == 'Darwin':
 	playsound = _playsound_darwin
 del system
