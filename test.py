@@ -4,13 +4,12 @@
 from time import time
 
 from Chelone import init, Sprite, SpriteLoader, check_keys
-from sound import playsound, sound_finished #noqa, will be used later
+from sound import playsound, sound_finished, sounds #noqa, will be used later
 
 
 # setting up global objects for rendering and loading, respectively
 chelone = init(1600, 800)
 loader = SpriteLoader()
-playsound("sounds/test.wav")
 
 class Player(Sprite):
     """
@@ -223,7 +222,7 @@ class background_sound(Sprite):
 
 spr = Player("Player", loader.load("tmp.png"), gravity=-1, x=100, layer=10, state_anim_directory="anakin")
 
-background_sound("background", loadre.load("clear.png"), phys_type = "inmovable", sound = "sounds/imperial_march.wav") 
+background_sound("background", loader.load("clear.png"), phys_type = "inmovable", sound = "sounds/imperial_march.wav") 
 
 drd1 = Droid("Droid", loader.load("droid.png"), patrol_range=[700, 1300], speed=1)
 
