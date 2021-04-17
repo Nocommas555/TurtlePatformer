@@ -21,6 +21,7 @@ def init(resolution_x: int, resolution_y: int):
 
     # Create the window with the Tk class
     root = tk.Tk()
+    root.resizable(False, False)
 
     root.bind("<Key>", on_key_press)
     root.bind("<KeyRelease>", on_key_release)
@@ -153,8 +154,8 @@ class SpriteLoader():
 
                 return self._storage[path]
 
-            else:
-                return self._load_anim(path)
+        print("Error loading: " + path)
+        return None
 
     def create_colliders(self, sprite):
         '''creates/updates colliders of a Sprite using it's current Frame hitbox parameters'''
@@ -181,7 +182,7 @@ class SpriteLoader():
     def unload_all(self):
         '''unloads all Frames'''
 
-        for path in self._storage.keys():
+        for path in self._storage:
             self.unload(path)
 
 class AnimStateSystem():
@@ -190,6 +191,7 @@ class AnimStateSystem():
     state_anim_directory = ""
     _anim_frame = 0
     _anim = []
+    orientation = "right"
 
     def __init__(self, state_anim_directory: str):
 
@@ -200,24 +202,30 @@ class AnimStateSystem():
         self._anim = []
 
     def flip(self):
+        '''changes the current playing animation to the flipped version'''
         if self.orientation == "left":
             self.orientation = "right"
         else:
             self.orientation = "left"
 
         if self.anim_state != "None":
-            self.start_anim(self.state_anim_directory + "/" + self.anim_state + "_" + self.orientation + ".anim", self._anim_frame)
+            self.start_anim(
+                self.state_anim_directory + "/" + self.anim_state + "_" + self.orientation + ".anim",
+                self._anim_frame
+            )
 
 
     def _update_state(self):
         self.states[self.anim_state]()
 
     def update_anim_state(self, state):
+        '''changes self.anim_state and starts the associated function'''
         self.anim_state = state
         if state != "None":
             self.start_anim(self.state_anim_directory + "/" + state + "_" + self.orientation + ".anim")
 
-    def start_anim(self, anim_frames:Union[str, list], start_frame:int):
+    # meant to be extended
+    def start_anim(self, anim_frames: Union[str, list], start: int = 0):
         pass
 
 class Sprite(PhysicsObject, AnimStateSystem):
@@ -230,12 +238,15 @@ class Sprite(PhysicsObject, AnimStateSystem):
     _anim = []
     _anim_frame = 0
     id = ""
-    _current_offset = {"x":0,"y":0}
+    _current_offset = {"x":0, "y":0}
 
     # updateFunc is a function that takes self and gets called every frame
     # setupFunc is a function that takes self and gets called once, at setup
 
-    def __init__(self, id: str, frame: SpriteLoader.SpriteFrame, x: int = 0, y: int = 0, phys_type: str="default", gravity: float=-0.3, friction: float=0.1, layer = 25, state_anim_directory:str=".", **kargs):
+    def __init__(self, id: str, frame: SpriteLoader.SpriteFrame,
+                 x: int = 0, y: int = 0,
+                 phys_type: str = "default", gravity: float = -0.3, friction: float = 0.1, layer = 25,
+                 state_anim_directory: str = ".", **kargs):
 
         PhysicsObject.__init__(self, phys_type, {}, x, y, [0, 0], gravity, friction)
 
@@ -275,8 +286,7 @@ class Sprite(PhysicsObject, AnimStateSystem):
         PhysicsObject.delete_self(self)
         self.parent_canvas.delete(self.image_tk)
 
-        if self.id in chelone._sprites[self.layer]:
-            chelone._sprites[self.layer].pop(self.id)
+        chelone.remove_sprite(self)
 
     def update_all(self):
         '''function to call everything that needs to be updated in a frame'''
@@ -294,13 +304,13 @@ class Sprite(PhysicsObject, AnimStateSystem):
         '''changes the current picture of the sprite'''
 
         # restore original offset
-        if self._current_offset["x"]!=0 or self._current_offset["y"]!=0:
-            self.parent_canvas.move(self.image_tk,self._current_offset["x"], self._current_offset["y"])
+        if self._current_offset["x"] != 0 or self._current_offset["y"] != 0:
+            self.parent_canvas.move(self.image_tk, self._current_offset["x"], self._current_offset["y"])
             self._current_offset["x"] = 0
             self._current_offset["y"] = 0
 
         self.frame = frame
-        self.parent_canvas.itemconfig(self.image_tk, image = frame.image)
+        self.parent_canvas.itemconfig(self.image_tk, image=frame.image)
         self.frame.parent.create_colliders(self)
 
         if stop_anim:
@@ -310,12 +320,12 @@ class Sprite(PhysicsObject, AnimStateSystem):
 
         # offsetting pictures that need it
         if "offset" in self.frame.extra.keys():
-            self.parent_canvas.move(self.image_tk,-self.frame.extra["offset"]["x"], -self.frame.extra["offset"]["y"])
+            self.parent_canvas.move(self.image_tk, -self.frame.extra["offset"]["x"], -self.frame.extra["offset"]["y"])
             self._current_offset["x"] = self.frame.extra["offset"]["x"]
             self._current_offset["y"] = self.frame.extra["offset"]["y"]
 
 
-    def start_anim(self, anim_frames: Union[str,list], start: int = 0):
+    def start_anim(self, anim_frames: Union[str, list], start: int = 0):
         '''starts a new animation from path to .anim file or array of Frame paths'''
 
         if isinstance(anim_frames, str):
@@ -324,7 +334,10 @@ class Sprite(PhysicsObject, AnimStateSystem):
         self._current_offset["x"] = 0
         self._current_offset["y"] = 0
         self.parent_canvas.delete(self.image_tk)
-        self.image_tk = self.parent_canvas.create_image(self.x-chelone.camera.x, self.y-chelone.camera.y, anchor = tk.NW, image = self.frame.image)
+
+        screen_x = self.x-chelone.camera.x
+        screen_y = self.y-chelone.camera.y
+        self.image_tk = self.parent_canvas.create_image(screen_x, screen_y, anchor=tk.NW, image=self.frame.image)
         self._anim = anim_frames
         self._anim_frame = start
 
@@ -332,14 +345,14 @@ class Sprite(PhysicsObject, AnimStateSystem):
         '''advances current scheduled animation a frame forward'''
 
         # check if we are in an anim
-        if len(self._anim)>1:
+        if len(self._anim) > 1:
 
             # loop animation automatically
-            if (self._anim_frame >= len(self._anim)):
+            if self._anim_frame >= len(self._anim):
                 self._anim_frame = 0
 
-            if self._anim[self._anim_frame] != None:
-                self.change_image(self.frame.parent.load(self._anim[self._anim_frame]), stop_anim = False)
+            if self._anim[self._anim_frame] is not None:
+                self.change_image(self.frame.parent.load(self._anim[self._anim_frame]), stop_anim=False)
 
             self._anim_frame += 1
 
@@ -359,20 +372,21 @@ class SpriteRenderer():
     TARGET_FPS = 60
     camera = None
 
-    class Camera(object):
+    class Camera():
         '''data object with info about the camera'''
         def __init__(self, screen, x=0, y=0):
-            self.x = 0
-            self.y = 0
+            self.x = x
+            self.y = y
             self.screen = screen
 
         def move(self, x, y):
+            '''moves the camera by moving everything else'''
             self.x += x
             self.y += -y
             self.screen.move("all", -x, y)
 
 
-    def __init__(self, root: tk.Tk, screen:tk.Canvas):
+    def __init__(self, root: tk.Tk, screen: tk.Canvas):
         self.root = root
         self.screen = screen
         self.camera = self.Camera(screen)
@@ -385,13 +399,14 @@ class SpriteRenderer():
         self.restart_fps_timer()
 
     def restart_fps_timer(self):
+        '''resets the fps timer variables'''
         self.frame_period = 1.0/self.TARGET_FPS
         self.now = time()
         self.next_frame = self.now + self.frame_period
 
 
     def advance_frame(self):
-
+        '''sleeps until we are in time for target fps and advances game state by one frame'''
         while self.now < self.next_frame:
             sleep(self.next_frame - self.now)
             self.now = time()
@@ -408,7 +423,8 @@ class SpriteRenderer():
 
         check_keys()
 
-    def get_unique_id(self, id:str):
+    def get_unique_id(self, id: str):
+        '''generates a unique id'''
         if id not in self._ids:
             self._ids[id] = 1
         else:
@@ -417,26 +433,33 @@ class SpriteRenderer():
         return id + "_" + str(self._ids[id])
 
     def relayer(self):
+        '''relayers all sprites'''
         for layer in self._sprites[::-1]:
             for spr in layer.values():
                 self.screen.tag_raise(spr.image_tk)
 
-    def add_sprite(self, sprite:Sprite, layer:int = 25):
-
+    def add_sprite(self, sprite: Sprite, layer: int = 25):
+        '''does basic sprite setup like relayering and adding it to the active sprite list'''
         if layer < 1 or layer > 49:
             return
 
         sprite.layer = layer
-        self._sprites[layer][sprite.id]=sprite
+        self._sprites[layer][sprite.id] = sprite
 
-        if sprite.image_tk == None:
-            sprite.image_tk = self.screen.create_image(sprite.x-self.camera.x, sprite.y-self.camera.y, anchor = tk.NW, image = sprite.frame.image)
+        if sprite.image_tk is None:
+            screen_x = sprite.x-self.camera.x
+            screen_y = sprite.y-self.camera.y
+            sprite.image_tk = self.screen.create_image(screen_x, screen_y, anchor=tk.NW, image=sprite.frame.image)
 
         sprite.parent_canvas = self.screen
         self.relayer()
 
+    def remove_sprite(self, sprite):
+        '''removes the sprite from _sprites'''
+        if sprite.id in self._sprites[sprite.layer]:
+            self._sprites[sprite.layer].pop(sprite.id)
 
-    def bind(func:Callable, key:str):
+
+    def bind(self, func: Callable, key: str):
+        '''wrapper over tk keybinding. buggy as hell, chelone.pressed_keys should be used instead'''
         self.root.bind(func, key)
-
-
