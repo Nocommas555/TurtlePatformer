@@ -223,7 +223,7 @@ def _colliders_intersect(A: Collider, B: Collider):
 
 
 def _handle_all_collisions(arr: list):
-    ''''''
+    '''looks at all box colliders, calls their parents to resolve any intersections'''
     # compare every element in rect list to every next element
     # which gives us total of (n-1)^2 / 2 number of comparisons
     for i, obj in enumerate(arr):
