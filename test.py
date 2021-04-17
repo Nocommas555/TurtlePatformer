@@ -4,8 +4,8 @@
 from time import time
 
 from Chelone import init, Sprite, SpriteLoader, check_keys
-from sound import playsound, sound_finished, sounds #noqa, will be used later
-
+from sound import playsound, sound_finished
+from BoxPhys import get_collision_displacement
 
 # setting up global objects for rendering and loading, respectively
 chelone = init(1600, 800)
@@ -35,8 +35,8 @@ class Player(Sprite):
 
         self.camera_lagbehind = kargs.get("camera_lagbehind", [0.05, 0.05])
 
-        self.camera_offset = kargs.get("camera_offset", [600,300])
-        
+        self.camera_offset = kargs.get("camera_offset", [600, 300])
+
     def update(self):
 
         if 'w' in chelone.pressed_keys and\
@@ -50,17 +50,19 @@ class Player(Sprite):
         self.w_pressed = 'w' in chelone.pressed_keys
 
     def run_state(self):
+        '''the code that runs while the player is running'''
         movement = self.move_on_command()
         if not movement[0] and not movement[1]:
             self.update_anim_state('idle')
 
     def idle_state(self):
+        '''the code that runs while the player is idling'''
         movement = self.move_on_command()
         if movement[0] or movement[1]:
             self.update_anim_state('run')
 
-    # smooth camera follow
     def update_smooth_camera(self):
+        '''handles updating the camera position smoothly'''
         camera_desired = [
             self.x-self.camera_offset[0],
             self.y-self.camera_offset[1]
@@ -73,7 +75,9 @@ class Player(Sprite):
 
 
     def move_on_command(self):
+        '''handles movement with keypresses'''
         ret = [False, False]
+
         if 'a' in chelone.pressed_keys:
             ret[0] = True
             self.move(-7, 0)
@@ -87,19 +91,24 @@ class Player(Sprite):
 
             if self.orientation != "right":
                 self.flip()
-        
+
         return ret
 
     def handle_collision(self, collided_obj, my_collider, other_collider, handled=False):
-        displacement = self.get_collision_displacement(collided_obj, my_collider, other_collider)
+        '''check if we ever intersect ground to be able to jump'''
+        displacement = get_collision_displacement(my_collider, other_collider)
         super().handle_collision(collided_obj, my_collider, other_collider, handled)
 
-        # pylint: disable=chained-comparison
         if displacement[1] < 0 and self.vel[1] >= 0:
             if my_collider.type != "trigger" and other_collider.type != "trigger":
                 self.grounded = True
 
     def delete_self(self):
+        '''
+        instead of deleting, we need to pause and restart the game
+        TODO: this is a POC, needs to be remade properly
+        '''
+
         print("game_over")
         saved_sprites = chelone._sprites
         chelone._sprites = [{} for i in range(50)]
@@ -207,7 +216,7 @@ class Droid(Sprite):
 
 
 class background_sound(Sprite):
-
+    '''loops the bg music'''
     def setup(self, kargs):
 
         self.sound = kargs['sound']
@@ -216,13 +225,13 @@ class background_sound(Sprite):
 
     def update(self):
 
-        if(sound_finished(self.playing_sound)):
+        if sound_finished(self.playing_sound):
             self.playing_sound = playsound(self.sound)
 
 
 spr = Player("Player", loader.load("tmp.png"), gravity=-1, x=100, layer=10, state_anim_directory="anakin")
 
-background_sound("background", loader.load("clear.png"), phys_type = "inmovable", sound = "sounds/imperial_march.wav") 
+background_sound("background", loader.load("clear.png"), phys_type="inmovable", sound="sounds/imperial_march.wav")
 
 drd1 = Droid("Droid", loader.load("droid.png"), patrol_range=[700, 1300], speed=1)
 

@@ -1,3 +1,7 @@
+'''
+BoxPhys is an open-source lightweight 2d physics engine.
+It has support for 2d box colliders, velocities, gravity and trigger hitboxes.
+'''
 physics_objects = []
 colliders = []
 _removing = []
@@ -7,6 +11,7 @@ COLLIDER_ACTIVE_BOUNDARY = 100
 
 
 class PhysicsObject():
+    '''Basic class for all rigidbodies. handles movement and collision with other objects, '''
     x = 0
     y = 0
     vel = [0, 0]
@@ -15,14 +20,20 @@ class PhysicsObject():
     colliders = {}
     type = "default"
 
-    def __init__(self, type: str = "default", colliders: dict = {},
+    def __init__(self, type: str = "default", colliders: dict = None,
                  x: float = 0, y: float = 0,
-                 vel: list = [0, 0],
+                 vel: list = None,
                  gravity: float = -0.3, friction: float = 0.1):
         global physics_objects
 
         if type not in ["default", "immovable"]:
             type = 'default'
+
+        if colliders is None:
+            colliders = {}
+
+        if vel is None:
+            vel = [0, 0]
 
         self.type = type
         self.colliders = colliders
@@ -35,66 +46,41 @@ class PhysicsObject():
         physics_objects.append(self)
 
     def advance_simulation(self):
+        '''advances the phys simulation for this object'''
 
         if self.type != "immovable":
             self.vel[1] -= self.gravity
             self.move(self.vel[0], self.vel[1])
 
-        collision_checked = False
 
     def move(self, x: int, y: int):
+        '''moves the object by a set amount of pixels'''
 
         if self.type != "immovable":
             self.x += x
             self.y += y
 
     def add_vel(self, x: int, y: int):
+        '''adds a velocity to this object'''
 
         if self.type != "immovable":
             self.vel[0] += x
             self.vel[1] += y
 
     def delete_self(self):
+        '''removes this object on the next frame'''
         remove_phys_obj(self)
 
     # default, meant to be extended
-    def handle_trigger(self, collided_obj, my_collider, other_collider):
+    def handle_trigger(self, collided_obj, my_collider, other_collider): #noqa
         pass
-
-    def get_collision_displacement(self, collided_obj,
-                                   my_collider, other_collider):
-        global COLLIDER_ACTIVE_BOUNDARY
-
-        top_dist = my_collider.bottom_edge()-other_collider.top_edge()
-        bottom_dist = other_collider.bottom_edge() - my_collider.top_edge()
-        right_dist = my_collider.right_edge() - other_collider.left_edge()
-        left_dist = other_collider.right_edge() - my_collider.left_edge()
-
-        if right_dist < COLLIDER_ACTIVE_BOUNDARY\
-                and right_dist > 0\
-                and right_dist < top_dist\
-                and right_dist < bottom_dist:
-            return [-right_dist, 0]
-
-        elif left_dist < COLLIDER_ACTIVE_BOUNDARY\
-                and left_dist > 0\
-                and left_dist < top_dist\
-                and left_dist < bottom_dist:
-            return [left_dist, 0]
-
-        elif top_dist < COLLIDER_ACTIVE_BOUNDARY and top_dist > 0:
-            return [0, -top_dist]
-
-        elif bottom_dist < COLLIDER_ACTIVE_BOUNDARY and bottom_dist > 0:
-            return [0, bottom_dist]
-
-        return [0, 0]
 
     def handle_collision(self, collided_obj,
                          my_collider, other_collider, handled=False):
+        '''handles a collision with another object'''
 
         # don't collide with self. allows overlapping hitboxes
-        if collided_obj.id == self.id:
+        if collided_obj is self:
             return
 
         if my_collider.type == 'trigger':
@@ -103,9 +89,7 @@ class PhysicsObject():
 
         if not handled and other_collider.type != "trigger":
 
-            displacement =\
-                self.get_collision_displacement(collided_obj,
-                                                my_collider, other_collider)
+            displacement = get_collision_displacement(my_collider, other_collider)
 
             # nullify velocities in the direction of collision
             if displacement[0] != 0:
@@ -138,8 +122,8 @@ class PhysicsObject():
                 collided_obj.move(-displacement[0]/2, -displacement[1]/2)
 
 
-class Collider(object):
-
+class Collider():
+    '''dataclass that has all of the info about 1 collider'''
     x = 0
     y = 0
     width = 0
@@ -164,35 +148,66 @@ class Collider(object):
         colliders.append(self)
 
     def delete_self(self):
+        '''removes this object from the physics simulation on the next tick'''
         self.parent.colliders.pop(self.id)
         colliders.remove(self)
 
     # helper functions for edges of the collider
-    def left_edge(self):
+
+    def left_edge(self): #noqa, one-line self-explanatory functions do not need a docstring, pylint
         return self.x+self.parent.x
 
-    def right_edge(self):
+    def right_edge(self): #noqa, one-line self-explanatory functions do not need a docstring, pylint
         return self.x+self.width+self.parent.x
 
-    def bottom_edge(self):
+    def bottom_edge(self): #noqa, one-line self-explanatory functions do not need a docstring, pylint
         return self.y+self.height+self.parent.y
 
-    def top_edge(self):
+    def top_edge(self): #noqa, one-line self-explanatory functions do not need a docstring, pylint
         return self.y+self.parent.y
 
     # helper functions to get locations of all points
-    def NW(self):
+
+    def NW(self): #noqa, one-line self-explanatory functions do not need a docstring, pylint
         return [self.x+self.parent.x, self.y+self.parent.y]
 
-    def NE(self):
+    def NE(self): #noqa, one-line self-explanatory functions do not need a docstring, pylint
         return [self.x+self.width+self.parent.x, self.y+self.parent.y]
 
-    def SW(self):
+    def SW(self): #noqa, one-line self-explanatory functions do not need a docstring, pylint
         return [self.x+self.parent.x, self.y+self.height+self.parent.y]
 
-    def SE(self):
+    def SE(self): #noqa, one-line self-explanatory functions do not need a docstring, pylint
         return [self.x+self.width+self.parent.x, self.y+self.height+self.parent.y]
 
+def get_collision_displacement(my_collider, other_collider):
+    '''return by how much this object should be displaced in order to move it outside the another object'''
+    global COLLIDER_ACTIVE_BOUNDARY
+
+    top_dist = my_collider.bottom_edge()-other_collider.top_edge()
+    bottom_dist = other_collider.bottom_edge() - my_collider.top_edge()
+    right_dist = my_collider.right_edge() - other_collider.left_edge()
+    left_dist = other_collider.right_edge() - my_collider.left_edge()
+
+    if right_dist < COLLIDER_ACTIVE_BOUNDARY\
+            and right_dist > 0\
+            and right_dist < top_dist\
+            and right_dist < bottom_dist:
+        return [-right_dist, 0]
+
+    elif left_dist < COLLIDER_ACTIVE_BOUNDARY\
+            and left_dist > 0\
+            and left_dist < top_dist\
+            and left_dist < bottom_dist:
+        return [left_dist, 0]
+
+    elif top_dist < COLLIDER_ACTIVE_BOUNDARY and top_dist > 0:
+        return [0, -top_dist]
+
+    elif bottom_dist < COLLIDER_ACTIVE_BOUNDARY and bottom_dist > 0:
+        return [0, bottom_dist]
+
+    return [0, 0]
 
 def _colliders_intersect(A: Collider, B: Collider):
     # check if starting point of one rectangle is within projection another on x
@@ -208,17 +223,18 @@ def _colliders_intersect(A: Collider, B: Collider):
 
 
 def _handle_all_collisions(arr: list):
-
+    ''''''
     # compare every element in rect list to every next element
     # which gives us total of (n-1)^2 / 2 number of comparisons
-    for i in range(len(arr)):
-        for j in range(i + 1, len(arr)):
-            if _colliders_intersect(arr[i], arr[j]):
-                arr[i].parent.handle_collision(arr[j].parent, arr[i], arr[j], True)
-                arr[j].parent.handle_collision(arr[i].parent, arr[j], arr[i], False)
+    for i, obj in enumerate(arr):
+        for obj2 in arr[:i+1]:
+            if _colliders_intersect(obj, obj2):
+                obj.parent.handle_collision(obj2.parent, obj, obj2, True)
+                obj2.parent.handle_collision(obj.parent, obj2, obj, False)
 
 
 def advance_phys_simulation():
+    '''advances the physics simulation by 1 frame'''
     for obj in physics_objects:
         obj.advance_simulation()
 
@@ -227,6 +243,7 @@ def advance_phys_simulation():
 
 
 def _remove_phys_obj():
+    '''does all sheduled deletions'''
     global _removing
     for phys_obj in _removing:
         for collider in list(phys_obj.colliders.values()):
@@ -238,4 +255,5 @@ def _remove_phys_obj():
 
 
 def remove_phys_obj(phys_obj):
+    '''shedules the deletion of passed obj on the next frame'''
     _removing.append(phys_obj)
