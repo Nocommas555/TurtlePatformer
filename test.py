@@ -25,7 +25,6 @@ class Player(Sprite):
 
         # set up anim states
         self.states = {"run": self.run_state, "idle": self.idle_state}
-        self.anim_state = "idle"
 
         self.grounded = False
         self.w_pressed = False
@@ -37,6 +36,8 @@ class Player(Sprite):
 
     def update(self):
         global chelone
+        if self.anim_state == "None":
+        	self.update_anim_state('idle')
 
         if 'w' in chelone.pressed_keys and\
           self.grounded and not self.w_pressed:
