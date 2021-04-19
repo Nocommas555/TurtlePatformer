@@ -481,4 +481,5 @@ class SpriteRenderer():
                 layer.pop(sprite)
 
         reset_phys_sim()
+        kill_all_sounds()
         self.screen.delete("all")
