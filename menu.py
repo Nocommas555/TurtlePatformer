@@ -1,11 +1,16 @@
 from tkinter import *
 import tkinter.font as tkfont
+from test import start_level
+
+root = Tk()
 
 def change_menu(this_frame, next_frame):
     this_frame.pack_forget()
     next_frame.pack()
 
-root = Tk()
+def load_game(parent_frame):
+  parent_frame.pack_forget()
+  start_level(root)
 
 regular_font = tkfont.Font(family = 'Noto Sans', size = 16)
 big_font = tkfont.Font(family = 'Noto Sans',size = 32)
@@ -23,7 +28,7 @@ Label(master = main_menu,
 Button(master = main_menu,
        text = 'Play',
        font = big_font,
-       command = lambda: print("Not ready yet, enjoy this beautiful menu")
+       command = lambda: load_game(main_menu)
     ).place(relx = 0.5, rely = 0.6,
             width = 200, height = 100,
             anchor = CENTER)
