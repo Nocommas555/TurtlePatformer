@@ -1,5 +1,6 @@
 from tkinter import *
 import tkinter.font as tkfont
+import os
 from test import start_level
 
 root = Tk()
@@ -7,6 +8,7 @@ root = Tk()
 def change_menu(this_frame, next_frame):
     this_frame.pack_forget()
     next_frame.pack()
+    root.update()
 
 def load_game(parent_frame):
   parent_frame.pack_forget()
@@ -44,7 +46,7 @@ Button(master = main_menu,
 Button(master = main_menu,
        text = 'Exit',
        font = regular_font,
-       command = lambda: print("Please, close this window yourself by pressing X in the top right corner")
+       command = lambda: os._exit(0)
     ).place(relx = 0.5, rely = 0.85,
             width = 100, height = 50,
             anchor = CENTER)
