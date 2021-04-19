@@ -268,5 +268,3 @@ def start_level(root = None):
 	    elapsedTime = endTime - startTime
 
 
-start_level()
-
