@@ -240,7 +240,7 @@ def start_level(root = None):
 
 	background_sound("background", loader.load("clear.png"), phys_type="inmovable", sound="sounds/imperial_march.wav")
 
-	drd1 = Droid("Droid", loader.load("droid.png"), patrol_range=[700, 1300], speed=1)
+	drd1 = Droid("Droid", loader.load("droid.png"), patrol_range=[1500, 2000], speed=1)
 
 	#drd2 = Droid_1("Droid 2", loader.load("droid.png"), x = 1200)
 	#chelone.add_sprite(drd2)
@@ -250,8 +250,13 @@ def start_level(root = None):
 
 	ground = Sprite("Ground", loader.load("gnd.png"), phys_type="immovable", x=0, y=650, layer=49)
 
-	block = Sprite("Block", loader.load("tmp.png"), phys_type="immovable", x=500, y=350)
-
+	block = Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1000, y=590)
+	block = Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1100, y=590)
+	block = Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1200, y=590)
+	block = Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1300, y=590)
+	block = Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1400, y=590)
+	block = Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1200, y=525)
+	block = Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1300, y=525)
 	# movable = Sprite("Movable", loader.load("tmp.png"), x=150, y=200)
 	# chelone.add_sprite(movable, 30)
 
