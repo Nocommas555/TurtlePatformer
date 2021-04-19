@@ -25,6 +25,8 @@ def init(root = None):
     # Create the window with the Tk class
     if root is None:
         root = tk.Tk()
+
+    if chelone is None:
         root.protocol("WM_DELETE_WINDOW", exit)
         root.bind("<Key>", on_key_press)
         root.bind("<KeyRelease>", on_key_release)
