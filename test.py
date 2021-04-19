@@ -4,12 +4,10 @@
 from time import time
 
 from Chelone import init, Sprite, SpriteLoader, check_keys
-from sound import playsound, sound_finished, sounds #noqa, will be used later
+from sound import playsound, sound_finished
+from BoxPhys import get_collision_displacement
 
-
-# setting up global objects for rendering and loading, respectively
-chelone = init(1600, 800)
-loader = SpriteLoader()
+chelone = None
 
 class Player(Sprite):
     """
@@ -35,9 +33,10 @@ class Player(Sprite):
 
         self.camera_lagbehind = kargs.get("camera_lagbehind", [0.05, 0.05])
 
-        self.camera_offset = kargs.get("camera_offset", [600,300])
-        
+        self.camera_offset = kargs.get("camera_offset", [600, 300])
+
     def update(self):
+        global chelone
 
         if 'w' in chelone.pressed_keys and\
           self.grounded and not self.w_pressed:
@@ -50,17 +49,19 @@ class Player(Sprite):
         self.w_pressed = 'w' in chelone.pressed_keys
 
     def run_state(self):
+        '''the code that runs while the player is running'''
         movement = self.move_on_command()
         if not movement[0] and not movement[1]:
             self.update_anim_state('idle')
 
     def idle_state(self):
+        '''the code that runs while the player is idling'''
         movement = self.move_on_command()
         if movement[0] or movement[1]:
             self.update_anim_state('run')
 
-    # smooth camera follow
     def update_smooth_camera(self):
+        '''handles updating the camera position smoothly'''
         camera_desired = [
             self.x-self.camera_offset[0],
             self.y-self.camera_offset[1]
@@ -73,7 +74,9 @@ class Player(Sprite):
 
 
     def move_on_command(self):
+        '''handles movement with keypresses'''
         ret = [False, False]
+
         if 'a' in chelone.pressed_keys:
             ret[0] = True
             self.move(-7, 0)
@@ -87,24 +90,29 @@ class Player(Sprite):
 
             if self.orientation != "right":
                 self.flip()
-        
+
         return ret
 
     def handle_collision(self, collided_obj, my_collider, other_collider, handled=False):
-        displacement = self.get_collision_displacement(collided_obj, my_collider, other_collider)
+        '''check if we ever intersect ground to be able to jump'''
+        displacement = get_collision_displacement(my_collider, other_collider)
         super().handle_collision(collided_obj, my_collider, other_collider, handled)
 
-        # pylint: disable=chained-comparison
         if displacement[1] < 0 and self.vel[1] >= 0:
             if my_collider.type != "trigger" and other_collider.type != "trigger":
                 self.grounded = True
 
     def delete_self(self):
+        '''
+        instead of deleting, we need to pause and restart the game
+        TODO: this is a POC, needs to be remade properly
+        '''
+
         print("game_over")
         saved_sprites = chelone._sprites
         chelone._sprites = [{} for i in range(50)]
         game_over = Sprite(
-            id="game_over", frame=loader.load("game_over.png"),
+            id="game_over", frame=self.frame.parent.load("game_over.png"),
             x=450+chelone.camera.x, y=chelone.camera.y, phys_type="immovable", layer=1,
         )
         chelone.add_sprite(game_over, 1)
@@ -122,7 +130,7 @@ class Player(Sprite):
         super().delete_self()
 
         player = Player(
-            id="Player", frame=loader.load("tmp.png"),\
+            id="Player", frame=self.frame.parent.load("tmp.png"),\
             x=250, y=0, gravity=self.gravity,\
             state_anim_directory=self.state_anim_directory
         )
@@ -191,7 +199,7 @@ class Droid(Sprite):
                 self.shooting_cooldown = 0
                 if my_collider.id == "left_search":
                     self.Laser(
-                        id="Laser", frame=loader.load("laser.png"), gravity=0,
+                        id="Laser", frame=self.frame.parent.load("laser.png"), gravity=0,
                         x=self.x-50,
                         y=self.y+self.colliders['body'].height/2,
                         velocity=[-3, 0]
@@ -199,7 +207,7 @@ class Droid(Sprite):
 
                 elif my_collider.id == "right_search":
                     self.Laser(
-                        id="Laser", frame=loader.load("laser.png"), gravity=0,
+                        id="Laser", frame=self.frame.parent.load("laser.png"), gravity=0,
                         x=self.x+self.colliders['body'].width+50,
                         y=self.y+self.colliders['body'].height/2,
                         velocity=[3, 0]
@@ -207,7 +215,7 @@ class Droid(Sprite):
 
 
 class background_sound(Sprite):
-
+    '''loops the bg music'''
     def setup(self, kargs):
 
         self.sound = kargs['sound']
@@ -216,34 +224,49 @@ class background_sound(Sprite):
 
     def update(self):
 
-        if(sound_finished(self.playing_sound)):
+        if sound_finished(self.playing_sound):
             self.playing_sound = playsound(self.sound)
 
+flag = False
+def start_level(root = None):
+	global chelone, flag
 
-spr = Player("Player", loader.load("tmp.png"), gravity=-1, x=100, layer=10, state_anim_directory="anakin")
+	# setting up global objects for rendering and loading, respectively
+	chelone = init(root)
+	loader = SpriteLoader()
 
-background_sound("background", loader.load("clear.png"), phys_type = "inmovable", sound = "sounds/imperial_march.wav") 
+	spr = Player("Player", loader.load("tmp.png"), gravity=-1, x=100, layer=10, state_anim_directory="anakin")
 
-drd1 = Droid("Droid", loader.load("droid.png"), patrol_range=[700, 1300], speed=1)
+	background_sound("background", loader.load("clear.png"), phys_type="inmovable", sound="sounds/imperial_march.wav")
 
-#drd2 = Droid_1("Droid 2", loader.load("droid.png"), x = 1200)
-#chelone.add_sprite(drd2)
+	drd1 = Droid("Droid", loader.load("droid.png"), patrol_range=[700, 1300], speed=1)
 
-#drd3 = Droid_1("Droid 3", loader.load("droid.png"), x = 1400)
-#chelone.add_sprite(drd3)
+	#drd2 = Droid_1("Droid 2", loader.load("droid.png"), x = 1200)
+	#chelone.add_sprite(drd2)
 
-ground = Sprite("Ground", loader.load("gnd.png"), phys_type="immovable", x=0, y=650, layer=49)
+	#drd3 = Droid_1("Droid 3", loader.load("droid.png"), x = 1400)
+	#chelone.add_sprite(drd3)
 
-block = Sprite("Block", loader.load("tmp.png"), phys_type="immovable", x=500, y=350)
+	ground = Sprite("Ground", loader.load("gnd.png"), phys_type="immovable", x=0, y=650, layer=49)
 
-# movable = Sprite("Movable", loader.load("tmp.png"), x=150, y=200)
-# chelone.add_sprite(movable, 30)
+	block = Sprite("Block", loader.load("tmp.png"), phys_type="immovable", x=500, y=350)
 
-#laser = Laser("Laser", loader.load("laser.png"), x = 900)
-#chelone.add_sprite(laser)
+	# movable = Sprite("Movable", loader.load("tmp.png"), x=150, y=200)
+	# chelone.add_sprite(movable, 30)
 
-while 1:
-    startTime = time()
-    chelone.advance_frame()
-    endTime = time()
-    elapsedTime = endTime - startTime
+	#laser = Laser("Laser", loader.load("laser.png"), x = 900)
+	#chelone.add_sprite(laser)
+
+	while 1:
+	    startTime = time()
+	    chelone.advance_frame()
+	    endTime = time()
+	    if "l" in chelone.pressed_keys and not flag:
+	    	flag = True
+	    	start_level(chelone.root)
+
+	    elapsedTime = endTime - startTime
+
+
+start_level()
+
