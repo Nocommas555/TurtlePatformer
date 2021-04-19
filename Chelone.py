@@ -47,7 +47,7 @@ def init(root = None):
 def exit():
     kill_all_sounds()
     chelone.root.destroy()
-    os._exit()
+    os._exit(0)
 
 def FocusOut(event): # noqa, event var needed for callback signature
     ''' clears input on unfocusing window. should maybe halt the game in the future '''
