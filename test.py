@@ -26,7 +26,7 @@ class Player(Sprite):
         print("setup Player")
 
         # set up anim states
-        self.states = {"run": self.run_state, "idle": self.idle_state}
+        self.states = {"run": self.run_state, "idle": self.idle_state, "jump": self.jump_state}
         self.anim_state = "idle"
 
         self.grounded = False
@@ -39,27 +39,38 @@ class Player(Sprite):
 
     def update(self):
 
-        if 'w' in chelone.pressed_keys and\
-          self.grounded and not self.w_pressed:
-
-            self.add_vel(0, -30)
-
         self.update_smooth_camera()
 
-        self.grounded = False
         self.w_pressed = 'w' in chelone.pressed_keys
+
+    def last_update(self):
+        
+        self.grounded = False
 
     def run_state(self):
         '''the code that runs while the player is running'''
         movement = self.move_on_command()
         if not movement[0] and not movement[1]:
             self.update_anim_state('idle')
+        if 'w' in chelone.pressed_keys and self.grounded:
+            self.update_anim_state('jump')
+            self.add_vel(0, -20)  
+        print(self.grounded) 
 
     def idle_state(self):
         '''the code that runs while the player is idling'''
         movement = self.move_on_command()
         if movement[0] or movement[1]:
             self.update_anim_state('run')
+        if 'w' in chelone.pressed_keys and self.grounded:
+            self.update_anim_state('jump')
+            self.add_vel(0, -30)    
+
+    def jump_state(self):
+        '''the code that runs while the player is jumping'''
+        movement = self.move_on_command()
+        if self.grounded == True:
+            self.update_anim_state('idle')
 
     def update_smooth_camera(self):
         '''handles updating the camera position smoothly'''
@@ -256,3 +267,4 @@ while 1:
     chelone.advance_frame()
     endTime = time()
     elapsedTime = endTime - startTime
+
