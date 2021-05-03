@@ -257,3 +257,12 @@ def _remove_phys_obj():
 def remove_phys_obj(phys_obj):
     '''shedules the deletion of passed obj on the next frame'''
     _removing.append(phys_obj)
+
+
+def reset_phys_sim():
+    global physics_objects, colliders, _removing
+    
+    physics_objects = []
+    colliders = []
+    _removing = []
+

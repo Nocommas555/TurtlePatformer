@@ -8,30 +8,46 @@ The engine includes basic loading, collision detection, animation, drawing, z-la
 import tkinter as tk
 from typing import Union, Callable
 from time import time, sleep
-import os
+from sound import kill_all_sounds
+import os, sys
 import json
 
-from BoxPhys import Collider, PhysicsObject, advance_phys_simulation
+from BoxPhys import Collider, PhysicsObject, advance_phys_simulation, reset_phys_sim
 
 chelone = None
+resolution_x = 1600
+resolution_y = 800
 
-def init(resolution_x: int, resolution_y: int):
+def init(root = None):
     '''initializes the tk screen, canvas and SpriteRenderer class'''
-    global chelone
+    global chelone, resolution_x, resolution_y
 
     # Create the window with the Tk class
-    root = tk.Tk()
+    if root is None:
+        root = tk.Tk()
 
-    root.bind("<Key>", on_key_press)
-    root.bind("<KeyRelease>", on_key_release)
-    root.bind("<FocusOut>", FocusOut)
+    if chelone is None:
+        root.protocol("WM_DELETE_WINDOW", exit)
+        root.bind("<Key>", on_key_press)
+        root.bind("<KeyRelease>", on_key_release)
+        root.bind("<FocusOut>", FocusOut)
 
-    # Create the canvas and make it visible with pack()
-    canvas = tk.Canvas(root, width=resolution_x, height=resolution_y)
-    canvas.pack()
+        # Create the canvas and make it visible with pack()
+        canvas = tk.Canvas(root, width=resolution_x, height=resolution_y)
+        canvas.pack()
 
-    chelone = SpriteRenderer(root, canvas)
+        chelone = SpriteRenderer(root, canvas)
+
+    else:
+        chelone.reset()
+
+
     return chelone
+
+def exit():
+    kill_all_sounds()
+    chelone.root.destroy()
+    os._exit(0)
 
 def FocusOut(event): # noqa, event var needed for callback signature
     ''' clears input on unfocusing window. should maybe halt the game in the future '''
@@ -369,6 +385,7 @@ class SpriteRenderer():
     pressed_keys = []
 
     TARGET_FPS = 60
+    DEBUG_FLAGS = ["hitbox_draw"] # opt: hitbox_draw
     camera = None
 
     class Camera():
@@ -417,6 +434,10 @@ class SpriteRenderer():
 
         advance_phys_simulation()
 
+        if "hitbox_draw" in self.DEBUG_FLAGS:
+            self.db_draw_hitboxes()
+
+
         self.root.update()
         self.next_frame += self.frame_period
 
@@ -460,3 +481,26 @@ class SpriteRenderer():
 
     def bind(self, func: Callable, key: str): #noqa, single-line wrapper
         self.root.bind(func, key)
+
+    def reset(self):
+        self.camera.move(-self.camera.x, self.camera.y)
+
+        # reset _sprites array
+        for layer in self._sprites:
+            for sprite in list(layer):
+                layer.pop(sprite)
+
+        reset_phys_sim()
+        kill_all_sounds()
+        self.screen.delete("all")
+
+    def db_draw_hitboxes(self):
+        self.screen.delete("hitbox")
+
+        for layer in self._sprites:
+            for sprite in layer.values():
+                for collider in sprite.colliders.values():
+                    if collider.type == "trigger":
+                        self.screen.create_rectangle(collider.NE()[0]-self.camera.x, collider.NE()[1]-self.camera.y, collider.SW()[0]-self.camera.x, collider.SW()[1]-self.camera.y, outline="#00bb00", fill="#004400", stipple="gray50", tag="hitbox")
+                    elif collider.type == "rigid":
+                        self.screen.create_rectangle(collider.NE()[0]-self.camera.x, collider.NE()[1]-self.camera.y, collider.SW()[0]-self.camera.x, collider.SW()[1]-self.camera.y, outline="#bb0000", fill="#440000", stipple="gray50", tag="hitbox")
