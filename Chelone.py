@@ -291,6 +291,10 @@ class Sprite(PhysicsObject, AnimStateSystem):
     def update(self): #noqa
         pass
 
+    # made to be extended
+    def last_update(self):
+        pass
+    
     def delete_self(self):
         '''deletes this object and it's colliders'''
 
@@ -303,6 +307,7 @@ class Sprite(PhysicsObject, AnimStateSystem):
         self.update()
         self.advance_anim()
         self._update_state()
+        self.last_update()
 
     def move(self, x: int, y: int):
         '''moves the sprite a set amount of pixels'''
