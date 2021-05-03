@@ -2,22 +2,7 @@
     "images": {
         "1.png": {
             "extra": {},
-            "hitboxes": {
-                "collider_1": {
-                    "height": 140,
-                    "type": "rigid",
-                    "width": 108,
-                    "x": 10,
-                    "y": 43
-                },
-                "collider_2": {
-                    "height": 92,
-                    "type": "trigger",
-                    "width": -27,
-                    "x": 109,
-                    "y": 3
-                }
-            },
+            "hitboxes": {},
             "scale": 3
         },
         "2.png": {
