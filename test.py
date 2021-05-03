@@ -228,7 +228,6 @@ class background_sound(Sprite):
         if sound_finished(self.playing_sound):
             self.playing_sound = playsound(self.sound)
 
-flag = False
 def start_level(root = None):
 	global chelone, flag
 
@@ -267,10 +266,7 @@ def start_level(root = None):
 	    startTime = time()
 	    chelone.advance_frame()
 	    endTime = time()
-	    if "l" in chelone.pressed_keys and not flag:
-	    	flag = True
-	    	start_level(chelone.root)
-
 	    elapsedTime = endTime - startTime
 
-
+if __name__ == '__main__':
+	start_level()
