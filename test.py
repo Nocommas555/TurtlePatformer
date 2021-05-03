@@ -26,8 +26,6 @@ class Player(Sprite):
 
         # set up anim states
         self.states = {"run": self.run_state, "idle": self.idle_state, "jump": self.jump_state}
-        self.anim_state = "idle"
-
 
         self.grounded = False
         self.w_pressed = False
@@ -38,16 +36,9 @@ class Player(Sprite):
         self.camera_offset = kargs.get("camera_offset", [600, 300])
         
     def update(self):
-        global chelone
         if self.anim_state == "None":
-        	self.update_anim_state('idle')
-
-        if 'w' in chelone.pressed_keys and\
-          self.grounded and not self.w_pressed:
-
-            self.add_vel(0, -30)
-
-    def update(self):
+            self.update_anim_state('idle')
+        
         self.update_smooth_camera()
 
     def last_update(self):

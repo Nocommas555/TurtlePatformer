@@ -211,7 +211,7 @@ class AnimStateSystem():
 
         self.states["None"] = lambda: 0 # noop
         self.state_anim_directory = state_anim_directory
-        self.update_anim_state(self.anim_state)
+        self.anim_state = "None"
         self._anim_frame = 0
         self._anim = []
 
