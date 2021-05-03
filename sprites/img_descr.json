@@ -4,6 +4,7 @@
 		"game_over.png":{"hitboxes":{}, "extra":{}, "scale":3},
 		"gnd.png":{"hitboxes":{"1":{"x":0,"y":30,"width":2560,"height":150,"type":"rigid"}}, "extra":{}, "scale":10},
 		"tmp.png":{"hitboxes":{"body":{"x":0,"y":0,"width":100,"height":100,"type":"rigid"}}, "extra":{}},
+		"box.png":{"hitboxes":{"body":{"x":0,"y":25,"width":96,"height":65,"type":"rigid"}}, "extra":{}, "scale":3},
 		"Untitled.png":{"hitboxes":{"1":{"x":0,"y":0,"width":100,"height":100,"type":"rigid"}}, "extra":{}},
 		"droid.png":{"hitboxes":{
 			"body":{"x":0,"y":0,"width":100,"height":100,"type":"rigid"},

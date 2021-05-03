@@ -7,9 +7,8 @@ from Chelone import init, Sprite, SpriteLoader, check_keys
 from sound import playsound, sound_finished
 from BoxPhys import get_collision_displacement
 
-# setting up global objects for rendering and loading, respectively
-chelone = init(1600, 800)
-loader = SpriteLoader()
+
+chelone = None
 
 class Player(Sprite):
     """
@@ -29,6 +28,7 @@ class Player(Sprite):
         self.states = {"run": self.run_state, "idle": self.idle_state, "jump": self.jump_state}
         self.anim_state = "idle"
 
+
         self.grounded = False
         self.w_pressed = False
         self.orientation = "right"
@@ -36,6 +36,16 @@ class Player(Sprite):
         self.camera_lagbehind = kargs.get("camera_lagbehind", [0.05, 0.05])
 
         self.camera_offset = kargs.get("camera_offset", [600, 300])
+        
+    def update(self):
+        global chelone
+        if self.anim_state == "None":
+        	self.update_anim_state('idle')
+
+        if 'w' in chelone.pressed_keys and\
+          self.grounded and not self.w_pressed:
+
+            self.add_vel(0, -30)
 
     def update(self):
         self.update_smooth_camera()
@@ -119,7 +129,7 @@ class Player(Sprite):
         saved_sprites = chelone._sprites
         chelone._sprites = [{} for i in range(50)]
         game_over = Sprite(
-            id="game_over", frame=loader.load("game_over.png"),
+            id="game_over", frame=self.frame.parent.load("game_over.png"),
             x=450+chelone.camera.x, y=chelone.camera.y, phys_type="immovable", layer=1,
         )
         chelone.add_sprite(game_over, 1)
@@ -137,7 +147,7 @@ class Player(Sprite):
         super().delete_self()
 
         player = Player(
-            id="Player", frame=loader.load("tmp.png"),\
+            id="Player", frame=self.frame.parent.load("tmp.png"),\
             x=250, y=0, gravity=self.gravity,\
             state_anim_directory=self.state_anim_directory
         )
@@ -206,7 +216,7 @@ class Droid(Sprite):
                 self.shooting_cooldown = 0
                 if my_collider.id == "left_search":
                     self.Laser(
-                        id="Laser", frame=loader.load("laser.png"), gravity=0,
+                        id="Laser", frame=self.frame.parent.load("laser.png"), gravity=0,
                         x=self.x-50,
                         y=self.y+self.colliders['body'].height/2,
                         velocity=[-3, 0]
@@ -214,7 +224,7 @@ class Droid(Sprite):
 
                 elif my_collider.id == "right_search":
                     self.Laser(
-                        id="Laser", frame=loader.load("laser.png"), gravity=0,
+                        id="Laser", frame=self.frame.parent.load("laser.png"), gravity=0,
                         x=self.x+self.colliders['body'].width+50,
                         y=self.y+self.colliders['body'].height/2,
                         velocity=[3, 0]
@@ -234,33 +244,47 @@ class background_sound(Sprite):
         if sound_finished(self.playing_sound):
             self.playing_sound = playsound(self.sound)
 
+def start_level(root = None):
+	global chelone, flag
 
-spr = Player("Player", loader.load("tmp.png"), gravity=-1, x=100, layer=10, state_anim_directory="anakin")
+	# setting up global objects for rendering and loading, respectively
+	chelone = init(root)
+	loader = SpriteLoader()
 
-background_sound("background", loader.load("clear.png"), phys_type="inmovable", sound="sounds/imperial_march.wav")
+	spr = Player("Player", loader.load("tmp.png"), gravity=-1, x=100, layer=10, state_anim_directory="anakin")
 
-drd1 = Droid("Droid", loader.load("droid.png"), patrol_range=[700, 1300], speed=1)
 
-#drd2 = Droid_1("Droid 2", loader.load("droid.png"), x = 1200)
-#chelone.add_sprite(drd2)
+	background_sound("background", loader.load("clear.png"), phys_type="inmovable", sound="sounds/imperial_march.wav")
 
-#drd3 = Droid_1("Droid 3", loader.load("droid.png"), x = 1400)
-#chelone.add_sprite(drd3)
+	drd1 = Droid("Droid", loader.load("droid.png"), patrol_range=[1500, 2000], speed=1)
 
-ground = Sprite("Ground", loader.load("gnd.png"), phys_type="immovable", x=0, y=650, layer=49)
+	#drd2 = Droid_1("Droid 2", loader.load("droid.png"), x = 1200)
+	#chelone.add_sprite(drd2)
 
-block = Sprite("Block", loader.load("tmp.png"), phys_type="immovable", x=500, y=350)
+	#drd3 = Droid_1("Droid 3", loader.load("droid.png"), x = 1400)
+	#chelone.add_sprite(drd3)
 
-# movable = Sprite("Movable", loader.load("tmp.png"), x=150, y=200)
-# chelone.add_sprite(movable, 30)
+	ground = Sprite("Ground", loader.load("gnd.png"), phys_type="immovable", x=0, y=650, layer=49)
 
-#laser = Laser("Laser", loader.load("laser.png"), x = 900)
-#chelone.add_sprite(laser)
+	block = Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1000, y=590)
+	block = Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1100, y=590)
+	block = Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1200, y=590)
+	block = Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1300, y=590)
+	block = Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1400, y=590)
+	block = Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1200, y=525)
+	block = Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1300, y=525)
+	# movable = Sprite("Movable", loader.load("tmp.png"), x=150, y=200)
+	# chelone.add_sprite(movable, 30)
 
-while 1:
-    startTime = time()
-    chelone.advance_frame()
-    print(chelone.pressed_keys)
-    endTime = time()
-    elapsedTime = endTime - startTime
+	#laser = Laser("Laser", loader.load("laser.png"), x = 900)
+	#chelone.add_sprite(laser)
 
+	while 1:
+	    startTime = time()
+	    chelone.advance_frame()
+	    endTime = time()
+	    elapsedTime = endTime - startTime
+
+
+if __name__ == '__main__':
+	start_level()
