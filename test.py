@@ -19,7 +19,7 @@ class Player(Sprite):
 
     grounded = False
     w_pressed = False
-    camera_lagbehind = [0.01, 0.05]
+    camera_lagbehind = [0.01, 0.3]
     camera_offset = [600, 300]
 
     def setup(self, kargs):
@@ -38,13 +38,9 @@ class Player(Sprite):
         self.camera_offset = kargs.get("camera_offset", [600, 300])
 
     def update(self):
-
         self.update_smooth_camera()
 
-        self.w_pressed = 'w' in chelone.pressed_keys
-
     def last_update(self):
-        
         self.grounded = False
 
     def run_state(self):
@@ -54,8 +50,7 @@ class Player(Sprite):
             self.update_anim_state('idle')
         if 'w' in chelone.pressed_keys and self.grounded:
             self.update_anim_state('jump')
-            self.add_vel(0, -20)  
-        print(self.grounded) 
+            self.add_vel(0, -30)  
 
     def idle_state(self):
         '''the code that runs while the player is idling'''
@@ -265,6 +260,7 @@ block = Sprite("Block", loader.load("tmp.png"), phys_type="immovable", x=500, y=
 while 1:
     startTime = time()
     chelone.advance_frame()
+    print(chelone.pressed_keys)
     endTime = time()
     elapsedTime = endTime - startTime
 
