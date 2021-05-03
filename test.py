@@ -7,6 +7,7 @@ from Chelone import init, Sprite, SpriteLoader, check_keys
 from sound import playsound, sound_finished
 from BoxPhys import get_collision_displacement
 
+
 chelone = None
 
 class Player(Sprite):
@@ -17,14 +18,16 @@ class Player(Sprite):
 
     grounded = False
     w_pressed = False
-    camera_lagbehind = [0.01, 0.05]
+    camera_lagbehind = [0.01, 0.3]
     camera_offset = [600, 300]
 
     def setup(self, kargs):
         print("setup Player")
 
         # set up anim states
-        self.states = {"run": self.run_state, "idle": self.idle_state}
+        self.states = {"run": self.run_state, "idle": self.idle_state, "jump": self.jump_state}
+        self.anim_state = "idle"
+
 
         self.grounded = False
         self.w_pressed = False
@@ -33,7 +36,7 @@ class Player(Sprite):
         self.camera_lagbehind = kargs.get("camera_lagbehind", [0.05, 0.05])
 
         self.camera_offset = kargs.get("camera_offset", [600, 300])
-
+        
     def update(self):
         global chelone
         if self.anim_state == "None":
@@ -44,22 +47,35 @@ class Player(Sprite):
 
             self.add_vel(0, -30)
 
+    def update(self):
         self.update_smooth_camera()
 
+    def last_update(self):
         self.grounded = False
-        self.w_pressed = 'w' in chelone.pressed_keys
 
     def run_state(self):
         '''the code that runs while the player is running'''
         movement = self.move_on_command()
         if not movement[0] and not movement[1]:
             self.update_anim_state('idle')
+        if 'w' in chelone.pressed_keys and self.grounded:
+            self.update_anim_state('jump')
+            self.add_vel(0, -30)  
 
     def idle_state(self):
         '''the code that runs while the player is idling'''
         movement = self.move_on_command()
         if movement[0] or movement[1]:
             self.update_anim_state('run')
+        if 'w' in chelone.pressed_keys and self.grounded:
+            self.update_anim_state('jump')
+            self.add_vel(0, -30)    
+
+    def jump_state(self):
+        '''the code that runs while the player is jumping'''
+        movement = self.move_on_command()
+        if self.grounded == True:
+            self.update_anim_state('idle')
 
     def update_smooth_camera(self):
         '''handles updating the camera position smoothly'''
@@ -237,6 +253,7 @@ def start_level(root = None):
 
 	spr = Player("Player", loader.load("tmp.png"), gravity=-1, x=100, layer=10, state_anim_directory="anakin")
 
+
 	background_sound("background", loader.load("clear.png"), phys_type="inmovable", sound="sounds/imperial_march.wav")
 
 	drd1 = Droid("Droid", loader.load("droid.png"), patrol_range=[1500, 2000], speed=1)
@@ -267,6 +284,7 @@ def start_level(root = None):
 	    chelone.advance_frame()
 	    endTime = time()
 	    elapsedTime = endTime - startTime
+
 
 if __name__ == '__main__':
 	start_level()
