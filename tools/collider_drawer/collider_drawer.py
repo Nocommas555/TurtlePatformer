@@ -72,19 +72,24 @@ def save_to_img_descr(collider_base_name="collider"):
 		img_descr_data = json.load(img_descr)	
 	except Exception as e:
 		# no valid json in the file
-		print(e)
 		img_descr_data = {"images":{}}
 
 	img_descr_data["images"][sprite_names[target_sprite]] = {"hitboxes":{}, "extra":{}, "scale":sprite_scale}
 	for i, collider in enumerate(colliders):
 		img_descr_data["images"][sprite_names[target_sprite]]["hitboxes"][collider_base_name+"_"+str(i+1)] = collider
 
-	img_descr = open("img_descr.json", "w")
+	img_descr = open("img_descr.json", "w+")
 	json.dump(img_descr_data, img_descr, indent=4, sort_keys=True)
 
 def load_from_img_descr():
-	img_descr_data = json.load(open("img_descr.json", "r"))
-	return list(img_descr_data["images"][sprite_names[target_sprite]]["hitboxes"].values())
+	open("img_descr.json", "a+")
+	
+	try:
+		img_descr_data = json.load(open("img_descr.json", "r"))
+		return list(img_descr_data["images"][sprite_names[target_sprite]]["hitboxes"].values())
+	except Exception as e:
+		# no valid json in the file
+		return []
 
 def open_sprite(index = 0, scale = None, noclear = False):
 	global sprite_tk_image, target_sprite, colliders
