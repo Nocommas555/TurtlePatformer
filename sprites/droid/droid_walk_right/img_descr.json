@@ -1,0 +1,121 @@
+{
+    "images": {
+        "1.png": {
+            "extra": {},
+            "hitboxes": {
+                "collider_1": {
+                    "height": 192,
+                    "type": "rigid",
+                    "width": 82,
+                    "x": 18,
+                    "y": 9
+                }
+            },
+            "scale": 3
+        },
+        "2.png": {
+            "extra": {},
+            "hitboxes": {
+                "collider_1": {
+                    "height": 191,
+                    "type": "rigid",
+                    "width": 88,
+                    "x": 11,
+                    "y": 9
+                }
+            },
+            "scale": 3
+        },
+        "3.png": {
+            "extra": {},
+            "hitboxes": {
+                "collider_1": {
+                    "height": 193,
+                    "type": "rigid",
+                    "width": 84,
+                    "x": 17,
+                    "y": 8
+                }
+            },
+            "scale": 3
+        },
+        "4.png": {
+            "extra": {},
+            "hitboxes": {
+                "collider_1": {
+                    "height": 191,
+                    "type": "rigid",
+                    "width": 90,
+                    "x": 20,
+                    "y": 9
+                }
+            },
+            "scale": 3
+        },
+        "5.png": {
+            "extra": {},
+            "hitboxes": {
+                "collider_1": {
+                    "height": 192,
+                    "type": "rigid",
+                    "width": 82,
+                    "x": 26,
+                    "y": 8
+                }
+            },
+            "scale": 3
+        },
+        "6.png": {
+            "extra": {},
+            "hitboxes": {
+                "collider_1": {
+                    "height": 191,
+                    "type": "rigid",
+                    "width": 84,
+                    "x": 17,
+                    "y": 9
+                }
+            },
+            "scale": 3
+        },
+        "7.png": {
+            "extra": {},
+            "hitboxes": {
+                "collider_1": {
+                    "height": 191,
+                    "type": "rigid",
+                    "width": 86,
+                    "x": 19,
+                    "y": 9
+                }
+            },
+            "scale": 3
+        },
+        "8.png": {
+            "extra": {},
+            "hitboxes": {
+                "collider_1": {
+                    "height": 189,
+                    "type": "rigid",
+                    "width": 95,
+                    "x": 22,
+                    "y": 12
+                }
+            },
+            "scale": 3
+        },
+        "9.png": {
+            "extra": {},
+            "hitboxes": {
+                "collider_1": {
+                    "height": 193,
+                    "type": "rigid",
+                    "width": 90,
+                    "x": 11,
+                    "y": 8
+                }
+            },
+            "scale": 3
+        }
+    }
+}
