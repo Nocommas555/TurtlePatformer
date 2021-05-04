@@ -169,6 +169,7 @@ class SpriteLoader():
 
                 return self._storage[path]
 
+        print("SPRITE NOT FOUND AT: " + path + " or " + parent_path+"/img_descr.json")
         return None
 
     def create_colliders(self, sprite):
@@ -267,7 +268,7 @@ class Sprite(PhysicsObject, AnimStateSystem):
         self.frame = frame
         self.image_tk = None
         self.parent_canvas = None
-
+        self._current_offset = {"x":0, "y":0}
         self.states = {}
         self.orientation = "right"
         self.anim_state = "None"
