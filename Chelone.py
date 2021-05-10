@@ -386,9 +386,12 @@ class SpriteRenderer():
     pressed_keys = []
 
     TARGET_FPS = 60
-    DEBUG = True
-    DEBUG_FLAGS = [] # opt: hitbox_draw
     camera = None
+
+    DEBUG = True
+    debug_flags = [] # opt: hitbox_draw
+    DEBUG_ACTIVATION_TIMEOUT = 60
+    debug_activation_counter = 0
 
     class Camera():
         '''dataobject with info about the camera'''
@@ -439,7 +442,7 @@ class SpriteRenderer():
 
         if self.DEBUG:
             self.check_debug_keys()
-            if "hitbox_draw" in self.DEBUG_FLAGS:
+            if "hitbox_draw" in self.debug_flags:
                 self.db_draw_hitboxes()
             else:
                 self.screen.delete("hitbox")
@@ -502,12 +505,19 @@ class SpriteRenderer():
         self.screen.delete("all")
 
     def toggle_debug_flag(self, flag):
-        if flag not in self.DEBUG_FLAGS:
-            self.DEBUG_FLAGS.append(flag)
+        if flag not in self.debug_flags:
+            self.debug_flags.append(flag)
         else:
-            self.DEBUG_FLAGS.remove(flag)
+            self.debug_flags.remove(flag)
+
+        self.debug_activation_counter = 0
 
     def check_debug_keys(self):
+        if self.debug_activation_counter != self.DEBUG_ACTIVATION_TIMEOUT:
+            self.debug_activation_counter += 1
+            return
+
+
         if 'Control_L' in self.pressed_keys and 'b' in self.pressed_keys:
             self.toggle_debug_flag("hitbox_draw")
 
