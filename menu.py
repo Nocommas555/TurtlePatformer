@@ -1,6 +1,7 @@
 from tkinter import *
 import tkinter.font as tkfont
 import os
+import json
 from test import start_level
 
 root = Tk()
@@ -12,6 +13,18 @@ sets = {
     "run_left": "a",
     "force": "e"
     }
+
+def load_settings():
+    global sets
+    open("settings.json", "a+")
+    sets = json.load(open("settings.json"))
+
+def save_settings():
+    global sets
+    json.dump(sets, open("settings.json", "w"))
+
+load_settings()
+
 
 def change_menu(this_frame, next_frame):
     this_frame.pack_forget()
@@ -32,6 +45,7 @@ def flip_sound_setting():
             .place(relx = 0.57, rely = 0.2, width = 50, height = 50, anchor = CENTER)
 
     sets["sound"] = not sets["sound"]
+    save_settings()
 
 
 regular_font = tkfont.Font(family = 'Noto Sans', size = 16)
@@ -74,6 +88,8 @@ Button(master = main_menu,
 settings = Frame(width = 1600, height = 800, bg = '#AAAAAA')
 main_menu.pack()
 flip_sound_setting()
+flip_sound_setting()
+
 
 Button(master = settings,
        text = 'Sound',
@@ -116,38 +132,117 @@ Button(master = settings,
             width = 300, height = 50,
             anchor = CENTER)
 
-looking_for_change = False
-
-button_labels = {}
-
-button_labels['jump'] = Label(master = settings, text = sets["jump"], font = regular_font)
-button_labels['jump'].place(relx = 0.2, rely = 0.2, width = 200, height = 50, anchor = CENTER)
-button_labels['jump'].configure(anchor="center")
+state = ""
+dic_label = {
+    "sound": False,
+    "jump": None,
+    "duck": None,
+    "run_right": None,
+    "run_left": None,
+    "force": None
+}
 
 def on_key_press(event):
-    global state_change
-    if (state_change!=''):
-        print(event.keysym)
-        button_labels[state_change].configure(text = event.keysym)
-        sets[state_change] = event.keysym
-        state_change = ""
-
+    global state, dic_label
+    if (state != ""):
+        #print(event.keysym)
+        dic_label[state].configure(text = event.keysym)
+        sets[state] = event.keysym
+        #print(dic_label[state])
+        state = ""
+        save_settings()
     else:
         return
 
 root.bind("<Key>", on_key_press)
 
-def change_state(state):
-    global state_change
-    state_change = state
+def change_state_to(stat):
+    global state
+    state = stat
 
 Button(master = settings,
        text = 'Jump',
        font = regular_font,
-       command = lambda: change_state("jump")
-    ).place(relx = 0.15, rely = 0.2,
+       command = lambda: change_state_to("jump")
+    ).place(relx = 0.13, rely = 0.2,
+            width = 150, height = 50,
+            anchor = CENTER)
+
+dic_label["jump"] = Label(master = settings,
+      text = sets["jump"],
+      font = regular_font
+      )
+dic_label["jump"].place(relx = 0.23, rely = 0.2, width = 150, height = 50, anchor = CENTER)
+
+Button(master = settings,
+       text = 'Duck',
+       font = regular_font,
+       command = lambda: change_state_to("duck")
+    ).place(relx = 0.13, rely = 0.27,
+            width = 150, height = 50,
+            anchor = CENTER)
+
+dic_label["duck"] = Label(master = settings,
+      text = sets["duck"],
+      font = regular_font
+      )
+dic_label["duck"].place(relx = 0.23, rely = 0.27, width = 150, height = 50, anchor = CENTER)
+
+Button(master = settings,
+       text = 'Move right',
+       font = regular_font,
+       command = lambda: change_state_to("run_right")
+    ).place(relx = 0.13, rely = 0.34,
+            width = 150, height = 50,
+            anchor = CENTER)
+
+dic_label["run_right"] = Label(master = settings,
+      text = sets["run_right"],
+      font = regular_font
+      )
+dic_label["run_right"].place(relx = 0.23, rely = 0.34, width = 150, height = 50, anchor = CENTER)
+
+Button(master = settings,
+       text = 'Move left',
+       font = regular_font,
+       command = lambda: change_state_to("run_left")
+    ).place(relx = 0.13, rely = 0.41,
+            width = 150, height = 50,
+            anchor = CENTER)
+
+dic_label["run_left"] = Label(master = settings,
+      text = sets["run_left"],
+      font = regular_font
+      )
+dic_label["run_left"].place(relx = 0.23, rely = 0.41, width = 150, height = 50, anchor = CENTER)
+
+Button(master = settings,
+       text = 'Use force',
+       font = regular_font,
+       command = lambda: change_state_to("force")
+    ).place(relx = 0.13, rely = 0.48,
+            width = 150, height = 50,
+            anchor = CENTER)
+
+dic_label["force"] = Label(master = settings,
+      text = sets["force"],
+      font = regular_font
+      )
+dic_label["force"].place(relx = 0.23, rely = 0.48, width = 150, height = 50, anchor = CENTER)
+
+'''Button(master = settings,
+       text = '',
+       font = regular_font,
+       command = lambda: change_state_to("")
+    ).place(relx = 0.15, rely = 0.27,
             width = 100, height = 50,
             anchor = CENTER)
+
+dic_label[""] = Label(master = settings,
+      text = sets[""],
+      font = regular_font
+      )
+dic_label[""].place(relx = 0.23, rely = 0.27, width = 150, height = 50, anchor = CENTER)'''
 
 
 
