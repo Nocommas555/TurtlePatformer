@@ -118,32 +118,33 @@ Button(master = settings,
 
 looking_for_change = False
 
-jump_label = Label(master = settings,
-      text = sets["jump"],
-      font = regular_font,
-      ).place(relx = 0.2, rely = 0.2, width = 100, height = 50, anchor = CENTER)
+button_labels = {}
+
+button_labels['jump'] = Label(master = settings, text = sets["jump"], font = regular_font)
+button_labels['jump'].place(relx = 0.2, rely = 0.2, width = 200, height = 50, anchor = CENTER)
+button_labels['jump'].configure(anchor="center")
 
 def on_key_press(event):
-    global looking_for_change, jump_label
-    if (looking_for_change):
+    global state_change
+    if (state_change!=''):
         print(event.keysym)
-        looking_for_change = False
-        #jump_label.text = event.keysym
-        #jump_label.configure(text = event.keysym)
-        print(jump_label)
+        button_labels[state_change].configure(text = event.keysym)
+        sets[state_change] = event.keysym
+        state_change = ""
+
     else:
         return
 
 root.bind("<Key>", on_key_press)
 
-def change_state():
-    global looking_for_change
-    looking_for_change = not looking_for_change
+def change_state(state):
+    global state_change
+    state_change = state
 
 Button(master = settings,
        text = 'Jump',
        font = regular_font,
-       command = lambda: change_state()
+       command = lambda: change_state("jump")
     ).place(relx = 0.15, rely = 0.2,
             width = 100, height = 50,
             anchor = CENTER)
