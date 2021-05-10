@@ -11,7 +11,8 @@ sets = {
     "duck": "s",
     "run_right": "d",
     "run_left": "a",
-    "force": "e"
+    "force": "e",
+    "atack": "space"
     }
 
 def load_settings():
@@ -99,30 +100,6 @@ Button(master = settings,
             width = 200, height = 50,
             anchor = CENTER)
 
-Button(master = settings,
-       text = 'Some more option',
-       font = regular_font,
-       command = lambda: print("Spanish inquisition")
-    ).place(relx = 0.5, rely = 0.3,
-            width = 350, height = 50,
-            anchor = CENTER)
-
-Button(master = settings,
-       text = 'Some more option, but lower',
-       font = regular_font,
-       command = lambda: print("lol")
-    ).place(relx = 0.5, rely = 0.4,
-            width = 350, height = 50,
-            anchor = CENTER)
-
-Button(master = settings,
-       text = 'This button does nothing',
-       font = regular_font,
-       command = lambda: print("what did you expect?")
-    ).place(relx = 0.5, rely = 0.5,
-            width = 350, height = 50,
-            anchor = CENTER)
-
 
 Button(master = settings,
        text = 'Return to main menu',
@@ -139,7 +116,8 @@ dic_label = {
     "duck": None,
     "run_right": None,
     "run_left": None,
-    "force": None
+    "force": None,
+    "atack": None
 }
 
 def on_key_press(event):
@@ -164,7 +142,7 @@ Button(master = settings,
        text = 'Jump',
        font = regular_font,
        command = lambda: change_state_to("jump")
-    ).place(relx = 0.13, rely = 0.2,
+    ).place(relx = 0.43, rely = 0.27,
             width = 150, height = 50,
             anchor = CENTER)
 
@@ -172,13 +150,13 @@ dic_label["jump"] = Label(master = settings,
       text = sets["jump"],
       font = regular_font
       )
-dic_label["jump"].place(relx = 0.23, rely = 0.2, width = 150, height = 50, anchor = CENTER)
+dic_label["jump"].place(relx = 0.53, rely = 0.27, width = 150, height = 50, anchor = CENTER)
 
 Button(master = settings,
        text = 'Duck',
        font = regular_font,
        command = lambda: change_state_to("duck")
-    ).place(relx = 0.13, rely = 0.27,
+    ).place(relx = 0.43, rely = 0.34,
             width = 150, height = 50,
             anchor = CENTER)
 
@@ -186,13 +164,13 @@ dic_label["duck"] = Label(master = settings,
       text = sets["duck"],
       font = regular_font
       )
-dic_label["duck"].place(relx = 0.23, rely = 0.27, width = 150, height = 50, anchor = CENTER)
+dic_label["duck"].place(relx = 0.53, rely = 0.34, width = 150, height = 50, anchor = CENTER)
 
 Button(master = settings,
        text = 'Move right',
        font = regular_font,
        command = lambda: change_state_to("run_right")
-    ).place(relx = 0.13, rely = 0.34,
+    ).place(relx = 0.43, rely = 0.41,
             width = 150, height = 50,
             anchor = CENTER)
 
@@ -200,13 +178,13 @@ dic_label["run_right"] = Label(master = settings,
       text = sets["run_right"],
       font = regular_font
       )
-dic_label["run_right"].place(relx = 0.23, rely = 0.34, width = 150, height = 50, anchor = CENTER)
+dic_label["run_right"].place(relx = 0.53, rely = 0.41, width = 150, height = 50, anchor = CENTER)
 
 Button(master = settings,
        text = 'Move left',
        font = regular_font,
        command = lambda: change_state_to("run_left")
-    ).place(relx = 0.13, rely = 0.41,
+    ).place(relx = 0.43, rely = 0.48,
             width = 150, height = 50,
             anchor = CENTER)
 
@@ -214,13 +192,13 @@ dic_label["run_left"] = Label(master = settings,
       text = sets["run_left"],
       font = regular_font
       )
-dic_label["run_left"].place(relx = 0.23, rely = 0.41, width = 150, height = 50, anchor = CENTER)
+dic_label["run_left"].place(relx = 0.53, rely = 0.48, width = 150, height = 50, anchor = CENTER)
 
 Button(master = settings,
        text = 'Use force',
        font = regular_font,
        command = lambda: change_state_to("force")
-    ).place(relx = 0.13, rely = 0.48,
+    ).place(relx = 0.43, rely = 0.55,
             width = 150, height = 50,
             anchor = CENTER)
 
@@ -228,21 +206,21 @@ dic_label["force"] = Label(master = settings,
       text = sets["force"],
       font = regular_font
       )
-dic_label["force"].place(relx = 0.23, rely = 0.48, width = 150, height = 50, anchor = CENTER)
+dic_label["force"].place(relx = 0.53, rely = 0.55, width = 150, height = 50, anchor = CENTER)
 
-'''Button(master = settings,
-       text = '',
+Button(master = settings,
+       text = "Byty kohos'",
        font = regular_font,
-       command = lambda: change_state_to("")
-    ).place(relx = 0.15, rely = 0.27,
-            width = 100, height = 50,
+       command = lambda: change_state_to("atack")
+    ).place(relx = 0.43, rely = 0.62,
+            width = 150, height = 50,
             anchor = CENTER)
 
-dic_label[""] = Label(master = settings,
-      text = sets[""],
+dic_label["atack"] = Label(master = settings,
+      text = sets["atack"],
       font = regular_font
       )
-dic_label[""].place(relx = 0.23, rely = 0.27, width = 150, height = 50, anchor = CENTER)'''
+dic_label["atack"].place(relx = 0.53, rely = 0.62, width = 150, height = 50, anchor = CENTER)
 
 
 
