@@ -386,7 +386,8 @@ class SpriteRenderer():
     pressed_keys = []
 
     TARGET_FPS = 60
-    DEBUG_FLAGS = ["hitbox_draw"] # opt: hitbox_draw
+    DEBUG = True
+    DEBUG_FLAGS = [] # opt: hitbox_draw
     camera = None
 
     class Camera():
@@ -435,8 +436,13 @@ class SpriteRenderer():
 
         advance_phys_simulation()
 
-        if "hitbox_draw" in self.DEBUG_FLAGS:
-            self.db_draw_hitboxes()
+
+        if self.DEBUG:
+            self.check_debug_keys()
+            if "hitbox_draw" in self.DEBUG_FLAGS:
+                self.db_draw_hitboxes()
+            else:
+                self.screen.delete("hitbox")
 
 
         self.root.update()
@@ -494,6 +500,16 @@ class SpriteRenderer():
         reset_phys_sim()
         kill_all_sounds()
         self.screen.delete("all")
+
+    def toggle_debug_flag(self, flag):
+        if flag not in self.DEBUG_FLAGS:
+            self.DEBUG_FLAGS.append(flag)
+        else:
+            self.DEBUG_FLAGS.remove(flag)
+
+    def check_debug_keys(self):
+        if 'Control_L' in self.pressed_keys and 'b' in self.pressed_keys:
+            self.toggle_debug_flag("hitbox_draw")
 
     def db_draw_hitboxes(self):
         self.screen.delete("hitbox")
