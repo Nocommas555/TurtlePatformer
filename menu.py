@@ -4,6 +4,14 @@ import os
 from test import start_level
 
 root = Tk()
+sets = {
+    "sound": False,
+    "jump": "w",
+    "duck": "s",
+    "run_right": "d",
+    "run_left": "a",
+    "force": "e"
+    }
 
 def change_menu(this_frame, next_frame):
     this_frame.pack_forget()
@@ -14,17 +22,16 @@ def load_game(parent_frame):
   parent_frame.pack_forget()
   start_level(root)
 
-sound_enabled = False
 def flip_sound_setting():
-    global sound_enabled
-    if (sound_enabled):
+    global sets
+    if (sets["sound"]):
         Label(master = settings, text = 'ON', font = regular_font, bg = '#238823')\
             .place(relx = 0.57, rely = 0.2, width = 50, height = 50, anchor = CENTER)
     else:
         Label(master = settings, text = 'OFF', font = regular_font, bg = '#D2222D')\
             .place(relx = 0.57, rely = 0.2, width = 50, height = 50, anchor = CENTER)
 
-    sound_enabled = not sound_enabled
+    sets["sound"] = not sets["sound"]
 
 
 regular_font = tkfont.Font(family = 'Noto Sans', size = 16)
@@ -63,9 +70,6 @@ Button(master = main_menu,
     ).place(relx = 0.5, rely = 0.85,
             width = 100, height = 50,
             anchor = CENTER)
-
-#Button(master = main_menu, text='Settings', command=lambda:change_menu(main_menu, settings)).place(relx = 0.5, rely = 0.2, width = 100, height = 50, anchor = CENTER)
-#Button(master = main_menu, text='Exit', command=lambda:change_menu(main_menu, settings)).place(relx = 0.5, rely = 0.3, width = 100, height = 50, anchor = CENTER)
 
 settings = Frame(width = 1600, height = 800, bg = '#AAAAAA')
 main_menu.pack()
@@ -111,6 +115,41 @@ Button(master = settings,
     ).place(relx = 0.5, rely = 0.85,
             width = 300, height = 50,
             anchor = CENTER)
+
+looking_for_change = False
+
+jump_label = Label(master = settings,
+      text = sets["jump"],
+      font = regular_font,
+      ).place(relx = 0.2, rely = 0.2, width = 100, height = 50, anchor = CENTER)
+
+def on_key_press(event):
+    global looking_for_change, jump_label
+    if (looking_for_change):
+        print(event.keysym)
+        looking_for_change = False
+        #jump_label.text = event.keysym
+        #jump_label.configure(text = event.keysym)
+        print(jump_label)
+    else:
+        return
+
+root.bind("<Key>", on_key_press)
+
+def change_state():
+    global looking_for_change
+    looking_for_change = not looking_for_change
+
+Button(master = settings,
+       text = 'Jump',
+       font = regular_font,
+       command = lambda: change_state()
+    ).place(relx = 0.15, rely = 0.2,
+            width = 100, height = 50,
+            anchor = CENTER)
+
+
+
 
 settings.pack()
 
