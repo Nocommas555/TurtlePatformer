@@ -3,12 +3,12 @@ import tkinter as tk
 
 # init globals
 sprite_names = []
-sprites = {}
-sprites_scales = {}
+sprites_pictures = {}
+sprites_pictures_scales = {}
 level_data = []
-current_sprite_name = None
-current_sprite_size = None
 changes = []
+current_sprite_name = None
+camera_offset_x = 0
 
 
 # set up screen
@@ -21,7 +21,7 @@ canvas.pack(side = tk.LEFT,  fill = tk.BOTH, expand = 1)
 
 #main functional
 def load_sprites(path="../../sprites"):
-	global sprites, sprites_scales, sprite_names
+	global sprites_pictures, sprites_pictures_scales, sprite_names
 
 	sprite_names = os.listdir(path)
 	open("img_descr.json", "a+")
@@ -37,7 +37,7 @@ def load_sprites(path="../../sprites"):
 				scale =  img_descr_data["images"][filename]["scale"]
 			else:
 				scale = 1
-			sprites[filename] = tk.PhotoImage(file=path+"/"+filename).zoom(scale)
+			sprites_pictures[filename] = tk.PhotoImage(file=path+"/"+filename).zoom(scale)
 		else:
 			sprite_names.remove(filename)
 load_sprites()
@@ -58,19 +58,39 @@ def get_additional_settings():
 		return {}
 
 
-def on_mouse_click(event):
-	global sprites, sprites_scales, current_sprite_name, last_change, entry_widget
+def update_camera(displacement_x):
+    global keyspressed
 
+    canvas.configure(xscrollincrement=1)
+    canvas.xview_scroll(displacement_x, "units")
+
+def move_camera_left(event):
+	global camera_offset_x
+
+	camera_offset_x -= 10
+	update_camera(10)
+
+def move_camera_right(event):
+	global camera_offset_x
+
+	camera_offset_x += 10
+	update_camera(-10)
+
+
+def on_mouse_click(event):
+	global sprites_pictures, sprites_pictures_scales, current_sprite_name, last_change, entry_widget
+
+	print("clicked at", event.x - camera_offset_x, event.y)
 	changes.append(
 		canvas.create_image(
-			event.x,
+			event.x - camera_offset_x,
 			event.y,
-			image=sprites[current_sprite_name],
+			image=sprites_pictures[current_sprite_name],
 			anchor=tk.NW
 			)
 		)
 	level_data.append({
-		"x": event.x,
+		"x": event.x - camera_offset_x,
 		"y": event.y,
 		"filename": current_sprite_name,
 		"immovable": True,
@@ -80,21 +100,22 @@ def on_mouse_click(event):
 
 shadow = None
 def on_mouse_move(event):
-	global current_sprite_name, shadow, sprites_scales
+	global current_sprite_name, shadow, sprites_pictures_scales
 
 	if not current_sprite_name: return
 
 	canvas.delete(shadow)
 	shadow = canvas.create_image(
-		event.x,
+		event.x - camera_offset_x,
 		event.y,
-		image=sprites[current_sprite_name],
+		image=sprites_pictures[current_sprite_name],
 		anchor=tk.NW
 		)
 
 def undo(event):
 	#called on right mouse click
 	global changes, level_data
+
 	canvas.delete(changes.pop())
 	level_data.pop()
 	save_to_file()
@@ -132,6 +153,8 @@ canvas.bind("<Button-1>", on_mouse_click)
 canvas.bind("<Motion>", on_mouse_move)
 canvas.bind('<Button-3>', undo)
 mylist.bind("<<ListboxSelect>>", update_selection)
+canvas.bind("<Button-5>", move_camera_left)
+canvas.bind("<Button-4>", move_camera_right)
 
 
 root.mainloop()
