@@ -385,6 +385,8 @@ class SpriteRenderer():
     caught_keys = []
     pressed_keys = []
 
+    settings = {}
+
     TARGET_FPS = 60
     camera = None
 
@@ -411,13 +413,24 @@ class SpriteRenderer():
         self.root = root
         self.screen = screen
         self.camera = self.Camera(screen)
-
+        self.load_settings()
         # 50 different z layers
         self._sprites = []
         for i in range(50): #noqa, no way to not use i and have a for loop
             self._sprites.append({})
 
         self.restart_fps_timer()
+
+    def load_settings(self):
+
+        #create file if it doesn't exist
+        open("settings.json", "a+")
+
+        settings_file = open("settings.json", "r")
+        try:
+            self.settings = json.load(settings_file)
+        except:
+            self.settings = {"sound": True, "jump": "w", "duck": "s", "run_right": "d", "run_left": "a", "force": "e", "atack": "space"}
 
     def restart_fps_timer(self):
         '''resets the variables associated with fps waiting'''

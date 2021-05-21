@@ -4,11 +4,12 @@
 from time import time
 
 from Chelone import init, Sprite, SpriteLoader, check_keys
-from sound import playsound, sound_finished
 from BoxPhys import get_collision_displacement
 
 
 chelone = None
+playsound = lambda a: 0
+sound_finished = lambda a: False
 
 class Player(Sprite):
     """
@@ -49,7 +50,7 @@ class Player(Sprite):
         movement = self.move_on_command()
         if not movement[0] and not movement[1]:
             self.update_anim_state('idle')
-        if 'w' in chelone.pressed_keys and self.grounded:
+        if chelone.settings["jump"] in chelone.pressed_keys and self.grounded:
             self.update_anim_state('jump')
             self.add_vel(0, -30)  
 
@@ -58,7 +59,7 @@ class Player(Sprite):
         movement = self.move_on_command()
         if movement[0] or movement[1]:
             self.update_anim_state('run')
-        if 'w' in chelone.pressed_keys and self.grounded:
+        if chelone.settings["jump"] in chelone.pressed_keys and self.grounded:
             self.update_anim_state('jump')
             self.add_vel(0, -30)    
 
@@ -85,14 +86,14 @@ class Player(Sprite):
         '''handles movement with keypresses'''
         ret = [False, False]
 
-        if 'a' in chelone.pressed_keys:
+        if chelone.settings['run_left'] in chelone.pressed_keys:
             ret[0] = True
             self.move(-7, 0)
 
             if self.orientation != "left":
                 self.flip()
 
-        elif 'd' in chelone.pressed_keys:
+        elif chelone.settings['run_right'] in chelone.pressed_keys:
             ret[1] = True
             self.move(7, 0)
 
@@ -237,10 +238,18 @@ class background_sound(Sprite):
 
 
 def start_level(root = None):
-    global chelone, flag
+    global chelone, flag, playsound, sound_finished
 
     # setting up global objects for rendering and loading, respectively
     chelone = init(root)
+
+    if chelone.settings["sound"]:
+        import sound
+        playsound = sound.playsound
+        sound_finished = sound.sound_finished
+
+
+
     loader = SpriteLoader()
 
     spr = Player("Player", loader.load("tmp.png"), gravity=-1, x=100, layer=10, state_anim_directory="anakin")
