@@ -3,6 +3,8 @@
 '''
 from time import time
 
+import json, os
+
 from Chelone import init, Sprite, SpriteLoader, check_keys
 from sound import playsound, sound_finished
 from BoxPhys import get_collision_displacement
@@ -236,6 +238,19 @@ class background_sound(Sprite):
             self.playing_sound = playsound(self.sound)
 
 
+def load_level(file = "level.json"):
+    scenery_objects = json.load(open(file, "r"))
+    loader = SpriteLoader()
+    for scob in scenery_objects:
+        block = Sprite(
+            scob["filename"],
+            loader.load(scob["filename"]),
+            phys_type=scob["phys_type"],
+            x=scob["x"],
+            y=scob["y"]
+            )
+
+
 def start_level(root = None):
     global chelone, flag
 
@@ -245,7 +260,7 @@ def start_level(root = None):
 
     spr = Player("Player", loader.load("tmp.png"), gravity=-1, x=100, layer=10, state_anim_directory="anakin")
 
-    drd1 = Droid("Droid", loader.load("droid.png"), patrol_range=[1500, 2000], speed=1.3, state_anim_directory = "droid")
+    #drd1 = Droid("Droid", loader.load("droid.png"), patrol_range=[1500, 2000], speed=1.3, state_anim_directory = "droid")
 
     background_sound("background", loader.load("clear.png"), phys_type="inmovable", sound="sounds/imperial_march.wav")
     #drd2 = Droid_1("Droid 2", loader.load("droid.png"), x = 1200)
@@ -254,7 +269,9 @@ def start_level(root = None):
     #drd3 = Droid_1("Droid 3", loader.load("droid.png"), x = 1400)
     #chelone.add_sprite(drd3)
 
-    ground = Sprite("Ground", loader.load("gnd.png"), phys_type="immovable", x=0, y=650, layer=49)
+    load_level()
+
+    '''ground = Sprite("Ground", loader.load("gnd.png"), phys_type="immovable", x=0, y=650, layer=49)
 
     block = Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1000, y=590)
     block = Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1100, y=590)
@@ -262,7 +279,7 @@ def start_level(root = None):
     block = Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1300, y=590)
     block = Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1400, y=590)
     block = Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1200, y=525)
-    block = Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1300, y=525)
+    block = Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1300, y=525)'''
     # movable = Sprite("Movable", loader.load("tmp.png"), x=150, y=200)
     # chelone.add_sprite(movable, 30)
 

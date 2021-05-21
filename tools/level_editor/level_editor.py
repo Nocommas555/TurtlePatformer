@@ -8,7 +8,10 @@ sprites_pictures_scales = {}
 level_data = []
 changes = []
 current_sprite_name = None
+
 camera_offset_x = 0
+camera_offset_y = 0
+drag_point = {}
 
 
 # set up screen
@@ -24,7 +27,7 @@ def load_sprites(path="../../sprites"):
 	global sprites_pictures, sprites_pictures_scales, sprite_names
 
 	sprite_names = os.listdir(path)
-	open("img_descr.json", "a+")
+	#open(path+"/"+"img_descr.json", "a+")
 
 	try: 
 		img_descr_data = json.load(open(path+"/"+"img_descr.json", "r"))
@@ -58,55 +61,63 @@ def get_additional_settings():
 		return {}
 
 
-def update_camera(displacement_x):
+def update_camera(displacement_x, displacement_y):
     global keyspressed
 
-    canvas.configure(xscrollincrement=1)
-    canvas.xview_scroll(displacement_x, "units")
+    canvas.move("all", displacement_x, displacement_y)
 
-def move_camera_left(event):
-	global camera_offset_x
+shadow = None
 
-	camera_offset_x -= 10
-	update_camera(10)
+def start_camera_drag_vertically(event):
+	global drag_point
 
-def move_camera_right(event):
-	global camera_offset_x
+	drag_point = {"x": event.x, "y": event.y}
 
-	camera_offset_x += 10
-	update_camera(-10)
+def drag_camera_vertically(event):
+	global drag_point, camera_offset_x, camera_offset_y
+
+	camera_offset_x += event.x - drag_point["x"]
+	camera_offset_y += event.y - drag_point["y"]
+
+	update_camera(event.x - drag_point["x"], event.y - drag_point["y"])
+
+	drag_point = {"x": event.x, "y": event.y}
 
 
 def on_mouse_click(event):
 	global sprites_pictures, sprites_pictures_scales, current_sprite_name, last_change, entry_widget
 
-	print("clicked at", event.x - camera_offset_x, event.y)
+	print("clicked at", event.x - camera_offset_x, event.y + camera_offset_x)
 	changes.append(
 		canvas.create_image(
-			event.x - camera_offset_x,
+			event.x,
 			event.y,
 			image=sprites_pictures[current_sprite_name],
 			anchor=tk.NW
 			)
 		)
+	if movable_state:
+		phys_type = "movable"
+	else:
+		phys_type = "immovable"
 	level_data.append({
 		"x": event.x - camera_offset_x,
-		"y": event.y,
+		"y": event.y + camera_offset_y,
 		"filename": current_sprite_name,
-		"immovable": True,
+		"phys_type": phys_type,
 		"additional": get_additional_settings()
 		})
 	save_to_file()
 
-shadow = None
 def on_mouse_move(event):
 	global current_sprite_name, shadow, sprites_pictures_scales
 
 	if not current_sprite_name: return
 
-	canvas.delete(shadow)
+	if shadow:
+		canvas.delete(shadow)
 	shadow = canvas.create_image(
-		event.x - camera_offset_x,
+		event.x,
 		event.y,
 		image=sprites_pictures[current_sprite_name],
 		anchor=tk.NW
@@ -129,6 +140,13 @@ def update_selection(event):
         current_sprite_name = event.widget.get(index)
     return current_sprite_name
 
+movable_state = False
+def change_phys_state():
+	global movable_state
+
+	movable_state = not movable_state
+	print("movable_state changed to", movable_state)
+
 
 # set up UI
 toolbar_frame = tk.Frame(root)
@@ -142,10 +160,17 @@ scrollbar.config(command = mylist.yview)
 
 entry_widget = tk.Entry(toolbar_frame)
 
-scrollbar.pack(side = tk.RIGHT, fill = tk.Y )
-mylist.pack(side = tk.LEFT, fill = tk.BOTH)
+change_state_button = tk.Button(
+    master=toolbar_frame,
+    text="Change phys state",
+    command=change_phys_state
+    )
+
+scrollbar.pack(side=tk.RIGHT, fill=tk.Y )
+mylist.pack(side=tk.LEFT, fill=tk.BOTH)
 picture_select_frame.pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 entry_widget.pack(side=tk.BOTTOM, fill=tk.BOTH)
+change_state_button.pack(side=tk.BOTTOM)
 toolbar_frame.pack(side = tk.RIGHT, fill = tk.Y)
 
 
@@ -153,8 +178,8 @@ canvas.bind("<Button-1>", on_mouse_click)
 canvas.bind("<Motion>", on_mouse_move)
 canvas.bind('<Button-3>', undo)
 mylist.bind("<<ListboxSelect>>", update_selection)
-canvas.bind("<Button-5>", move_camera_left)
-canvas.bind("<Button-4>", move_camera_right)
+canvas.bind("<Button-2>", start_camera_drag_vertically)
+canvas.bind("<B2-Motion>", drag_camera_vertically)
 
 
 root.mainloop()
