@@ -9,12 +9,26 @@ _removing = []
 # depth of area on the edges the box collier in which the objects are displaced
 COLLIDER_ACTIVE_BOUNDARY = 100
 
+class Point():
+    x=0
+    y=0
+    def __init__(self, x:int, y:int):
+        self.x = x
+        self.y = y
+
+class Velocity():
+    x=0
+    y=0
+    def __init__(self, x:int, y:int):
+        self.x = x
+        self.y = y
+
 
 class PhysicsObject():
     '''Basic class for all rigidbodies. handles movement and collision with other objects, '''
     x = 0
     y = 0
-    vel = [0, 0]
+    vel = {"x":0, "y":0}
     gravity = 0.3
     friction = 0.1
     colliders = {}
@@ -33,7 +47,10 @@ class PhysicsObject():
             colliders = {}
 
         if vel is None:
-            vel = [0, 0]
+            vel = Velocity(0,0)
+
+        else:
+            vel = Velocity(vel[0], vel[1])
 
         self.type = type
         self.colliders = colliders
@@ -49,8 +66,8 @@ class PhysicsObject():
         '''advances the phys simulation for this object'''
 
         if self.type != "immovable":
-            self.vel[1] -= self.gravity
-            self.move(self.vel[0], self.vel[1])
+            self.vel.y -= self.gravity
+            self.move(self.vel.x, self.vel.y)
 
 
     def move(self, x: int, y: int):
@@ -64,8 +81,8 @@ class PhysicsObject():
         '''adds a velocity to this object'''
 
         if self.type != "immovable":
-            self.vel[0] += x
-            self.vel[1] += y
+            self.vel.x += x
+            self.vel.y += y
 
     def delete_self(self):
         '''removes this object on the next frame'''
@@ -93,16 +110,16 @@ class PhysicsObject():
 
             # nullify velocities in the direction of collision
             if displacement[0] != 0:
-                collided_obj.vel[0] = 0
-                self.vel[0] = 0
+                collided_obj.vel.x = 0
+                self.vel.x = 0
 
             elif displacement[1] != 0:
                 if displacement[1] < 0:
-                    collided_obj.vel[1] = max(0, collided_obj.vel[1])
-                    self.vel[1] = min(0, self.vel[1])
+                    collided_obj.vel.y = max(0, collided_obj.vel.y)
+                    self.vel.y = min(0, self.vel.y)
                 else:
-                    collided_obj.vel[1] = min(0, collided_obj.vel[1])
-                    self.vel[1] = max(0, self.vel[1])
+                    collided_obj.vel.y = min(0, collided_obj.vel.y)
+                    self.vel.y = max(0, self.vel.y)
 
             # can't do anything in this case. Shouldn't even happen tbh
             if collided_obj.type == "immovable" and self.type == "immovable":
@@ -169,19 +186,19 @@ class Collider():
     # helper functions to get locations of all points
 
     def NW(self): #noqa, one-line self-explanatory functions do not need a docstring, pylint
-        return [self.x+self.parent.x, self.y+self.parent.y]
+        return Point(self.x+self.parent.x, self.y+self.parent.y)
 
     def NE(self): #noqa, one-line self-explanatory functions do not need a docstring, pylint
-        return [self.x+self.width+self.parent.x, self.y+self.parent.y]
+        return Point(self.x+self.width+self.parent.x, self.y+self.parent.y)
 
     def SW(self): #noqa, one-line self-explanatory functions do not need a docstring, pylint
-        return [self.x+self.parent.x, self.y+self.height+self.parent.y]
+        return Point(self.x+self.parent.x, self.y+self.height+self.parent.y)
 
     def SE(self): #noqa, one-line self-explanatory functions do not need a docstring, pylint
-        return [self.x+self.width+self.parent.x, self.y+self.height+self.parent.y]
+        return Point(self.x+self.width+self.parent.x, self.y+self.height+self.parent.y)
 
 def get_collision_displacement(my_collider, other_collider):
-    '''return by how much this object should be displaced in order to move it outside the another object'''
+    '''return by how much this object should be displaced in order to move it outside the collided object'''
     global COLLIDER_ACTIVE_BOUNDARY
 
     top_dist = my_collider.bottom_edge()-other_collider.top_edge()
@@ -213,14 +230,11 @@ def _colliders_intersect(A: Collider, B: Collider):
     # check if starting point of one rectangle is within projection another on x
     A_SW, A_NE = A.SW(), A.NE()
     B_SW, B_NE = B.SW(), B.NE()
-    if (A_SW[0] >= B_NE[0]
-            or A_NE[0] <= B_SW[0]
-            or A_SW[1] <= B_NE[1]
-            or A_NE[1] >= B_SW[1]):
-        return False
-    else:
-        return True
-
+    
+    return not (A_SW.x >= B_NE.x
+            or A_NE.x <= B_SW.x
+            or A_SW.y <= B_NE.y
+            or A_NE.y >= B_SW.y)
 
 def _handle_all_collisions(arr: list):
     '''looks at all box colliders, calls their parents to resolve any intersections'''

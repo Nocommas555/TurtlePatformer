@@ -38,6 +38,10 @@ def load_game(parent_frame):
 
 def flip_sound_setting():
     global sets
+
+    sets["sound"] = not sets["sound"]
+    save_settings()
+
     if (sets["sound"]):
         Label(master = settings, text = 'ON', font = regular_font, bg = '#238823')\
             .place(relx = 0.57, rely = 0.2, width = 50, height = 50, anchor = CENTER)
@@ -45,8 +49,6 @@ def flip_sound_setting():
         Label(master = settings, text = 'OFF', font = regular_font, bg = '#D2222D')\
             .place(relx = 0.57, rely = 0.2, width = 50, height = 50, anchor = CENTER)
 
-    sets["sound"] = not sets["sound"]
-    save_settings()
 
 
 regular_font = tkfont.Font(family = 'Noto Sans', size = 16)
