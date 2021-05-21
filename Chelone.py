@@ -535,12 +535,18 @@ class SpriteRenderer():
             self.toggle_debug_flag("hitbox_draw")
 
     def db_draw_hitboxes(self):
+
+        colors = {"green":{"outline":"#00bb00", "fill":"#004400"},"red":{"outline":"#bb0000", "fill":"#440000"}, "black":{"outline":"#000000", "fill":"#000000"}}
         self.screen.delete("hitbox")
 
         for layer in self._sprites:
             for sprite in layer.values():
                 for collider in sprite.colliders.values():
                     if collider.type == "trigger":
-                        self.screen.create_rectangle(collider.NE()[0]-self.camera.x, collider.NE()[1]-self.camera.y, collider.SW()[0]-self.camera.x, collider.SW()[1]-self.camera.y, outline="#00bb00", fill="#004400", stipple="gray50", tag="hitbox")
+                        color = "green"                        
                     elif collider.type == "rigid":
-                        self.screen.create_rectangle(collider.NE()[0]-self.camera.x, collider.NE()[1]-self.camera.y, collider.SW()[0]-self.camera.x, collider.SW()[1]-self.camera.y, outline="#bb0000", fill="#440000", stipple="gray50", tag="hitbox")
+                        color = "red"
+                    else:
+                        color = "black"
+
+                    self.screen.create_rectangle(collider.NE().x-self.camera.x, collider.NE().y-self.camera.y, collider.SW().x-self.camera.x, collider.SW().y-self.camera.y, outline=colors[color]['outline'], fill=colors[color]['fill'], stipple="gray50", tag="hitbox")

@@ -107,7 +107,7 @@ class Player(Sprite):
         displacement = get_collision_displacement(my_collider, other_collider)
         super().handle_collision(collided_obj, my_collider, other_collider, handled)
 
-        if displacement[1] < 0 and self.vel[1] >= 0:
+        if displacement[1] < 0 and self.vel.y >= 0:
             if my_collider.type != "trigger" and other_collider.type != "trigger":
                 self.grounded = True
 
@@ -208,20 +208,19 @@ class Droid(Sprite):
             if self.shooting_cooldown >= self.shooting_cooldown_limit:
                 self.shooting_cooldown = 0
                 if my_collider.id == "left_search":
-                    self.Laser(
-                        id="Laser", frame=self.frame.parent.load("laser.png"), gravity=0,
-                        x=self.x-50,
-                        y=self.y+self.colliders['collider_1'].height/2,
-                        velocity=[-3, 0]
-                    )
+                    laser_x = self.x-50
+                    laser_vel = -3
 
                 elif my_collider.id == "right_search":
-                    self.Laser(
-                        id="Laser", frame=self.frame.parent.load("laser.png"), gravity=0,
-                        x=self.x+self.colliders['collider_1'].width+50,
-                        y=self.y+self.colliders['collider_1'].height/2,
-                        velocity=[3, 0]
-                    )
+                    laser_x = self.x+self.colliders['collider_1'].width+50
+                    laser_vel = 3
+
+                self.Laser(
+                    id="Laser", frame=self.frame.parent.load("laser.png"), gravity=0,
+                    x=laser_x,
+                    y=self.y+self.colliders['collider_1'].height/2,
+                    velocity=[laser_vel, 0]
+                )
 
 class background_sound(Sprite):
     '''loops the bg music'''
