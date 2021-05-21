@@ -385,6 +385,8 @@ class SpriteRenderer():
     caught_keys = []
     pressed_keys = []
 
+    settings = {}
+
     TARGET_FPS = 60
     camera = None
 
@@ -411,13 +413,24 @@ class SpriteRenderer():
         self.root = root
         self.screen = screen
         self.camera = self.Camera(screen)
-
+        self.load_settings()
         # 50 different z layers
         self._sprites = []
         for i in range(50): #noqa, no way to not use i and have a for loop
             self._sprites.append({})
 
         self.restart_fps_timer()
+
+    def load_settings(self):
+
+        #create file if it doesn't exist
+        open("settings.json", "a+")
+
+        settings_file = open("settings.json", "r")
+        try:
+            self.settings = json.load(settings_file)
+        except:
+            self.settings = {"sound": True, "jump": "w", "duck": "s", "run_right": "d", "run_left": "a", "force": "e", "atack": "space"}
 
     def restart_fps_timer(self):
         '''resets the variables associated with fps waiting'''
@@ -522,12 +535,18 @@ class SpriteRenderer():
             self.toggle_debug_flag("hitbox_draw")
 
     def db_draw_hitboxes(self):
+
+        colors = {"green":{"outline":"#00bb00", "fill":"#004400"},"red":{"outline":"#bb0000", "fill":"#440000"}, "black":{"outline":"#000000", "fill":"#000000"}}
         self.screen.delete("hitbox")
 
         for layer in self._sprites:
             for sprite in layer.values():
                 for collider in sprite.colliders.values():
                     if collider.type == "trigger":
-                        self.screen.create_rectangle(collider.NE()[0]-self.camera.x, collider.NE()[1]-self.camera.y, collider.SW()[0]-self.camera.x, collider.SW()[1]-self.camera.y, outline="#00bb00", fill="#004400", stipple="gray50", tag="hitbox")
+                        color = "green"                        
                     elif collider.type == "rigid":
-                        self.screen.create_rectangle(collider.NE()[0]-self.camera.x, collider.NE()[1]-self.camera.y, collider.SW()[0]-self.camera.x, collider.SW()[1]-self.camera.y, outline="#bb0000", fill="#440000", stipple="gray50", tag="hitbox")
+                        color = "red"
+                    else:
+                        color = "black"
+
+                    self.screen.create_rectangle(collider.NE().x-self.camera.x, collider.NE().y-self.camera.y, collider.SW().x-self.camera.x, collider.SW().y-self.camera.y, outline=colors[color]['outline'], fill=colors[color]['fill'], stipple="gray50", tag="hitbox")
