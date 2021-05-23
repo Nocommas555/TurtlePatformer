@@ -87,7 +87,7 @@ def drag_camera_vertically(event):
 def on_mouse_click(event):
 	global sprites_pictures, sprites_pictures_scales, current_sprite_name, last_change, entry_widget
 
-	print("clicked at", event.x - camera_offset_x, event.y + camera_offset_x)
+	print("clicked at", event.x - camera_offset_x, event.y - camera_offset_y)
 	changes.append(
 		canvas.create_image(
 			event.x,
@@ -102,7 +102,7 @@ def on_mouse_click(event):
 		phys_type = "immovable"
 	level_data.append({
 		"x": event.x - camera_offset_x,
-		"y": event.y + camera_offset_y,
+		"y": event.y - camera_offset_y,
 		"filename": current_sprite_name,
 		"phys_type": phys_type,
 		"additional": get_additional_settings()
@@ -160,17 +160,17 @@ scrollbar.config(command = mylist.yview)
 
 entry_widget = tk.Entry(toolbar_frame)
 
-change_state_button = tk.Button(
-    master=toolbar_frame,
-    text="Change phys state",
-    command=change_phys_state
-    )
+change_state_check = tk.Checkbutton(
+	toolbar_frame,
+	text='Movable',
+	command=change_phys_state
+	)
 
 scrollbar.pack(side=tk.RIGHT, fill=tk.Y )
 mylist.pack(side=tk.LEFT, fill=tk.BOTH)
 picture_select_frame.pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 entry_widget.pack(side=tk.BOTTOM, fill=tk.BOTH)
-change_state_button.pack(side=tk.BOTTOM)
+change_state_check.pack(side=tk.BOTTOM, fill=tk.X)
 toolbar_frame.pack(side = tk.RIGHT, fill = tk.Y)
 
 
