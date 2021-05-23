@@ -116,8 +116,6 @@ def flip_sound_setting():
             anchor = tk.CENTER
         )
 
-    sets["sound"] = not sets["sound"]
-    save_settings()
 
 def on_key_press(event):
     global state, dic_label

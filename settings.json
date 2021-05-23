@@ -1,1 +1,2 @@
-{"sound": true, "jump": "f", "duck": "y", "run_right": "u", "run_left": "i", "force": "o", "atack": "p"}
+{"sound": false, "jump": "w", "duck": "s", "run_right": "d", "run_left": "a", "force": "e", "atack": "space"}
+
