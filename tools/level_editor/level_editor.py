@@ -18,11 +18,11 @@ drag_point = {}
 root = tk.Tk()
 root.geometry("1600x800")
 
-canvas = tk.Canvas(root, bg = "#ffffff")
-canvas.pack(side = tk.LEFT,  fill = tk.BOTH, expand = 1)
+canvas = tk.Canvas(root, bg="#696969")
+canvas.pack(side=tk.LEFT,  fill=tk.BOTH, expand=1)
 
 
-#main functional
+# main functional
 def load_sprites(path="../../sprites"):
 	global sprites_pictures, sprites_pictures_scales, sprite_names
 
@@ -37,10 +37,12 @@ def load_sprites(path="../../sprites"):
 	for filename in list(sprite_names):
 		if ".png" in filename:
 			if "scale" in img_descr_data["images"][filename]:
-				scale =  img_descr_data["images"][filename]["scale"]
+				scale = img_descr_data["images"][filename]["scale"]
 			else:
 				scale = 1
-			sprites_pictures[filename] = tk.PhotoImage(file=path+"/"+filename).zoom(scale)
+			sprites_pictures[filename] = tk.PhotoImage(
+				file=path+"/"+filename
+			).zoom(scale)
 		else:
 			sprite_names.remove(filename)
 load_sprites()
@@ -121,7 +123,7 @@ def on_mouse_move(event):
 		event.y,
 		image=sprites_pictures[current_sprite_name],
 		anchor=tk.NW
-		)
+	)
 
 def undo(event):
 	#called on right mouse click
@@ -153,10 +155,10 @@ toolbar_frame = tk.Frame(root)
 picture_select_frame = tk.Frame(toolbar_frame)
 
 scrollbar = tk.Scrollbar(picture_select_frame)
-mylist = tk.Listbox(picture_select_frame, yscrollcommand = scrollbar.set)
+mylist = tk.Listbox(picture_select_frame, yscrollcommand=scrollbar.set)
 for filename in sprite_names:
     mylist.insert(tk.END, str(filename))
-scrollbar.config(command = mylist.yview)
+scrollbar.config(command=mylist.yview)
 
 entry_widget = tk.Entry(toolbar_frame)
 
@@ -164,9 +166,9 @@ change_state_check = tk.Checkbutton(
 	toolbar_frame,
 	text='Movable',
 	command=change_phys_state
-	)
+)
 
-scrollbar.pack(side=tk.RIGHT, fill=tk.Y )
+scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 mylist.pack(side=tk.LEFT, fill=tk.BOTH)
 picture_select_frame.pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 entry_widget.pack(side=tk.BOTTOM, fill=tk.BOTH)
