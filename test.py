@@ -4,12 +4,11 @@
 from time import time
 
 from Chelone import init, Sprite, SpriteLoader, check_keys
+from sound import playsound, sound_finished
 from BoxPhys import get_collision_displacement
 
 
 chelone = None
-playsound = lambda a: 0
-sound_finished = lambda a: False
 
 class Player(Sprite):
     """
@@ -50,7 +49,7 @@ class Player(Sprite):
         movement = self.move_on_command()
         if not movement[0] and not movement[1]:
             self.update_anim_state('idle')
-        if chelone.settings["jump"] in chelone.pressed_keys and self.grounded:
+        if 'w' in chelone.pressed_keys and self.grounded:
             self.update_anim_state('jump')
             self.add_vel(0, -30)  
 
@@ -59,7 +58,7 @@ class Player(Sprite):
         movement = self.move_on_command()
         if movement[0] or movement[1]:
             self.update_anim_state('run')
-        if chelone.settings["jump"] in chelone.pressed_keys and self.grounded:
+        if 'w' in chelone.pressed_keys and self.grounded:
             self.update_anim_state('jump')
             self.add_vel(0, -30)    
 
@@ -86,14 +85,14 @@ class Player(Sprite):
         '''handles movement with keypresses'''
         ret = [False, False]
 
-        if chelone.settings['run_left'] in chelone.pressed_keys:
+        if 'a' in chelone.pressed_keys:
             ret[0] = True
             self.move(-7, 0)
 
             if self.orientation != "left":
                 self.flip()
 
-        elif chelone.settings['run_right'] in chelone.pressed_keys:
+        elif 'd' in chelone.pressed_keys:
             ret[1] = True
             self.move(7, 0)
 
@@ -107,7 +106,7 @@ class Player(Sprite):
         displacement = get_collision_displacement(my_collider, other_collider)
         super().handle_collision(collided_obj, my_collider, other_collider, handled)
 
-        if displacement[1] < 0 and self.vel.y >= 0:
+        if displacement[1] < 0 and self.vel[1] >= 0:
             if my_collider.type != "trigger" and other_collider.type != "trigger":
                 self.grounded = True
 
@@ -149,7 +148,7 @@ class Player(Sprite):
 
 class Droid(Sprite):
     """
-        Basic enemy. Partrols an area and shoots the player if it sees him.
+        Basic enemy. Patrols an area and shoots the player if it sees him.
     """
 
     class Laser(Sprite):
@@ -208,19 +207,20 @@ class Droid(Sprite):
             if self.shooting_cooldown >= self.shooting_cooldown_limit:
                 self.shooting_cooldown = 0
                 if my_collider.id == "left_search":
-                    laser_x = self.x-50
-                    laser_vel = -3
+                    self.Laser(
+                        id="Laser", frame=self.frame.parent.load("laser.png"), gravity=0,
+                        x=self.x-50,
+                        y=self.y+self.colliders['collider_1'].height/2,
+                        velocity=[-3, 0]
+                    )
 
                 elif my_collider.id == "right_search":
-                    laser_x = self.x+self.colliders['collider_1'].width+50
-                    laser_vel = 3
-
-                self.Laser(
-                    id="Laser", frame=self.frame.parent.load("laser.png"), gravity=0,
-                    x=laser_x,
-                    y=self.y+self.colliders['collider_1'].height/2,
-                    velocity=[laser_vel, 0]
-                )
+                    self.Laser(
+                        id="Laser", frame=self.frame.parent.load("laser.png"), gravity=0,
+                        x=self.x+self.colliders['collider_1'].width+50,
+                        y=self.y+self.colliders['collider_1'].height/2,
+                        velocity=[3, 0]
+                    )
 
 class background_sound(Sprite):
     '''loops the bg music'''
@@ -237,18 +237,10 @@ class background_sound(Sprite):
 
 
 def start_level(root = None):
-    global chelone, flag, playsound, sound_finished
+    global chelone, flag
 
     # setting up global objects for rendering and loading, respectively
     chelone = init(root)
-
-    if chelone.settings["sound"]:
-        import sound
-        playsound = sound.playsound
-        sound_finished = sound.sound_finished
-
-
-
     loader = SpriteLoader()
 
     spr = Player("Player", loader.load("tmp.png"), gravity=-1, x=100, layer=10, state_anim_directory="anakin")
@@ -282,6 +274,7 @@ def start_level(root = None):
         chelone.advance_frame()
         endTime = time()
         elapsedTime = endTime - startTime
+        print(1./elapsedTime)
 
 
 if __name__ == '__main__':

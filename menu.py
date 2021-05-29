@@ -1,11 +1,14 @@
-from tkinter import *
+import tkinter as tk
 import tkinter.font as tkfont
 import os
 import json
 from test import start_level
+from Chelone import SpriteLoader
+import time
+import math
 
-root = Tk()
-sets = {
+# set default settings
+user_settings = {
     "sound": False,
     "jump": "w",
     "duck": "s",
@@ -13,106 +16,12 @@ sets = {
     "run_left": "a",
     "force": "e",
     "atack": "space"
-    }
+}
 
-def load_settings():
-    global sets
-    open("settings.json", "a+")
-    sets = json.load(open("settings.json"))
-
-def save_settings():
-    global sets
-    json.dump(sets, open("settings.json", "w"))
-
-load_settings()
-
-
-def change_menu(this_frame, next_frame):
-    this_frame.pack_forget()
-    next_frame.pack()
-    root.update()
-
-def load_game(parent_frame):
-  parent_frame.pack_forget()
-  start_level(root)
-
-def flip_sound_setting():
-    global sets
-
-    sets["sound"] = not sets["sound"]
-    save_settings()
-
-    if (sets["sound"]):
-        Label(master = settings, text = 'ON', font = regular_font, bg = '#238823')\
-            .place(relx = 0.57, rely = 0.2, width = 50, height = 50, anchor = CENTER)
-    else:
-        Label(master = settings, text = 'OFF', font = regular_font, bg = '#D2222D')\
-            .place(relx = 0.57, rely = 0.2, width = 50, height = 50, anchor = CENTER)
-
-
-
-regular_font = tkfont.Font(family = 'Noto Sans', size = 16)
-big_font = tkfont.Font(family = 'Noto Sans',size = 32)
-title_font = tkfont.Font(family = 'Noto Sans Display', size = 40)
-
-main_menu = Frame(root, width = 1600, height = 800, bg = '#033580')
-
-Label(master = main_menu,
-      text = 'THE GREAT ADVENTURE OF LUKE AND SKYWALKER',
-      font = title_font,
-      bg = '#033580',
-      fg = '#d9d211'
-      ).place(relx = 0.5, rely = 0.25, width = 1600, height = 300, anchor = CENTER)
-
-Button(master = main_menu,
-       text = 'Play',
-       font = big_font,
-       command = lambda: load_game(main_menu)
-    ).place(relx = 0.5, rely = 0.6,
-            width = 200, height = 100,
-            anchor = CENTER)
-
-Button(master = main_menu,
-       text = 'Settings',
-       font = regular_font,
-       command = lambda: change_menu(main_menu, settings)
-    ).place(relx = 0.5, rely = 0.75,
-            width = 100, height = 50,
-            anchor = CENTER)
-
-Button(master = main_menu,
-       text = 'Exit',
-       font = regular_font,
-       command = lambda: os._exit(0)
-    ).place(relx = 0.5, rely = 0.85,
-            width = 100, height = 50,
-            anchor = CENTER)
-
-settings = Frame(width = 1600, height = 800, bg = '#AAAAAA')
-main_menu.pack()
-flip_sound_setting()
-flip_sound_setting()
-
-
-Button(master = settings,
-       text = 'Sound',
-       font = regular_font,
-       command = lambda: flip_sound_setting()
-    ).place(relx = 0.48, rely = 0.2,
-            width = 200, height = 50,
-            anchor = CENTER)
-
-
-Button(master = settings,
-       text = 'Return to main menu',
-       font = regular_font,
-       command = lambda: change_menu(settings, main_menu)
-    ).place(relx = 0.5, rely = 0.85,
-            width = 300, height = 50,
-            anchor = CENTER)
-
+# init globals
+time_elapsed = 0
 state = ""
-dic_label = {
+states_label = {
     "sound": False,
     "jump": None,
     "duck": None,
@@ -121,115 +30,415 @@ dic_label = {
     "force": None,
     "atack": None
 }
+my_objects = []
+drag_point = {}
+current_drag_sprite = None
+
+# declare classes
+class Sprite:
+    def __init__(
+        self,
+        ID="?",
+        x=0,
+        y=0,
+        width=0,
+        height=0,
+        anchor=tk.NW,
+        img_file=None,
+        parent_frame=None
+    ):
+        self.ID = ID
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.image = tk.PhotoImage(file=img_file)
+        self.instance = parent_frame.create_image(
+            self.x,
+            self.y,
+            anchor=anchor,
+            image=self.image
+        )
+        self.parent_frame=parent_frame
+        self.last_movement_x = 0
+        self.last_movement_y = 0
+
+    def on_click(self, offset_x, offset_y):
+        pass
+
+    def move(self, dx, dy):
+        self.parent_frame.move(self.instance, dx, dy)
+        self.x += dx
+        self.y += dy
+        self.last_movement_x = dx
+        self.last_movement_y = dy
+
+class DragableSprite(Sprite):
+    def on_click(self, offset_x, offset_y):
+        global current_drag_sprite
+
+        self.drag_point = {"x": offset_x, "y": offset_y}
+
+        current_drag_sprite = self
+
+class PlayButton(Sprite):
+    def on_click(self, offset_x, offset_y):
+        main_menu.pack_forget()
+        start_level(root)
+
+class SettingsButton(Sprite):
+    def on_click(self, offset_x, offset_y):
+        change_frame(main_menu, settings_frame)
+
+class ExitButton(Sprite):
+    def on_click(self, offset_x, offset_y):
+        os._exit(0)
+
+# set up screen
+root = tk.Tk()
+root.geometry("1600x800")
+
+main_menu = tk.Canvas(root, bg="#000000")
+main_menu.pack(fill=tk.BOTH, expand=1)
+
+settings_frame =\
+    tk.Frame(root, width = 1600, height = 800, bg = '#002550')
+
+b_background =\
+    tk.PhotoImage(file="./menu_pics/b_background.png")
+b_background_instance =\
+    main_menu.create_image(0, 0, image=b_background, anchor=tk.NW)
+b_background_instance_next =\
+    main_menu.create_image(1300, 0, image=b_background, anchor=tk.NW)
+
+my_objects.append(
+    DragableSprite(
+        ID="b_planet_r",
+        x=80,
+        y=500,
+        width=65,
+        height=97,
+        img_file="./menu_pics/b_planet_ring.png",
+        parent_frame=main_menu
+    )
+)
+my_objects.append(
+    DragableSprite(
+        ID="b_planet",
+        x=1100,
+        y=50,
+        width=57,
+        height=57,
+        img_file="./menu_pics/b_planet.png",
+        parent_frame=main_menu
+    )
+)
+my_objects.append(
+    DragableSprite(
+        ID="b_death_star",
+        x=1400,
+        y=480,
+        width=176,
+        height=176,
+        img_file="./menu_pics/b_death_star.png",
+        parent_frame=main_menu
+    )
+)
+my_objects.append(
+    Sprite(
+        ID="f_title",
+        x=10,
+        y=230,
+        img_file="./menu_pics/1_title_image.png",
+        parent_frame=main_menu
+    )
+)
+my_objects.append(
+    PlayButton(
+        ID="m_play",
+        x=684,
+        y=480,
+        width=228,
+        height=100,
+        img_file="./menu_pics/m_play.png",
+        parent_frame=main_menu
+    )
+)
+my_objects.append(
+    SettingsButton(
+        ID="m_settings",
+        x=715,
+        y=600,
+        width=169,
+        height=50,
+        img_file="./menu_pics/m_settings.png",
+        parent_frame=main_menu
+    )
+)
+my_objects.append(
+    ExitButton(
+        ID="m_exit",
+        x=750,
+        y=680,
+        width=100,
+        height=50,
+        img_file="./menu_pics/m_exit.png",
+        parent_frame=main_menu
+    )
+)
+
+my_objects.reverse()
+
+regular_font = tkfont.Font(family = 'Noto Sans Display', size = 16)
+
+
+# main functional
+def load_settings():
+    global user_settings
+
+    open("settings.json", "a+")
+    try:
+        user_settings = json.load(open("settings.json"))
+    except Exception as e:
+        pass
+
+def save_settings():
+    global user_settings
+
+    # create file if not found
+    open("settings.json", "a+")
+    json.dump(user_settings, open("settings.json", "w"))
+
+
+def change_frame(this_frame, next_frame):
+    this_frame.pack_forget()
+    next_frame.pack(fill=tk.BOTH, expand=1)
+    root.update()
+
+def press_button_main_menu(event):
+    global my_objects
+
+    for obj in my_objects:
+        if obj.x < event.x < obj.x + obj.width\
+        and obj.y < event.y < obj.y + obj.height:
+            print("e")
+            obj.on_click(obj.x - event.x,obj.y - event.y)
+
+def drag_sprite(event):
+    global my_objects
+
+    for obj in my_objects:
+        if isinstance(obj, DragableSprite):
+            if obj is current_drag_sprite:
+                obj.move(
+                    event.x + obj.drag_point["x"] - obj.x,
+                    event.y + obj.drag_point["y"] - obj.y
+                )
+                print(obj.last_movement_x, obj.last_movement_y)
+
+def release_sprite(event):
+    global current_drag_sprite
+
+    current_drag_sprite = None
+
+def flip_sound_setting():
+    global user_settings
+
+    on_label = tk.Label(
+        master=settings_frame,
+        text='ON',
+        font=regular_font,
+        fg='#111111',
+        bg='#238823'
+    )
+    off_label = tk.Label(
+        master = settings_frame,
+        text = 'OFF',
+        font = regular_font,
+        fg='#111111',
+        bg = '#D2222D'
+    )
+
+    if (user_settings["sound"]):
+        sound_label = on_label
+    else:
+        sound_label = off_label
+
+    sound_label.place(
+        relx = 0.51,
+        rely = 0.13,
+        width = 50,
+        height = 50
+    )
+
+    user_settings["sound"] = not user_settings["sound"]
+    save_settings()
 
 def on_key_press(event):
-    global state, dic_label
+    global state, states_label
+
     if (state != ""):
-        #print(event.keysym)
-        dic_label[state].configure(text = event.keysym)
-        sets[state] = event.keysym
-        #print(dic_label[state])
+        states_label[state].configure(text = event.keysym)
+        user_settings[state] = event.keysym
         state = ""
         save_settings()
     else:
         return
 
-root.bind("<Key>", on_key_press)
-
-def change_state_to(stat):
+def change_state_to(state_parameter):
     global state
-    state = stat
 
-Button(master = settings,
-       text = 'Jump',
-       font = regular_font,
-       command = lambda: change_state_to("jump")
-    ).place(relx = 0.43, rely = 0.27,
-            width = 150, height = 50,
-            anchor = CENTER)
+    state = state_parameter
 
-dic_label["jump"] = Label(master = settings,
-      text = sets["jump"],
-      font = regular_font
-      )
-dic_label["jump"].place(relx = 0.53, rely = 0.27, width = 150, height = 50, anchor = CENTER)
+def add_button_with_label(
+    master=settings_frame,
+    text="?",
+    font=regular_font,
+    foreground="#DDDD22",
+    command=None,
+    relx=0.5,
+    rely=0.5,
+    button_width=150,
+    button_height=50,
+    label_width=150,
+    label_height=50,
+    anchor=tk.CENTER,
+    ID="unnamed"
+):
+    tk.Button(
+        master=master,
+        text=text,
+        font=font,
+        fg=foreground,
+        command=command
+    ).place(
+        relx=relx,
+        rely=rely,
+        width=button_width,
+        height=button_height,
+        anchor=anchor
+    )
+    states_label[ID]=tk.Label(
+        master=master,
+        text=user_settings[ID],
+        font=font,
+        fg=foreground,
+    )
+    states_label[ID].place(
+        relx=relx*1.01 + (button_width/1600),
+        rely=rely*1.01,
+        width=label_width,
+        height=label_height,
+        anchor=anchor
+    )
 
-Button(master = settings,
-       text = 'Duck',
-       font = regular_font,
-       command = lambda: change_state_to("duck")
-    ).place(relx = 0.43, rely = 0.34,
-            width = 150, height = 50,
-            anchor = CENTER)
+def animate_background():
+    global b_background_instance, b_background_instance_next, time_elapsed
 
-dic_label["duck"] = Label(master = settings,
-      text = sets["duck"],
-      font = regular_font
-      )
-dic_label["duck"].place(relx = 0.53, rely = 0.34, width = 150, height = 50, anchor = CENTER)
+    time.sleep(0.001)
+    time_elapsed += 1
+    if time_elapsed % 10 == 0:
+        main_menu.move(b_background_instance, -1, 0)
+        main_menu.move(b_background_instance_next, -1, 0)
+    if time_elapsed >= 13000:
+        # kinda reset
+        main_menu.delete(b_background_instance)
+        b_background_instance = b_background_instance_next
+        b_background_instance_next = main_menu.create_image(
+            1300,
+            0,
+            image=b_background,
+            anchor=tk.NW
+        )
+        main_menu.lower(b_background_instance_next)
+        time_elapsed = 0
+    for obj in my_objects:
+        if obj is not current_drag_sprite:
+            obj.last_movement_x
+            obj.last_movement_y
+            obj.move(obj.last_movement_x, obj.last_movement_y)
+    root.update()
 
-Button(master = settings,
-       text = 'Move right',
-       font = regular_font,
-       command = lambda: change_state_to("run_right")
-    ).place(relx = 0.43, rely = 0.41,
-            width = 150, height = 50,
-            anchor = CENTER)
+# set up settings UI
+tk.Button(
+    master=settings_frame,
+    text='Sound',
+    font=regular_font,
+    fg="#DDDD22",
+    command=lambda:flip_sound_setting()
+).place(
+    relx=0.35,
+    rely=0.13,
+    width=250,
+    height=50
+)
+tk.Button(
+    master=settings_frame,
+    text='Return to main menu',
+    font=regular_font,
+    fg="#DDDD22",
+    command=lambda:change_frame(settings_frame, main_menu)
+).place(
+    relx=0.45,
+    rely=0.75,
+    width=300,
+    height=50
+)
+add_button_with_label(
+    text="Jump",
+    command=lambda:change_state_to("jump"),
+    relx=0.43,
+    rely=0.27,
+    ID="jump"
+)
+add_button_with_label(
+    text="Duck",
+    command=lambda:change_state_to("duck"),
+    relx=0.43,
+    rely=0.34,
+    ID="duck"
+)
+add_button_with_label(
+    text="Move right",
+    command=lambda:change_state_to("run_right"),
+    relx=0.43,
+    rely=0.41,
+    ID="run_right"
+)
+add_button_with_label(
+    text="Move left",
+    command=lambda:change_state_to("run_left"),
+    relx=0.43,
+    rely=0.48,
+    ID="run_left"
+)
+add_button_with_label(
+    text="Use force",
+    command=lambda:change_state_to("force"),
+    relx=0.43,
+    rely=0.55,
+    ID="force"
+)
+add_button_with_label(
+    text="Byty kohos'",
+    command=lambda:change_state_to("atack"),
+    relx=0.43,
+    rely=0.62,
+    ID="atack"
+)
 
-dic_label["run_right"] = Label(master = settings,
-      text = sets["run_right"],
-      font = regular_font
-      )
-dic_label["run_right"].place(relx = 0.53, rely = 0.41, width = 150, height = 50, anchor = CENTER)
 
-Button(master = settings,
-       text = 'Move left',
-       font = regular_font,
-       command = lambda: change_state_to("run_left")
-    ).place(relx = 0.43, rely = 0.48,
-            width = 150, height = 50,
-            anchor = CENTER)
-
-dic_label["run_left"] = Label(master = settings,
-      text = sets["run_left"],
-      font = regular_font
-      )
-dic_label["run_left"].place(relx = 0.53, rely = 0.48, width = 150, height = 50, anchor = CENTER)
-
-Button(master = settings,
-       text = 'Use force',
-       font = regular_font,
-       command = lambda: change_state_to("force")
-    ).place(relx = 0.43, rely = 0.55,
-            width = 150, height = 50,
-            anchor = CENTER)
-
-dic_label["force"] = Label(master = settings,
-      text = sets["force"],
-      font = regular_font
-      )
-dic_label["force"].place(relx = 0.53, rely = 0.55, width = 150, height = 50, anchor = CENTER)
-
-Button(master = settings,
-       text = "Byty kohos'",
-       font = regular_font,
-       command = lambda: change_state_to("atack")
-    ).place(relx = 0.43, rely = 0.62,
-            width = 150, height = 50,
-            anchor = CENTER)
-
-dic_label["atack"] = Label(master = settings,
-      text = sets["atack"],
-      font = regular_font
-      )
-dic_label["atack"].place(relx = 0.53, rely = 0.62, width = 150, height = 50, anchor = CENTER)
+# make some preparations
+load_settings()
+flip_sound_setting()
+flip_sound_setting()
 
 
+root.bind("<Key>", on_key_press)
+main_menu.bind("<Button-1>", press_button_main_menu)
+main_menu.bind("<B1-Motion>", drag_sprite)
+main_menu.bind("<B1-ButtonRelease>", release_sprite)
 
 
-settings.pack()
-
-settings.pack_forget()
-
-#main_menu.tkraise()
-root.mainloop()
+while 1:
+    animate_background()
