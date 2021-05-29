@@ -282,6 +282,7 @@ def start_level(root = None):
         chelone.advance_frame()
         endTime = time()
         elapsedTime = endTime - startTime
+        print(1./elapsedTime)
 
 
 if __name__ == '__main__':
