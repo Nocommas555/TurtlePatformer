@@ -1,11 +1,14 @@
+from BoxPhys import *
 from Chelone import *
+from time import *
 import unittest
+
+chelone = init()
 
 class TestSpriteLoader(unittest.TestCase):
 	
 	def setUp(self):
 		self.spriteloader = SpriteLoader(sprite_dir = "")
-		self.Chelone = init()
 	
 	def test_load_anim(self):
 		self.assertEqual(self.spriteloader.load_anim("./tests/test.anim"), 
@@ -47,10 +50,27 @@ class TestAnimStateSystem(unittest.TestCase):
 
 	def test_flip(self):
 		self.animstate.flip()
-		self.assertEquals(self.animstate.orientation, "left")
+		self.assertEqual(self.animstate.orientation, "left")
 
-	def test_update_state(self):
-		isBool = False
-		self.animstate._update_state()
-		assertTrue(isBool, "Your function is incorrect")	
-	
+	# def test_update_state(self):
+	# 	isBool = False
+	# 	self.animstate._update_state()
+	# 	assertTrue(isBool, "Your function is incorrect")	
+
+class TestSprite(unittest.TestCase):
+
+	def setUp(self):
+		self.spriteloader = SpriteLoader("")
+		self.sprite = Sprite("2", self.spriteloader.load("./tests/1.png"))
+		sleep(1)
+
+	def test_delete_self(self):
+		self.sprite.delete_self()
+		chelone.advance_frame()
+		isTrue = self.sprite not in physics_objects
+		isTrue = isTrue and self.sprite.colliders == {}
+		isTrue = isTrue and self.sprite.id not in chelone._sprites[25].keys()
+		self.assertTrue(isTrue, "Sprite remove unsuccesful")
+
+	def test_update_all(self):
+		
