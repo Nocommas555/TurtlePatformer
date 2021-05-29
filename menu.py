@@ -244,6 +244,8 @@ def release_sprite(event):
 def flip_sound_setting():
     global user_settings
 
+    user_settings["sound"] = not user_settings["sound"]
+
     on_label = tk.Label(
         master=settings_frame,
         text='ON',
@@ -265,13 +267,12 @@ def flip_sound_setting():
         sound_label = off_label
 
     sound_label.place(
-        relx = 0.51,
+        relx = 0.544,
         rely = 0.13,
         width = 50,
         height = 50
     )
 
-    user_settings["sound"] = not user_settings["sound"]
     save_settings()
 
 def on_key_press(event):
@@ -294,7 +295,7 @@ def add_button_with_label(
     master=settings_frame,
     text="?",
     font=regular_font,
-    foreground="#DDDD22",
+    foreground="#000000",
     command=None,
     relx=0.5,
     rely=0.5,
@@ -364,10 +365,10 @@ tk.Button(
     master=settings_frame,
     text='Sound',
     font=regular_font,
-    fg="#DDDD22",
+    fg="#000000",
     command=lambda:flip_sound_setting()
 ).place(
-    relx=0.35,
+    relx=0.382,
     rely=0.13,
     width=250,
     height=50
@@ -376,10 +377,10 @@ tk.Button(
     master=settings_frame,
     text='Return to main menu',
     font=regular_font,
-    fg="#DDDD22",
+    fg="#000000",
     command=lambda:change_frame(settings_frame, main_menu)
 ).place(
-    relx=0.45,
+    relx=0.382,
     rely=0.75,
     width=300,
     height=50
