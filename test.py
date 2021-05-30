@@ -35,11 +35,11 @@ class Player(Sprite):
         self.camera_lagbehind = kargs.get("camera_lagbehind", [0.05, 0.05])
 
         self.camera_offset = kargs.get("camera_offset", [600, 250])
-        
+
     def update(self):
         if self.anim_state == "None":
             self.update_anim_state('idle')
-        
+
         self.update_smooth_camera()
 
     def last_update(self):
@@ -52,7 +52,7 @@ class Player(Sprite):
             self.update_anim_state('idle')
         if chelone.settings["jump"] in chelone.pressed_keys and self.grounded:
             self.update_anim_state('jump')
-            self.add_vel(0, -30)  
+            self.add_vel(0, -30)
 
     def idle_state(self):
         '''the code that runs while the player is idling'''
@@ -61,12 +61,12 @@ class Player(Sprite):
             self.update_anim_state('run')
         if chelone.settings["jump"] in chelone.pressed_keys and self.grounded:
             self.update_anim_state('jump')
-            self.add_vel(0, -30)    
+            self.add_vel(0, -30)
 
     def jump_state(self):
         '''the code that runs while the player is jumping'''
-        movement = self.move_on_command()
-        if self.grounded == True:
+        movement = self.move_on_command()#noqa could be used later
+        if self.grounded:
             self.update_anim_state('idle')
 
     def update_smooth_camera(self):
@@ -237,7 +237,8 @@ class background_sound(Sprite):
 
 
 def start_level(root = None):
-    global chelone, flag, playsound, sound_finished
+    '''main function for loading the level'''
+    global chelone, playsound, sound_finished
 
     # setting up global objects for rendering and loading, respectively
     chelone = init(root)
@@ -251,38 +252,28 @@ def start_level(root = None):
 
     loader = SpriteLoader()
 
-    spr = Player("Player", loader.load("tmp.png"), gravity=-1, x=100, layer=10, state_anim_directory="anakin")
+    Player("Player", loader.load("tmp.png"), gravity=-1, x=100, layer=10, state_anim_directory="anakin")
 
-    drd1 = Droid("Droid", loader.load("droid.png"), patrol_range=[1500, 2000], speed=1.3, state_anim_directory = "droid")
+    Droid("Droid", loader.load("droid.png"), patrol_range=[1500, 2000], speed=1.3, state_anim_directory = "droid")
 
     background_sound("background", loader.load("clear.png"), phys_type="inmovable", sound="sounds/imperial_march.wav")
-    #drd2 = Droid_1("Droid 2", loader.load("droid.png"), x = 1200)
-    #chelone.add_sprite(drd2)
 
-    #drd3 = Droid_1("Droid 3", loader.load("droid.png"), x = 1400)
-    #chelone.add_sprite(drd3)
+    Sprite("Ground", loader.load("gnd.png"), phys_type="immovable", x=0, y=650, layer=49)
 
-    ground = Sprite("Ground", loader.load("gnd.png"), phys_type="immovable", x=0, y=650, layer=49)
-
-    block = Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1000, y=590)
-    block = Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1100, y=590)
-    block = Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1200, y=590)
-    block = Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1300, y=590)
-    block = Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1400, y=590)
-    block = Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1200, y=525)
-    block = Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1300, y=525)
-    # movable = Sprite("Movable", loader.load("tmp.png"), x=150, y=200)
-    # chelone.add_sprite(movable, 30)
-
-    #laser = Laser("Laser", loader.load("laser.png"), x = 900)
-    #chelone.add_sprite(laser)
+    Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1000, y=590)
+    Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1100, y=590)
+    Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1200, y=590)
+    Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1300, y=590)
+    Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1400, y=590)
+    Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1200, y=525)
+    Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1300, y=525)
 
     while 1:
         startTime = time()
         chelone.advance_frame()
         endTime = time()
         elapsedTime = endTime - startTime
-
+        print(1./elapsedTime)
 
 if __name__ == '__main__':
     start_level()
