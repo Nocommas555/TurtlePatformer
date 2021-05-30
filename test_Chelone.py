@@ -72,5 +72,5 @@ class TestSprite(unittest.TestCase):
 		isTrue = isTrue and self.sprite.id not in chelone._sprites[25].keys()
 		self.assertTrue(isTrue, "Sprite remove unsuccesful")
 
-	def test_update_all(self):
+	#def test_update_all(self):
 		
