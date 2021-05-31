@@ -6,12 +6,12 @@ alternative to pyGame with more of a focus on sprites rather then  primitives
 The engine includes basic loading, collision detection, animation, drawing, z-layering and complex backrounds
 '''
 import tkinter as tk
+import os
+import json
 from typing import Union, Callable
 from time import time, sleep
-from sound import kill_all_sounds
-import os, sys
-import json
 
+from sound import kill_all_sounds
 from BoxPhys import Collider, PhysicsObject, advance_phys_simulation, reset_phys_sim
 
 chelone = None
@@ -45,9 +45,10 @@ def init(root = None):
     return chelone
 
 def exit():
+    '''exits the program'''
     kill_all_sounds()
     chelone.root.destroy()
-    os._exit(0)
+    os._exit(0) #noqa exit forcefully to shut down child processes that play sounds
 
 def FocusOut(event): # noqa, event var needed for callback signature
     ''' clears input on unfocusing window. should maybe halt the game in the future '''
@@ -172,24 +173,6 @@ class SpriteLoader():
         print("SPRITE NOT FOUND AT: " + path + " or " + parent_path+"/img_descr.json")
         return None
 
-    def create_colliders(self, sprite):
-        '''creates/updates colliders of a Sprite using it's current Frame hitbox parameters'''
-
-        for key in sprite.frame.hitboxes.keys():
-            hitbox = sprite.frame.hitboxes[key]
-
-            if hitbox == "remove":
-                sprite.colliders[key].delete_self()
-
-            else:
-                if key in sprite.colliders:
-                    sprite.colliders[key].delete_self()
-
-                sprite.colliders[key] = Collider(hitbox["x"], hitbox["y"],\
-                    sprite, hitbox["width"], hitbox["height"], key, hitbox["type"])
-
-        return sprite.colliders
-
     def unload(self, path: str):
         '''remove all loaded Frames from memory. will cause the associated picture to dissapear on the canvas'''
         self._storage.pop(path)
@@ -273,7 +256,7 @@ class Sprite(PhysicsObject, AnimStateSystem):
         self.orientation = "right"
         self.anim_state = "None"
 
-        frame.parent.create_colliders(self)
+        self.create_colliders()
         chelone.add_sprite(self, layer)
 
         self.setup(kargs)
@@ -293,9 +276,9 @@ class Sprite(PhysicsObject, AnimStateSystem):
         pass
 
     # made to be extended
-    def last_update(self):
+    def last_update(self): #noqa
         pass
-    
+
     def delete_self(self):
         '''deletes this object and it's colliders'''
 
@@ -316,6 +299,22 @@ class Sprite(PhysicsObject, AnimStateSystem):
         self.y += y
         self.parent_canvas.move(self.image_tk, x, y)
 
+    def create_colliders(self):
+        '''creates/updates colliders of a Sprite using it's current Frame hitbox parameters'''
+
+        for key in self.frame.hitboxes.keys():
+            hitbox = self.frame.hitboxes[key]
+
+            if hitbox == "remove":
+                self.colliders[key].delete_self()
+
+            else:
+                if key in self.colliders:
+                    self.colliders[key].delete_self()
+
+                self.colliders[key] = Collider(hitbox["x"], hitbox["y"],\
+                    self, hitbox["width"], hitbox["height"], key, hitbox["type"])
+
     def change_image(self, frame: SpriteLoader.SpriteFrame, stop_anim: bool = True):
         '''changes the current picture of the sprite'''
 
@@ -327,7 +326,7 @@ class Sprite(PhysicsObject, AnimStateSystem):
 
         self.frame = frame
         self.parent_canvas.itemconfig(self.image_tk, image=frame.image)
-        self.frame.parent.create_colliders(self)
+        self.create_colliders()
 
         if stop_anim:
             self._anim = [frame]
@@ -422,15 +421,21 @@ class SpriteRenderer():
         self.restart_fps_timer()
 
     def load_settings(self):
-
+        '''load settings from settings.json'''
         #create file if it doesn't exist
         open("settings.json", "a+")
 
-        settings_file = open("settings.json", "r")
-        try:
-            self.settings = json.load(settings_file)
-        except:
-            self.settings = {"sound": True, "jump": "w", "duck": "s", "run_right": "d", "run_left": "a", "force": "e", "atack": "space"}
+        with open("settings.json", "r") as settings_file:
+            try:
+                self.settings = json.load(settings_file)
+            except:
+                self.settings = {"sound": True,
+                                            "jump": "w",
+                                            "duck": "s",
+                                            "run_right": "d",
+                                            "run_left": "a",
+                                            "force": "e",
+                                            "atack": "space"}
 
     def restart_fps_timer(self):
         '''resets the variables associated with fps waiting'''
@@ -458,7 +463,7 @@ class SpriteRenderer():
             if "hitbox_draw" in self.debug_flags:
                 self.db_draw_hitboxes()
             else:
-                self.screen.delete("hitbox")
+                self.screen.delete("hb")
 
 
         self.root.update()
@@ -506,6 +511,7 @@ class SpriteRenderer():
         self.root.bind(func, key)
 
     def reset(self):
+        '''resets the game state to start of level'''
         self.camera.move(-self.camera.x, self.camera.y)
 
         # reset _sprites array
@@ -518,6 +524,7 @@ class SpriteRenderer():
         self.screen.delete("all")
 
     def toggle_debug_flag(self, flag):
+        '''changes the state of a debug flag'''
         if flag not in self.debug_flags:
             self.debug_flags.append(flag)
         else:
@@ -526,6 +533,7 @@ class SpriteRenderer():
         self.debug_activation_counter = 0
 
     def check_debug_keys(self):
+        '''checks if we should toggle a debug flag or not'''
         if self.debug_activation_counter != self.DEBUG_ACTIVATION_TIMEOUT:
             self.debug_activation_counter += 1
             return
@@ -535,18 +543,25 @@ class SpriteRenderer():
             self.toggle_debug_flag("hitbox_draw")
 
     def db_draw_hitboxes(self):
+        '''draws all active hitboxes as transparent rectangles'''
+        colors = {"green":{"outline":"#00bb00", "fill":"#004400"},
+                        "red":{"outline":"#bb0000", "fill":"#440000"},
+                        "black":{"outline":"#000000", "fill":"#000000"}}
 
-        colors = {"green":{"outline":"#00bb00", "fill":"#004400"},"red":{"outline":"#bb0000", "fill":"#440000"}, "black":{"outline":"#000000", "fill":"#000000"}}
-        self.screen.delete("hitbox")
+        self.screen.delete("hb")
 
         for layer in self._sprites:
             for sprite in layer.values():
                 for collider in sprite.colliders.values():
                     if collider.type == "trigger":
-                        color = "green"                        
+                        color = "green"
                     elif collider.type == "rigid":
                         color = "red"
                     else:
                         color = "black"
 
-                    self.screen.create_rectangle(collider.NE().x-self.camera.x, collider.NE().y-self.camera.y, collider.SW().x-self.camera.x, collider.SW().y-self.camera.y, outline=colors[color]['outline'], fill=colors[color]['fill'], stipple="gray50", tag="hitbox")
+                    x = collider.NE().x-self.camera.x
+                    y = collider.NE().y-self.camera.y
+                    x2 = collider.SW().x-self.camera.x
+                    y2 = collider.SW().y-self.camera.y
+                    self.screen.create_rectangle(x, y, x2, y2, fill=colors[color]['fill'], stipple="gray50", tag="hb")

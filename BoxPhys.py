@@ -10,6 +10,7 @@ _removing = []
 COLLIDER_ACTIVE_BOUNDARY = 100
 
 class Point():
+    '''dataclass representing a point'''
     x=0
     y=0
     def __init__(self, x:int, y:int):
@@ -17,6 +18,7 @@ class Point():
         self.y = y
 
 class Velocity():
+    '''dataclass representing velocity'''
     x=0
     y=0
     def __init__(self, x:int, y:int):
@@ -34,7 +36,7 @@ class PhysicsObject():
     colliders = {}
     type = "default"
 
-    def __init__(self, type: str = "default", colliders: dict = None,
+    def __init__(self, type: str = "default", col: dict = None,
                  x: float = 0, y: float = 0,
                  vel: list = None,
                  gravity: float = -0.3, friction: float = 0.1):
@@ -43,8 +45,8 @@ class PhysicsObject():
         if type not in ["default", "immovable"]:
             type = 'default'
 
-        if colliders is None:
-            colliders = {}
+        if col is None:
+            col = {}
 
         if vel is None:
             vel = Velocity(0,0)
@@ -53,7 +55,7 @@ class PhysicsObject():
             vel = Velocity(vel[0], vel[1])
 
         self.type = type
-        self.colliders = colliders
+        self.colliders = col
         self.x = x
         self.y = y
         self.vel = vel
@@ -230,7 +232,7 @@ def _colliders_intersect(A: Collider, B: Collider):
     # check if starting point of one rectangle is within projection another on x
     A_SW, A_NE = A.SW(), A.NE()
     B_SW, B_NE = B.SW(), B.NE()
-    
+
     return not (A_SW.x >= B_NE.x
             or A_NE.x <= B_SW.x
             or A_SW.y <= B_NE.y
@@ -274,9 +276,10 @@ def remove_phys_obj(phys_obj):
 
 
 def reset_phys_sim():
+    '''reset the state of the physics simulation'''
     global physics_objects, colliders, _removing
-    
+
     physics_objects = []
     colliders = []
     _removing = []
-
+    
