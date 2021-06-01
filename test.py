@@ -239,36 +239,8 @@ class background_sound(Sprite):
         if sound_finished(self.playing_sound):
             self.playing_sound = playsound(self.sound)
 
-
-def start_level(root = None):
-    '''main function for loading the level'''
-    global chelone, playsound, sound_finished
-
-    # setting up global objects for rendering and loading, respectively
-    chelone = init(root)
-
-    loader = SpriteLoader()
-
-    Player("Player", loader.load("tmp.png"), gravity=-1, x=100, layer=10, state_anim_directory="anakin")
-    
-    if chelone.settings["sound"]:
-        import sound
-        playsound = sound.playsound
-        sound_finished = sound.sound_finished
-
-    level_generator(obj_quantity = 5)
-
-    background_sound("background", loader.load("clear.png"), phys_type="inmovable", sound="sounds/imperial_march.wav")
-
-    while 1:
-        startTime = time()
-        chelone.advance_frame()
-        endTime = time()
-        elapsedTime = endTime - startTime
-        print(1./elapsedTime)
-
 def droid_generator(droid_x, droid_quantity):
-
+    '''generates multiple droids'''
     loader = SpriteLoader()
 
     for i in range(1, droid_quantity):
@@ -277,7 +249,7 @@ def droid_generator(droid_x, droid_quantity):
 
 
 def block_generator(block_x, block_quantity, ground_y):
-
+    '''generates a block pile'''
     loader = SpriteLoader()
     
     for i in range(1, block_quantity - 1):
@@ -288,7 +260,7 @@ def block_generator(block_x, block_quantity, ground_y):
     Sprite("Block", loader.load("box.png"), phys_type="immovable", x = block_x, y=ground_y - 60, layer = 26)    
 
 def level_generator(start_x = 0, obj_quantity = 1, ground_y = 650):
-    
+    '''generating simple levels from patterns found in level_patterns.json'''
     loader = SpriteLoader()
     
     try:
@@ -313,7 +285,34 @@ def level_generator(start_x = 0, obj_quantity = 1, ground_y = 650):
         start_x += 2560
         i += 1
 
-    print(obj_x) 
+
+
+def start_level(root = None):
+    '''main function for loading the level'''
+    global chelone, playsound, sound_finished
+
+    # setting up global objects for rendering and loading, respectively
+    chelone = init(root)
+
+    loader = SpriteLoader()
+
+    Player("Player", loader.load("tmp.png"), gravity=-1, x=100, layer=10, state_anim_directory="anakin")
+    
+    if chelone.settings["sound"]:
+        import sound
+        playsound = sound.playsound
+        sound_finished = sound.sound_finished
+
+    level_generator(obj_quantity = 20)
+
+    background_sound("background", loader.load("clear.png"), phys_type="inmovable", sound="sounds/imperial_march.wav")
+
+    while 1:
+        startTime = time()
+        chelone.advance_frame()
+        endTime = time()
+        elapsedTime = endTime - startTime
+        print(1./elapsedTime)
    
 if __name__ == '__main__':
     start_level()
