@@ -2,6 +2,8 @@
     Basic test scene made using Chelone
 '''
 import random
+import math
+import json
 
 from time import time
 
@@ -245,28 +247,25 @@ def start_level(root = None):
     # setting up global objects for rendering and loading, respectively
     chelone = init(root)
 
+    loader = SpriteLoader()
+
+    Player("Player", loader.load("tmp.png"), gravity=-1, x=100, layer=10, state_anim_directory="anakin")
+    
     if chelone.settings["sound"]:
         import sound
         playsound = sound.playsound
         sound_finished = sound.sound_finished
 
-    level_generator()
+    level_generator(obj_quantity = 5)
 
-    # Player("Player", loader.load("tmp.png"), gravity=-1, x=100, layer=10, state_anim_directory="anakin")
+    background_sound("background", loader.load("clear.png"), phys_type="inmovable", sound="sounds/imperial_march.wav")
 
-    # Droid("Droid", loader.load("droid.png"), patrol_range=[1500, 2000], speed=1.3, state_anim_directory = "droid")
-
-    # background_sound("background", loader.load("clear.png"), phys_type="inmovable", sound="sounds/imperial_march.wav")
-
-    # Sprite("Ground", loader.load("gnd.png"), phys_type="immovable", x=0, y=650, layer=49)
-
-    # Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1000, y=590)
-    # Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1100, y=590)
-    # Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1200, y=590)
-    # Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1300, y=590)
-    # Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1400, y=590)
-    # Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1200, y=525)
-    # Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1300, y=525)
+    while 1:
+        startTime = time()
+        chelone.advance_frame()
+        endTime = time()
+        elapsedTime = endTime - startTime
+        print(1./elapsedTime)
 
 def droid_generator(droid_x, droid_quantity):
 
@@ -277,72 +276,44 @@ def droid_generator(droid_x, droid_quantity):
         droid_x += 90
 
 
-def block_generator(block_x, upblock_x, block_quantity):
+def block_generator(block_x, block_quantity, ground_y):
 
     loader = SpriteLoader()
     
-    for i in range(1, block_quantity):
-        Sprite("Block", loader.load("box.png"), phys_type="immovable", x = block_x, y=590)
-        block_x += 100
     for i in range(1, block_quantity - 1):
-        Sprite("Block", loader.load("box.png"), phys_type="immovable", x = upblock_x, y=515)
-        upblock_x += 100
+        Sprite("Block", loader.load("box.png"), phys_type="immovable", x = block_x, y=ground_y - 60, layer = 26) 
+        Sprite("Block", loader.load("box.png"), phys_type="immovable", x = block_x + 50, y=ground_y - 135)
+        block_x += 100
+    
+    Sprite("Block", loader.load("box.png"), phys_type="immovable", x = block_x, y=ground_y - 60, layer = 26)    
 
-def level_generator():
-
-    b = 1
-    i = 0
-    grn_x = 0
-    obj_x = 0
-    upblck_x = 50
-    counter1 = 0
-    counter2 = 0
+def level_generator(start_x = 0, obj_quantity = 1, ground_y = 650):
+    
     loader = SpriteLoader()
-    obj_quantity = 10
-    case_quantity = 5
+    
+    try:
+        pattern = json.load(open("level_patterns.json", "r"))
+    except Exception as e:
+        pattern = []
+        print(e)
 
-    Player("Player", loader.load("tmp.png"), gravity=-1, x=100, layer=10, state_anim_directory="anakin")
-    Droid("Droid", loader.load("droid.png"), patrol_range=[1500, 2000], speed=1.3, state_anim_directory = "droid")
+    b = 0
+    i = 0
+    obj_x = 0
 
-    while b < case_quantity and counter1 < obj_quantity:
-        if b == 1:
-            obj_x += 1000
-            upblck_x += 1000
-            block_generator(obj_x, upblck_x, 3)
-            droid_generator(obj_x + 300, 2)
-            b += 1
-            counter1 += 1
-        elif b == 2:
-            obj_x += 1000
-            upblck_x += 1000
-            block_generator(obj_x, upblck_x, 5)
-            b += 1
-            counter1 += 1
-        elif b == 3:    
-            obj_x += 1000
-            upblck_x += 1000
-            block_generator(obj_x, upblck_x, 4)
-            droid_generator(obj_x + 300, 3)
-            b += 1
-            counter1 += 1
-        elif b == 4:  
-            obj_x += 1000
-            upblck_x += 1000
-            block_generator(obj_x, upblck_x, 5)
-            b = 1
-            counter1 += 1
+    while b < obj_quantity:
+        selected_sector = pattern[random.randint(0, len(pattern) - 1)]
+        obj_x += selected_sector["width"]
+        block_generator(obj_x, selected_sector["block_quantity"], ground_y)
+        droid_generator(obj_x + 300, selected_sector["droid_quantity"])
+        b += 1
 
-    while i < obj_quantity:
-        Sprite("Ground", loader.load("gnd.png"), phys_type="immovable", x=grn_x, y=650, layer=49)
-        grn_x += 2560
+    while i < math.ceil(obj_x/2560.0):
+        Sprite("Ground", loader.load("gnd.png"), phys_type="immovable", x=start_x, y=ground_y, layer=49)
+        start_x += 2560
         i += 1
 
-    while 1:
-        startTime = time()
-        chelone.advance_frame()
-        endTime = time()
-        elapsedTime = endTime - startTime
-        print(1./elapsedTime)
-
+    print(obj_x) 
+   
 if __name__ == '__main__':
     start_level()
