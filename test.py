@@ -1,6 +1,8 @@
 '''
     Basic test scene made using Chelone
 '''
+import random
+
 from time import time
 
 from Chelone import init, Sprite, SpriteLoader, check_keys
@@ -204,7 +206,7 @@ class Droid(Sprite):
 
     def handle_trigger(self, collided_obj, my_collider, other_collider):
 
-        if isinstance(collided_obj, Player):
+        if isinstance(collided_obj, Player) and not isinstance(collided_obj, Droid):
             if self.shooting_cooldown >= self.shooting_cooldown_limit:
                 self.shooting_cooldown = 0
                 if my_collider.id == "left_search":
@@ -248,25 +250,92 @@ def start_level(root = None):
         playsound = sound.playsound
         sound_finished = sound.sound_finished
 
+    level_generator()
 
+    # Player("Player", loader.load("tmp.png"), gravity=-1, x=100, layer=10, state_anim_directory="anakin")
+
+    # Droid("Droid", loader.load("droid.png"), patrol_range=[1500, 2000], speed=1.3, state_anim_directory = "droid")
+
+    # background_sound("background", loader.load("clear.png"), phys_type="inmovable", sound="sounds/imperial_march.wav")
+
+    # Sprite("Ground", loader.load("gnd.png"), phys_type="immovable", x=0, y=650, layer=49)
+
+    # Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1000, y=590)
+    # Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1100, y=590)
+    # Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1200, y=590)
+    # Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1300, y=590)
+    # Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1400, y=590)
+    # Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1200, y=525)
+    # Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1300, y=525)
+
+def droid_generator(droid_x, droid_quantity):
 
     loader = SpriteLoader()
 
-    Player("Player", loader.load("tmp.png"), gravity=-1, x=100, layer=10, state_anim_directory="anakin")
+    for i in range(1, droid_quantity):
+        Droid("Droid", loader.load("droid.png"), patrol_range=[droid_x - 100, droid_x], speed=1.3, state_anim_directory = "droid")
+        droid_x += 90
 
+
+def block_generator(block_x, upblock_x, block_quantity):
+
+    loader = SpriteLoader()
+    
+    for i in range(1, block_quantity):
+        Sprite("Block", loader.load("box.png"), phys_type="immovable", x = block_x, y=590)
+        block_x += 100
+    for i in range(1, block_quantity - 1):
+        Sprite("Block", loader.load("box.png"), phys_type="movable", x = upblock_x, y=515)
+        upblock_x += 100
+
+def level_generator():
+
+    b = 1
+    i = 0
+    grn_x = 0
+    obj_x = 0
+    upblck_x = 50
+    counter1 = 0
+    counter2 = 0
+    loader = SpriteLoader()
+    obj_quantity = 10
+    case_quantity = 5
+
+    Player("Player", loader.load("tmp.png"), gravity=-1, x=100, layer=10, state_anim_directory="anakin")
     Droid("Droid", loader.load("droid.png"), patrol_range=[1500, 2000], speed=1.3, state_anim_directory = "droid")
 
-    background_sound("background", loader.load("clear.png"), phys_type="inmovable", sound="sounds/imperial_march.wav")
+    while b < case_quantity and counter1 < obj_quantity:
+        if b == 1:
+            obj_x += 1000
+            upblck_x += 1000
+            block_generator(obj_x, upblck_x, 3)
+            droid_generator(obj_x + 300, 2)
+            b += 1
+            counter1 += 1
+        elif b == 2:
+            obj_x += 1000
+            upblck_x += 1000
+            block_generator(obj_x, upblck_x, 5)
+            b += 1
+            counter1 += 1
+        elif b == 3:    
+            obj_x += 1000
+            upblck_x += 1000
+            block_generator(obj_x, upblck_x, 4)
+            droid_generator(obj_x + 300, 3)
+            b += 1
+            counter1 += 1
+        elif b == 4:  
+            obj_x += 1000
+            upblck_x += 1000
+            block_generator(obj_x, upblck_x, 5)
+            b = 1
+            counter1 += 1
 
-    Sprite("Ground", loader.load("gnd.png"), phys_type="immovable", x=0, y=650, layer=49)
-
-    Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1000, y=590)
-    Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1100, y=590)
-    Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1200, y=590)
-    Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1300, y=590)
-    Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1400, y=590)
-    Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1200, y=525)
-    Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1300, y=525)
+    while i < obj_quantity:
+        Sprite("Ground", loader.load("gnd.png"), phys_type="immovable", x=grn_x, y=650, layer=49)
+        grn_x += 2560
+        i += 1
 
     while 1:
         startTime = time()
