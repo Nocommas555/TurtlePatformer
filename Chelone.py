@@ -25,6 +25,9 @@ def init(root = None):
     # Create the window with the Tk class
     if root is None:
         root = tk.Tk()
+    else:
+        for child in root.winfo_children():
+            child.destroy()
 
     if chelone is None:
         root.protocol("WM_DELETE_WINDOW", exit)
@@ -565,3 +568,4 @@ class SpriteRenderer():
                     x2 = collider.SW().x-self.camera.x
                     y2 = collider.SW().y-self.camera.y
                     self.screen.create_rectangle(x, y, x2, y2, fill=colors[color]['fill'], stipple="gray50", tag="hb")
+                    
