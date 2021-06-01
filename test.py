@@ -285,7 +285,7 @@ def block_generator(block_x, upblock_x, block_quantity):
         Sprite("Block", loader.load("box.png"), phys_type="immovable", x = block_x, y=590)
         block_x += 100
     for i in range(1, block_quantity - 1):
-        Sprite("Block", loader.load("box.png"), phys_type="movable", x = upblock_x, y=515)
+        Sprite("Block", loader.load("box.png"), phys_type="immovable", x = upblock_x, y=515)
         upblock_x += 100
 
 def level_generator():
