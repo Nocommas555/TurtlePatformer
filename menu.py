@@ -1,11 +1,12 @@
+''' Our main menu + settings menu '''
+
 import tkinter as tk
 import tkinter.font as tkfont
 import os
 import json
 from test import start_level
-from Chelone import SpriteLoader
-import time
-import math
+from time import time, sleep
+
 
 # set default settings
 user_settings = {
@@ -19,7 +20,7 @@ user_settings = {
 }
 
 # init globals
-time_elapsed = 0
+frames_lapsed = 0
 state = ""
 states_label = {
     "sound": False,
@@ -33,19 +34,21 @@ states_label = {
 my_objects = []
 drag_point = {}
 current_drag_sprite = None
+colors = {'dark_blue': '#002550'}
+picture_parent_directory = './menu_pics/'
+settings_file_name = 'settings.json'
+
+TARGET_FPS = 5
+frame_period = 1.0/TARGET_FPS
+now = time()
+next_frame_time = now + frame_period
 
 # declare classes
 class Sprite:
+    ''' Pictures on the main screen '''
     def __init__(
-        self,
-        ID="?",
-        x=0,
-        y=0,
-        width=0,
-        height=0,
-        anchor=tk.NW,
-        img_file=None,
-        parent_frame=None
+        self, ID="?",x=0, y=0, width=0, height=0,
+        anchor=tk.NW, img_file=None, parent_frame=None
     ):
         self.ID = ID
         self.x = x
@@ -64,9 +67,11 @@ class Sprite:
         self.last_movement_y = 0
 
     def on_click(self, offset_x, offset_y):
+        ''' Might be overriden '''
         pass
 
     def move(self, dx, dy):
+        ''' Moves sprite if needed '''
         self.parent_frame.move(self.instance, dx, dy)
         self.x += dx
         self.y += dy
@@ -74,6 +79,7 @@ class Sprite:
         self.last_movement_y = dy
 
 class DragableSprite(Sprite):
+    ''' Sprites which you can move with mouse '''
     def on_click(self, offset_x, offset_y):
         global current_drag_sprite
 
@@ -82,30 +88,34 @@ class DragableSprite(Sprite):
         current_drag_sprite = self
 
 class PlayButton(Sprite):
+    ''' Button that starts level '''
     def on_click(self, offset_x, offset_y):
         main_menu.pack_forget()
         start_level(root)
 
 class SettingsButton(Sprite):
+    ''' Button that sends you to settings menu '''
     def on_click(self, offset_x, offset_y):
         change_frame(main_menu, settings_frame)
 
 class ExitButton(Sprite):
+    ''' Button that exits program '''
     def on_click(self, offset_x, offset_y):
-        os._exit(0)
+        os._exit(0) # noqa , only way to kill child processes
+
 
 # set up screen
 root = tk.Tk()
 root.geometry("1600x800")
 
-main_menu = tk.Canvas(root, bg="#000000")
+main_menu = tk.Canvas(root, bg="black")
 main_menu.pack(fill=tk.BOTH, expand=1)
 
 settings_frame =\
-    tk.Frame(root, width = 1600, height = 800, bg = '#002550')
+    tk.Frame(root, width=1600, height=800, bg="black")
 
 b_background =\
-    tk.PhotoImage(file="./menu_pics/b_background.png")
+    tk.PhotoImage(file=picture_parent_directory+"b_background.png")
 b_background_instance =\
     main_menu.create_image(0, 0, image=b_background, anchor=tk.NW)
 b_background_instance_next =\
@@ -113,109 +123,106 @@ b_background_instance_next =\
 
 my_objects.append(
     DragableSprite(
-        ID="b_planet_r",
         x=80,
         y=500,
         width=65,
         height=97,
-        img_file="./menu_pics/b_planet_ring.png",
+        img_file=picture_parent_directory+"b_planet_ring.png",
         parent_frame=main_menu
     )
 )
 my_objects.append(
     DragableSprite(
-        ID="b_planet",
         x=1100,
         y=50,
         width=57,
         height=57,
-        img_file="./menu_pics/b_planet.png",
+        img_file=picture_parent_directory+"b_planet.png",
         parent_frame=main_menu
     )
 )
 my_objects.append(
     DragableSprite(
-        ID="b_death_star",
         x=1400,
         y=480,
         width=176,
         height=176,
-        img_file="./menu_pics/b_death_star.png",
+        img_file=picture_parent_directory+"b_death_star.png",
         parent_frame=main_menu
     )
 )
 my_objects.append(
     Sprite(
-        ID="f_title",
         x=10,
         y=230,
-        img_file="./menu_pics/1_title_image.png",
+        img_file=picture_parent_directory+"1_title_image.png",
         parent_frame=main_menu
     )
 )
 my_objects.append(
     PlayButton(
-        ID="m_play",
         x=684,
         y=480,
         width=228,
         height=100,
-        img_file="./menu_pics/m_play.png",
+        img_file=picture_parent_directory+"m_play.png",
         parent_frame=main_menu
     )
 )
 my_objects.append(
     SettingsButton(
-        ID="m_settings",
         x=715,
         y=600,
         width=169,
         height=50,
-        img_file="./menu_pics/m_settings.png",
+        img_file=picture_parent_directory+"m_settings.png",
         parent_frame=main_menu
     )
 )
 my_objects.append(
     ExitButton(
-        ID="m_exit",
         x=750,
         y=680,
         width=100,
         height=50,
-        img_file="./menu_pics/m_exit.png",
+        img_file=picture_parent_directory+"m_exit.png",
         parent_frame=main_menu
     )
 )
 
 my_objects.reverse()
 
-regular_font = tkfont.Font(family = 'Noto Sans Display', size = 16)
+regular_font = tkfont.Font(family='Noto Sans Display', size=16)
 
 
 # main functional
 def load_settings():
+    ''' Loads settings '''
     global user_settings
 
-    open("settings.json", "a+")
+    open(settings_file_name, "a+")
     try:
-        user_settings = json.load(open("settings.json"))
-    except Exception as e:
+        user_settings = json.load(open(settings_file_name))
+    except Exception:
         pass
 
 def save_settings():
+    ''' Saves settings '''
     global user_settings
 
     # create file if not found
-    open("settings.json", "a+")
-    json.dump(user_settings, open("settings.json", "w"))
+    open(settings_file_name, "a+")
+    json.dump(user_settings, open(settings_file_name, "w"))
 
 
 def change_frame(this_frame, next_frame):
+    ''' Changes frame '''
     this_frame.pack_forget()
     next_frame.pack(fill=tk.BOTH, expand=1)
     root.update()
 
 def press_button_main_menu(event):
+    ''' Detects if user clicked on sprite in main menu '''
     global my_objects
 
     for obj in my_objects:
@@ -225,6 +232,8 @@ def press_button_main_menu(event):
             obj.on_click(obj.x - event.x,obj.y - event.y)
 
 def drag_sprite(event):
+    ''' Moves movable sprite
+        while mouse clicked and moving '''
     global my_objects
 
     for obj in my_objects:
@@ -237,11 +246,15 @@ def drag_sprite(event):
                 print(obj.last_movement_x, obj.last_movement_y)
 
 def release_sprite(event):
+    ''' Stops cyurrent movable sprite from moving
+        when unclicked'''
     global current_drag_sprite
 
     current_drag_sprite = None
 
 def flip_sound_setting():
+    ''' Turns sound off if it`s turned on,
+        and turns sound on if it`s turned off '''
     global user_settings
 
     user_settings["sound"] = not user_settings["sound"]
@@ -250,36 +263,37 @@ def flip_sound_setting():
         master=settings_frame,
         text='ON',
         font=regular_font,
-        fg='#111111',
-        bg='#238823'
+        fg='black',
+        bg='green'
     )
     off_label = tk.Label(
-        master = settings_frame,
-        text = 'OFF',
-        font = regular_font,
-        fg='#111111',
-        bg = '#D2222D'
+        master=settings_frame,
+        text='OFF',
+        font=regular_font,
+        fg='black',
+        bg='red'
     )
 
-    if (user_settings["sound"]):
+    if user_settings["sound"]:
         sound_label = on_label
     else:
         sound_label = off_label
 
     sound_label.place(
-        relx = 0.544,
-        rely = 0.13,
-        width = 50,
-        height = 50
+        relx=0.544,
+        rely=0.13,
+        width=50,
+        height=50
     )
 
     save_settings()
 
 def on_key_press(event):
+    ''' Reasignes control key of a selected action '''
     global state, states_label
 
-    if (state != ""):
-        states_label[state].configure(text = event.keysym)
+    if state != "":
+        states_label[state].configure(text=event.keysym)
         user_settings[state] = event.keysym
         state = ""
         save_settings()
@@ -287,6 +301,7 @@ def on_key_press(event):
         return
 
 def change_state_to(state_parameter):
+    ''' Detects which action is changes control key '''
     global state
 
     state = state_parameter
@@ -295,7 +310,7 @@ def add_button_with_label(
     master=settings_frame,
     text="?",
     font=regular_font,
-    foreground="#000000",
+    foreground="blue",
     command=None,
     relx=0.5,
     rely=0.5,
@@ -306,6 +321,7 @@ def add_button_with_label(
     anchor=tk.CENTER,
     ID="unnamed"
 ):
+    ''' Adds button and it`s corresponding label '''
     tk.Button(
         master=master,
         text=text,
@@ -333,15 +349,30 @@ def add_button_with_label(
         anchor=anchor
     )
 
-def animate_background():
-    global b_background_instance, b_background_instance_next, time_elapsed
+def restart_fps_timer():
+    ''' Resets the variables associated with fps waiting '''
+    global frame_period, TARGET_FPS, now, next_frame_time
 
-    time.sleep(0.001)
-    time_elapsed += 1
-    if time_elapsed % 10 == 0:
-        main_menu.move(b_background_instance, -1, 0)
-        main_menu.move(b_background_instance_next, -1, 0)
-    if time_elapsed >= 13000:
+    frame_period = 1.0/TARGET_FPS
+    now = time()
+    next_frame_time = now + frame_period
+
+def animate_background():
+    ''' Animates stars and palnets on the background '''
+    global b_background_instance, b_background_instance_next,\
+        frames_lapsed, frame_period, TARGET_FPS, now, next_frame_time
+
+
+    while now < next_frame_time:
+        sleep(next_frame_time - now)
+        now = time()
+
+    frames_lapsed += 1
+
+    main_menu.move(b_background_instance, -1, 0)
+    main_menu.move(b_background_instance_next, -1, 0)
+
+    if frames_lapsed >= 1300:
         # kinda reset
         main_menu.delete(b_background_instance)
         b_background_instance = b_background_instance_next
@@ -352,21 +383,24 @@ def animate_background():
             anchor=tk.NW
         )
         main_menu.lower(b_background_instance_next)
-        time_elapsed = 0
+        frames_lapsed = 0
     for obj in my_objects:
         if obj is not current_drag_sprite:
-            obj.last_movement_x
-            obj.last_movement_y
             obj.move(obj.last_movement_x, obj.last_movement_y)
     root.update()
+
+# make some preparations
+load_settings()
+flip_sound_setting()
+flip_sound_setting()
 
 # set up settings UI
 tk.Button(
     master=settings_frame,
     text='Sound',
     font=regular_font,
-    fg="#000000",
-    command=lambda:flip_sound_setting()
+    fg="blue",
+    command=flip_sound_setting()
 ).place(
     relx=0.382,
     rely=0.13,
@@ -377,7 +411,7 @@ tk.Button(
     master=settings_frame,
     text='Return to main menu',
     font=regular_font,
-    fg="#000000",
+    fg="blue",
     command=lambda:change_frame(settings_frame, main_menu)
 ).place(
     relx=0.382,
@@ -427,12 +461,6 @@ add_button_with_label(
     rely=0.62,
     ID="atack"
 )
-
-
-# make some preparations
-load_settings()
-flip_sound_setting()
-flip_sound_setting()
 
 
 root.bind("<Key>", on_key_press)
