@@ -272,7 +272,8 @@ def _remove_phys_obj():
 
 def remove_phys_obj(phys_obj):
     '''shedules the deletion of passed obj on the next frame'''
-    _removing.append(phys_obj)
+    if phys_obj not in _removing:
+        _removing.append(phys_obj)
 
 
 def reset_phys_sim():
