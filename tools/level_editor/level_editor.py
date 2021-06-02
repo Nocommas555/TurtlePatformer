@@ -37,7 +37,7 @@ def load_sprites(path="../../sprites"):
 
     try:
         img_descr_data = json.load(open(path+"/"+"img_descr.json", "r"))
-    except Exception:
+    except:
         img_descr_data = {}
 
     for filename in list(sprite_names):
@@ -69,7 +69,7 @@ def get_additional_settings():
 
     try:
         return json.loads(entry_widget.get())
-    except Exception:
+    except:
         return {}
 
 
@@ -144,7 +144,7 @@ def on_mouse_move(event):
         anchor=tk.NW
     )
 
-def undo(event):
+def undo(event): # noqa , parameter event needed for callback signature
     ''' Called on right mouse click,
         undoes last change'''
     global changes, level_data

@@ -37,6 +37,59 @@ def write_bytes_from_int(pos, num_of_bytes, int_data, destination):
         int(int_data).to_bytes(num_of_bytes, byteorder='little')
     )
 
+
+def calculate_pixel_colors_bilinear(
+        org_row,
+        org_col,
+        delta_row,
+        delta_column,
+        pixel_matrix
+    ):
+    ''' Function used to calculate pixel`s
+        color values based on it`s position
+        in the resulting matrix '''
+
+    resulting_pixel = []
+
+    for rgb in range(3):
+        # calculate every color value accordingly
+        # to original pixel neighbors bilineary
+
+        last_row_cond = org_row == (len(pixel_matrix) - 1)
+        last_column_cond = org_col == (len(pixel_matrix[-1]) - 1)
+
+        if not last_row_cond and not last_column_cond:
+            value = int(
+                pixel_matrix[org_row+1][org_col+1][rgb]
+                * (delta_row)*(delta_column)
+                + pixel_matrix[org_row][org_col+1][rgb]
+                * (1-delta_row)*(delta_column)
+                + pixel_matrix[org_row+1][org_col][rgb]
+                * (delta_row)*(1-delta_column)
+                + pixel_matrix[org_row][org_col][rgb]
+                * (1-delta_row)*(1-delta_column)
+            )
+        # we have no sample pixels to the right
+        elif not last_row_cond:
+            value = int(
+                pixel_matrix[org_row+1][org_col][rgb]*(delta_row)
+                + pixel_matrix[org_row][org_col][rgb]*(1-delta_row)
+            )
+        # we have no sample pixels above
+        elif not last_column_cond:
+            value = int(
+                pixel_matrix[org_row][org_col+1][rgb]*(delta_column)
+                + pixel_matrix[org_row][org_col][rgb]*(1-delta_column)
+            )
+        # we have no sample pixels literally anywhere
+        else:
+            value = pixel_matrix[org_row][org_col][rgb]
+
+        resulting_pixel.append(value)
+
+    return resulting_pixel
+
+
 # define class...
 class Bmp:
     ''' Class with main info about given bmp picture
@@ -75,6 +128,21 @@ class Bmp:
 
         return result
 
+    def update_header(
+        self,
+        new_width,
+        new_height,
+        new_pixel_matrix
+    ):
+        ''' Updates some Bmp object`s fields
+            to actual values '''
+
+        self.file_size = self.file_size\
+            + 3*(new_width*new_height-self.width*self.height)
+        self.width = new_width
+        self.height = new_height
+        self.matrix = new_pixel_matrix
+
     def size_down_matrix_pixelized(self, coef):
         ''' Sizes down pixel matrix,
             by leaving every coeficiental row,
@@ -85,20 +153,17 @@ class Bmp:
 
         resized_result = []
         for i in range(self.height):
-            # one of every coef rows
             if i % coef == 0:
                 resized_result.append([])
                 for j in range(self.width):
-                    # one of every coef elements in the row
                     if j % coef == 0:
-                        # add found pixel to the output
                         resized_result[-1].append(self.matrix[i][j])
 
-        self.file_size = self.file_size\
-            + 3*(len(resized_result[-1])*len(resized_result)- self.width*self.height)*(1/coef**2 - 1)
-        self.width = len(resized_result[-1])
-        self.height = len(resized_result)
-        self.matrix = resized_result
+        self.update_header(
+            new_width=len(resized_result[-1]),
+            new_height=len(resized_result),
+            new_pixel_matrix=resized_result
+        )
 
     def size_up_matrix_pixelized(self, coef):
         ''' Sizing up pixel matrix
@@ -117,73 +182,41 @@ class Bmp:
                         # copy pixel from original image
                         resized_result[-1].append(self.matrix[i][j])
 
-        self.file_size = self.file_size\
-            + 3*(self.width*self.height)*(coef**2 - 1)
-        self.width = int(self.width * coef)
-        self.height = int(self.height * coef)
-        self.matrix = resized_result
+        self.update_header(
+            new_width=self.width*coef,
+            new_height=self.height*coef,
+            new_pixel_matrix=resized_result
+        )
 
     def size_up_matrix_bilinear(self, coef):
         ''' Sizing up pixel matrix by
-            assuming missing pixels` BRG values,
+            assuming missing pixels` BGR values,
             based on current pixel`s neighbors
             (bilinear method) '''
 
         resized_result = []
-
         for i in range(self.height):
-            # additional row number
-            for rn in range(coef):
-                # add new void row
+            # arn stands for Additional Row Number
+            for arn in range(coef):
                 resized_result.append([])
                 for j in range(self.width):
-                    # additional column number
-                    for cn in range(coef):
-                        # add new void pixel
-                        resized_result[-1].append([])
-                        for rgb in range(3):
-                            # calculate every color value accordingly
-                            # to original pixel neighbors bilineary
-                            last_row = i == (self.height - 1)
-                            last_column = j == (self.width - 1)
+                    # acn stands for Additional Column Number
+                    for acn in range(coef):
+                        resized_result[-1].append(
+                            calculate_pixel_colors_bilinear(
+                                org_row=i,
+                                org_col=j,
+                                delta_row=arn/coef,
+                                delta_column=acn/coef,
+                                pixel_matrix=self.matrix
+                            )
+                        )
 
-                            row_color_proportion = rn/coef
-                            col_color_proportion= cn/coef
-
-                            if not last_row and not last_column:
-                                value = int(
-                                    self.matrix[i+1][j+1][rgb]
-                                    * (row_color_proportion)*(col_color_proportion)
-                                    + self.matrix[i][j+1][rgb]
-                                    * (1-row_color_proportion)*(col_color_proportion)
-                                    + self.matrix[i+1][j][rgb]
-                                    * (row_color_proportion)*(1-col_color_proportion)
-                                    + self.matrix[i][j][rgb]
-                                    * (1-row_color_proportion)*(1-col_color_proportion)
-                                )
-                            # we have no sample pixels to the right
-                            elif not last_row:
-                                value = int(
-                                    self.matrix[i+1][j][rgb]*(row_color_proportion)
-                                    + self.matrix[i][j][rgb]*(1-row_color_proportion)
-                                )
-                            # we have no sample pixels above
-                            elif not last_column:
-                                value = int(
-                                    self.matrix[i][j+1][rgb]*(col_color_proportion)
-                                    + self.matrix[i][j][rgb]*(1-col_color_proportion)
-                                )
-                            # we have no sample pixels literally anywhere
-                            else:
-                                value = self.matrix[i][j][rgb]
-
-                            # append calculated color to the last pixel
-                            resized_result[-1][-1].append(value)
-        self.file_size = self.file_size\
-            + 3*(self.width*self.height)*(coef**2 - 1)
-        self.width = int(self.width * coef)
-        self.height = int(self.height * coef)
-        self.matrix = resized_result
+        self.update_header(
+            new_width=self.width*coef,
+            new_height=self.height*coef,
+            new_pixel_matrix=resized_result
+        )
 
     def print_info(self):
         ''' Prints headers into console '''
@@ -289,6 +322,7 @@ def resize_image(
         picture.write_to_file(
             resulting_file
         )
+
 
         print("\nResulting image:")
         Bmp(resulting_file).print_info()
