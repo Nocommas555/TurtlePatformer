@@ -289,20 +289,10 @@ def resize_image(
         picture.write_to_file(
             resulting_file
         )
-        '''write_header(
-            source=file_bmp,
-            destination=resulting_file,
-            new_width=len(resized_result[0]),
-            new_height=len(resized_result)
-        )
-        write_picture_data(
-            pic_matrix=resized_result,
-            destination=resulting_file
-        )'''
 
         print("\nResulting image:")
         Bmp(resulting_file).print_info()
 
 # execution
-with open("./bigboi.bmp", "rb+") as input_image_file:
-    resize_image(input_image_file, 0.5, "bilinear")
+with open("./test.bmp", "rb+") as input_image_file:
+    resize_image(input_image_file, 2, "bilinear")
