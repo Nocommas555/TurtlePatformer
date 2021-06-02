@@ -34,7 +34,7 @@ def init(root = None):
         root.bind("<Key>", on_key_press)
         root.bind("<KeyRelease>", on_key_release)
         root.bind("<FocusOut>", FocusOut)
-
+                
         # Create the canvas and make it visible with pack()
         canvas = tk.Canvas(root, width=resolution_x, height=resolution_y)
         canvas.pack()
@@ -449,6 +449,7 @@ class SpriteRenderer():
 
     def advance_frame(self):
         '''advance the render, sprite updates and the phys simulation'''
+        self.now = time()
         while self.now < self.next_frame:
             sleep(self.next_frame - self.now)
             self.now = time()
@@ -563,9 +564,9 @@ class SpriteRenderer():
                     else:
                         color = "black"
 
-                    x = collider.NE().x-self.camera.x
-                    y = collider.NE().y-self.camera.y
-                    x2 = collider.SW().x-self.camera.x
-                    y2 = collider.SW().y-self.camera.y
+                    x = collider.NW().x-self.camera.x
+                    y = collider.NW().y-self.camera.y
+                    x2 = collider.SE().x-self.camera.x
+                    y2 = collider.SE().y-self.camera.y
                     self.screen.create_rectangle(x, y, x2, y2, fill=colors[color]['fill'], stipple="gray50", tag="hb")
-                    
+ 
