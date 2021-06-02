@@ -143,7 +143,7 @@ class Bmp:
         self.height = new_height
         self.matrix = new_pixel_matrix
 
-    def size_down_matrix_pixelized(self, coef):
+    def size_down_matrix_simple(self, coef):
         ''' Sizes down pixel matrix,
             by leaving every coeficiental row,
             and every coeficiental element,
@@ -165,7 +165,7 @@ class Bmp:
             new_pixel_matrix=resized_result
         )
 
-    def size_up_matrix_pixelized(self, coef):
+    def size_up_matrix_simple(self, coef):
         ''' Sizing up pixel matrix
             by sizing up every single pixel in it
             (nearest neighbor method) '''
@@ -311,10 +311,11 @@ def resize_image(
         if method == "bilinear":
             picture.size_up_matrix_bilinear(coef)
         else:
-            picture.size_up_matrix_pixelized(coef)
+            picture.size_up_matrix_simple(coef)
     elif coef > 0:
-        picture.size_down_matrix_pixelized(round(1/coef))
+        picture.size_down_matrix_simple(round(1/coef))
     else:
+        print("Invalid scale factor")
         return
 
 
@@ -329,4 +330,4 @@ def resize_image(
 
 # execution
 with open("./test.bmp", "rb+") as input_image_file:
-    resize_image(input_image_file, 2, "bilinear")
+    resize_image(input_image_file, 0.2)
