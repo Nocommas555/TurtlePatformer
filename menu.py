@@ -365,7 +365,7 @@ def animate_background():
     global b_background_instance, b_background_instance_next,\
         frames_lapsed, frame_period, TARGET_FPS, now, next_frame_time
 
-
+    now = time()
     while now < next_frame_time:
         sleep(next_frame_time - now)
         now = time()
@@ -405,7 +405,7 @@ tk.Button(
     text='Sound',
     font=regular_font,
     fg="blue",
-    command=flip_sound_setting()
+    command=flip_sound_setting
 ).place(
     relx=0.382,
     rely=0.13,
@@ -480,5 +480,3 @@ while game_not_started:
     endTime = time()
     elapsedTime = endTime - startTime
     print(1./elapsedTime)
-
-
