@@ -34,7 +34,6 @@ states_label = {
 my_objects = []
 drag_point = {}
 current_drag_sprite = None
-colors = {'dark_blue': '#002550'}
 picture_parent_directory = './menu_pics/'
 settings_file_name = 'settings.json'
 
@@ -68,7 +67,7 @@ class Sprite:
 
     def on_click(self, offset_x, offset_y):
         ''' Might be overriden '''
-        pass
+        pass # noqa , function meant to be extended
 
     def move(self, dx, dy):
         ''' Moves sprite if needed '''
@@ -203,7 +202,7 @@ def load_settings():
     open(settings_file_name, "a+")
     try:
         user_settings = json.load(open(settings_file_name))
-    except Exception:
+    except:
         pass
 
 def save_settings():
@@ -245,7 +244,7 @@ def drag_sprite(event):
                 )
                 print(obj.last_movement_x, obj.last_movement_y)
 
-def release_sprite(event):
+def release_sprite(event): # noqa , parameter event needed for callback signature
     ''' Stops cyurrent movable sprite from moving
         when unclicked'''
     global current_drag_sprite

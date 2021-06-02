@@ -58,10 +58,12 @@ def save_to_file(filename="level.json"):
     global level_data
 
     open(filename, "a+")
-    level_file = open(filename, "w+")
-    json.dump(level_data, level_file)
+    with open(filename, "w+") as level_file:
+        json.dump(level_data, level_file)
 
 def get_additional_settings():
+    ''' Gets string which user inputs
+        into a special field (entry_widget) '''
 
     global entry_widget
 
