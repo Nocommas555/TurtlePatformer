@@ -36,8 +36,9 @@ drag_point = {}
 current_drag_sprite = None
 picture_parent_directory = './menu_pics/'
 settings_file_name = 'settings.json'
+game_not_started = True
 
-TARGET_FPS = 5
+TARGET_FPS = 30
 frame_period = 1.0/TARGET_FPS
 now = time()
 next_frame_time = now + frame_period
@@ -89,8 +90,11 @@ class DragableSprite(Sprite):
 class PlayButton(Sprite):
     ''' Button that starts level '''
     def on_click(self, offset_x, offset_y):
+        global game_not_started
         main_menu.pack_forget()
+        game_not_started = False
         start_level(root)
+
 
 class SettingsButton(Sprite):
     ''' Button that sends you to settings menu '''
@@ -366,6 +370,8 @@ def animate_background():
         sleep(next_frame_time - now)
         now = time()
 
+    next_frame_time = now+frame_period
+
     frames_lapsed += 1
 
     main_menu.move(b_background_instance, -1, 0)
@@ -468,5 +474,11 @@ main_menu.bind("<B1-Motion>", drag_sprite)
 main_menu.bind("<B1-ButtonRelease>", release_sprite)
 
 
-while 1:
+while game_not_started:
+    startTime = time()
     animate_background()
+    endTime = time()
+    elapsedTime = endTime - startTime
+    print(1./elapsedTime)
+
+

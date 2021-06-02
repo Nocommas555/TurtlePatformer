@@ -1,6 +1,11 @@
 '''
     Basic test scene made using Chelone
 '''
+import random
+import math
+import json
+import tkinter as tk
+
 from time import time
 
 from Chelone import init, Sprite, SpriteLoader, check_keys
@@ -204,7 +209,7 @@ class Droid(Sprite):
 
     def handle_trigger(self, collided_obj, my_collider, other_collider):
 
-        if isinstance(collided_obj, Player):
+        if isinstance(collided_obj, Player) and not isinstance(collided_obj, Droid):
             if self.shooting_cooldown >= self.shooting_cooldown_limit:
                 self.shooting_cooldown = 0
                 if my_collider.id == "left_search":
@@ -235,6 +240,54 @@ class background_sound(Sprite):
         if sound_finished(self.playing_sound):
             self.playing_sound = playsound(self.sound)
 
+def droid_generator(droid_x, droid_quantity):
+    '''generates multiple droids'''
+    loader = SpriteLoader()
+
+    for i in range(1, droid_quantity):
+        patrol_range = [droid_x + 100, droid_x + 200]
+        Droid("Droid", loader.load("droid.png"), patrol_range=patrol_range, speed=1.3, state_anim_directory = "droid")
+        droid_x += 90
+
+
+def block_generator(block_x, block_quantity, ground_y):
+    '''generates a block pile'''
+    loader = SpriteLoader()
+
+    for i in range(1, block_quantity - 1):
+        Sprite("Block", loader.load("box.png"), phys_type="immovable", x = block_x, y=ground_y - 60, layer = 26)
+        Sprite("Block", loader.load("box.png"), phys_type="immovable", x = block_x + 50, y=ground_y - 135)
+        block_x += 100
+
+    Sprite("Block", loader.load("box.png"), phys_type="immovable", x = block_x, y=ground_y - 60, layer = 26)
+
+def level_generator(start_x = 0, obj_quantity = 1, ground_y = 650):
+    '''generating simple levels from patterns found in level_patterns.json'''
+    loader = SpriteLoader()
+
+    try:
+        pattern = json.load(open("level_patterns.json", "r"))
+    except Exception as e:
+        pattern = []
+        print(e)
+
+    b = 0
+    i = 0
+    obj_x = 0
+
+    while b < obj_quantity:
+        selected_sector = pattern[random.randint(0, len(pattern) - 1)]
+        obj_x += selected_sector["width"]
+        block_generator(obj_x, selected_sector["block_quantity"], ground_y)
+        droid_generator(obj_x + 300, selected_sector["droid_quantity"])
+        b += 1
+
+    while i < math.ceil(obj_x/2560.0):
+        Sprite("Ground", loader.load("gnd.png"), phys_type="immovable", x=start_x, y=ground_y, layer=49)
+        start_x += 2560
+        i += 1
+
+
 
 def start_level(root = None):
     '''main function for loading the level'''
@@ -243,30 +296,22 @@ def start_level(root = None):
     # setting up global objects for rendering and loading, respectively
     chelone = init(root)
 
+    loader = SpriteLoader()
+
+    Player("Player", loader.load("tmp.png"), gravity=-1, x=100, layer=10, state_anim_directory="anakin")
+
     if chelone.settings["sound"]:
         import sound
         playsound = sound.playsound
         sound_finished = sound.sound_finished
 
-
-
-    loader = SpriteLoader()
-
-    Player("Player", loader.load("tmp.png"), gravity=-1, x=100, layer=10, state_anim_directory="anakin")
-
-    Droid("Droid", loader.load("droid.png"), patrol_range=[1500, 2000], speed=1.3, state_anim_directory = "droid")
+    level_generator(obj_quantity = 5)
 
     background_sound("background", loader.load("clear.png"), phys_type="inmovable", sound="sounds/imperial_march.wav")
 
-    Sprite("Ground", loader.load("gnd.png"), phys_type="immovable", x=0, y=650, layer=49)
-
-    Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1000, y=590)
-    Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1100, y=590)
-    Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1200, y=590)
-    Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1300, y=590)
-    Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1400, y=590)
-    Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1200, y=525)
-    Sprite("Block", loader.load("box.png"), phys_type="immovable", x=1300, y=525)
+    fps_tracker = tk.Label(root, text = 'fps')
+    fps_tracker.config(font=("sans-serif", 44))
+    fps_tracker.place(relx=0, rely=0, anchor=tk.NW)
 
     while 1:
         startTime = time()
@@ -274,6 +319,9 @@ def start_level(root = None):
         endTime = time()
         elapsedTime = endTime - startTime
         print(1./elapsedTime)
+        fps_tracker.config(text = str(int(1./elapsedTime)))
+
+
 
 if __name__ == '__main__':
     start_level()
