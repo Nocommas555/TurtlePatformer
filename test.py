@@ -107,10 +107,12 @@ class Player(Sprite):
 
         return ret
 
-    def handle_collision(self, collided_obj, my_collider, other_collider, handled=False):
+    def handle_collision(self, collided_obj, my_collider, other_collider, handled=False, displacement = None):
         '''check if we ever intersect ground to be able to jump'''
-        displacement = get_collision_displacement(my_collider, other_collider)
-        super().handle_collision(collided_obj, my_collider, other_collider, handled)
+        if displacement is None:
+            displacement = get_collision_displacement(my_collider, other_collider)
+
+        super().handle_collision(collided_obj, my_collider, other_collider, handled, displacement)
 
         if displacement[1] < 0 and self.vel.y >= 0:
             if my_collider.type != "trigger" and other_collider.type != "trigger":
@@ -298,14 +300,14 @@ def start_level(root = None):
 
     loader = SpriteLoader()
 
-    Player("Player", loader.load("tmp.png"), gravity=-1, x=100, layer=10, state_anim_directory="anakin")
+    Player("Player", loader.load("tmp.png"), gravity=-1, x=400, y=500, layer=10, state_anim_directory="anakin")
 
     if chelone.settings["sound"]:
         import sound
         playsound = sound.playsound
         sound_finished = sound.sound_finished
 
-    level_generator(obj_quantity=5)
+    level_generator(obj_quantity=13)
 
     background_sound("background", loader.load("clear.png"), phys_type="inmovable", sound="sounds/imperial_march.wav")
 
@@ -318,7 +320,7 @@ def start_level(root = None):
         chelone.advance_frame()
         endTime = time()
         elapsedTime = endTime - startTime
-        print(1./elapsedTime)
+        #print(1./elapsedTime)
         fps_tracker.config(text = str(int(1./elapsedTime)))
 
 

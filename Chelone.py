@@ -459,9 +459,6 @@ class SpriteRenderer():
                 sprite.update_all()
 
 
-        advance_phys_simulation()
-
-
         if self.DEBUG:
             self.check_debug_keys()
             if "hitbox_draw" in self.debug_flags:
@@ -474,6 +471,7 @@ class SpriteRenderer():
         self.next_frame += self.frame_period
 
         check_keys()
+        advance_phys_simulation()
 
     def get_unique_id(self, id: str):
         '''returns an unique id'''
