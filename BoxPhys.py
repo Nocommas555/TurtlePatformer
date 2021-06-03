@@ -7,7 +7,9 @@ colliders = []
 _removing = []
 
 # depth of area on the edges the box collier in which the objects are displaced
-COLLIDER_ACTIVE_BOUNDARY = 100
+COLLIDER_ACTIVE_BOUNDARY = 300
+SIMILATION_RADIUS = 3000
+
 
 class Point():
     '''dataclass representing a point'''
@@ -39,7 +41,9 @@ class PhysicsObject():
     def __init__(self, type: str = "default", col: dict = None,
                  x: float = 0, y: float = 0,
                  vel: list = None,
-                 gravity: float = -0.3, friction: float = 0.1):
+                 gravity: float = -0.3, friction: float = 0.1, 
+                 active: bool = True):
+
         global physics_objects
 
         if type not in ["default", "immovable"]:
@@ -61,16 +65,15 @@ class PhysicsObject():
         self.vel = vel
         self.gravity = gravity
         self.friction = friction
+        self.active = active
 
         physics_objects.append(self)
 
     def advance_simulation(self):
         '''advances the phys simulation for this object'''
-
-        if self.type != "immovable":
+        if self.type != "immovable" and self.active:
             self.vel.y -= self.gravity
             self.move(self.vel.x, self.vel.y)
-
 
     def move(self, x: int, y: int):
         '''moves the object by a set amount of pixels'''
@@ -238,15 +241,25 @@ def _colliders_intersect(A: Collider, B: Collider):
             or A_SW.y <= B_NE.y
             or A_NE.y >= B_SW.y)
 
+def _handle_single_obj_collision(obj: Collider, arr: list):
+    after_us = False
+    for obj2 in arr:
+
+        if after_us:
+            if _colliders_intersect(obj, obj2):
+                obj.parent.handle_collision(obj2.parent, obj, obj2, True)
+                obj2.parent.handle_collision(obj.parent, obj2, obj, False)
+        else:
+            after_us = obj2 is obj
+
 def _handle_all_collisions(arr: list):
     '''looks at all box colliders, calls their parents to resolve any intersections'''
     # compare every element in rect list to every next element
     # which gives us total of (n-1)^2 / 2 number of comparisons
-    for i, obj in enumerate(arr):
-        for obj2 in arr[:i+1]:
-            if _colliders_intersect(obj, obj2):
-                obj.parent.handle_collision(obj2.parent, obj, obj2, True)
-                obj2.parent.handle_collision(obj.parent, obj2, obj, False)
+    for obj in arr:
+        if obj.parent.active:
+            _handle_single_obj_collision(obj, arr)
+
 
 
 def advance_phys_simulation():
