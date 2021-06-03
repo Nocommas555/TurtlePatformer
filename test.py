@@ -244,6 +244,10 @@ class background_sound(Sprite):
         if sound_finished(self.playing_sound):
             self.playing_sound = playsound(self.sound)
 
+    def update_active(self):
+        '''stop this class from unloading'''
+        pass
+
 def droid_generator(droid_x, droid_quantity):
     '''generates multiple droids'''
     loader = SpriteLoader()
