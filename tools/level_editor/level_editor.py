@@ -1,5 +1,6 @@
 ''' Tool, used to create levels
-    from pre-made sprites, building blocks in this context'''
+    from pre-made sprites: building blocks in this context'''
+
 import json
 import os
 import tkinter as tk
@@ -17,14 +18,15 @@ camera_offset_x = 0
 camera_offset_y = 0
 drag_point = {}
 movable_state = False
+window_size = "1600x800"
 
 
 # set up screen
 root = tk.Tk()
-root.geometry("1600x800")
+root.geometry(window_size)
 
-canvas = tk.Canvas(root, bg="#696969")
-canvas.pack(side=tk.LEFT,  fill=tk.BOTH, expand=1)
+canvas = tk.Canvas(root, bg="grey")
+canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
 
 
 # main functional
@@ -64,7 +66,6 @@ def save_to_file(filename="level.json"):
 def get_additional_settings():
     ''' Gets string which user inputs
         into a special field (entry_widget) '''
-
     global entry_widget
 
     try:
@@ -114,10 +115,7 @@ def on_mouse_click(event):
             anchor=tk.NW
         )
     )
-    if movable_state:
-        phys_type = "movable"
-    else:
-        phys_type = "immovable"
+    phys_type = "movable" if movable_state else "immovable"
     level_data.append({
         "x": event.x - camera_offset_x,
         "y": event.y - camera_offset_y,
@@ -165,7 +163,7 @@ def update_selection(event):
 
 def change_phys_state():
     ''' Is our building block movable or static?
-        Anyway, we`ve changed it`s state to opposite'''
+        This function changes it`s state to opposite'''
     global movable_state
 
     movable_state = not movable_state

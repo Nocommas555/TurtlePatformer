@@ -40,7 +40,7 @@ def write_bytes_from_int(pos, num_of_bytes, int_data, destination):
 
 def calculate_pixel_colors_bilinear(
         org_row,
-        org_col,
+        org_column,
         delta_row,
         delta_column,
         pixel_matrix
@@ -53,44 +53,43 @@ def calculate_pixel_colors_bilinear(
 
     for rgb in range(3):
         # calculate every color value accordingly
-        # to original pixel neighbors bilineary
+        # to original pixel`s neighbors
 
         last_row_cond = org_row == (len(pixel_matrix) - 1)
-        last_column_cond = org_col == (len(pixel_matrix[-1]) - 1)
+        last_column_cond = org_column == (len(pixel_matrix[-1]) - 1)
 
         if not last_row_cond and not last_column_cond:
             value = int(
-                pixel_matrix[org_row+1][org_col+1][rgb]
+                pixel_matrix[org_row+1][org_column+1][rgb]
                 * (delta_row)*(delta_column)
-                + pixel_matrix[org_row][org_col+1][rgb]
+                + pixel_matrix[org_row][org_column+1][rgb]
                 * (1-delta_row)*(delta_column)
-                + pixel_matrix[org_row+1][org_col][rgb]
+                + pixel_matrix[org_row+1][org_column][rgb]
                 * (delta_row)*(1-delta_column)
-                + pixel_matrix[org_row][org_col][rgb]
+                + pixel_matrix[org_row][org_column][rgb]
                 * (1-delta_row)*(1-delta_column)
             )
         # we have no sample pixels to the right
         elif not last_row_cond:
             value = int(
-                pixel_matrix[org_row+1][org_col][rgb]*(delta_row)
-                + pixel_matrix[org_row][org_col][rgb]*(1-delta_row)
+                pixel_matrix[org_row+1][org_column][rgb]*(delta_row)
+                + pixel_matrix[org_row][org_column][rgb]*(1-delta_row)
             )
         # we have no sample pixels above
         elif not last_column_cond:
             value = int(
-                pixel_matrix[org_row][org_col+1][rgb]*(delta_column)
-                + pixel_matrix[org_row][org_col][rgb]*(1-delta_column)
+                pixel_matrix[org_row][org_column+1][rgb]*(delta_column)
+                + pixel_matrix[org_row][org_column][rgb]*(1-delta_column)
             )
         # we have no sample pixels literally anywhere
         else:
-            value = pixel_matrix[org_row][org_col][rgb]
+            value = pixel_matrix[org_row][org_column][rgb]
 
         resulting_pixel.append(value)
 
     return resulting_pixel
 
 
-# define class...
 class Bmp:
     ''' Class with main info about given bmp picture
         and functional to modify it '''
@@ -128,12 +127,7 @@ class Bmp:
 
         return result
 
-    def update_header(
-        self,
-        new_width,
-        new_height,
-        new_pixel_matrix
-    ):
+    def update_header(self, new_width, new_height, new_pixel_matrix):
         ''' Updates some Bmp object`s fields
             to actual values '''
 
@@ -172,12 +166,9 @@ class Bmp:
 
         resized_result = []
         for i in range(self.height):
-            # for additional row number
             for rn in range(coef):
-                # add new void row
                 resized_result.append([])
                 for j in range(self.width):
-                    # for additional column number
                     for cn in range(coef):
                         # copy pixel from original image
                         resized_result[-1].append(self.matrix[i][j])
@@ -205,7 +196,7 @@ class Bmp:
                         resized_result[-1].append(
                             calculate_pixel_colors_bilinear(
                                 org_row=i,
-                                org_col=j,
+                                org_column=j,
                                 delta_row=arn/coef,
                                 delta_column=acn/coef,
                                 pixel_matrix=self.matrix
@@ -270,8 +261,8 @@ class Bmp:
         write_bytes_from_int(26, 2, self.planes, destination)
         # Bits Per Pixel (28-29)
         write_bytes_from_int(28, 2, self.bits_per_pixel, destination)
-        # Compression (30-33)
-        write_bytes_from_int(30, 4, self.compression, destination)
+        # Compression (30-33), as we don`t compress our images it`s 0
+        write_bytes_from_int(30, 4, 0, destination)
         # (compressed) ImageSize (34-37), defaults to 0
         write_bytes_from_int(34, 4, 0, destination)
         # XpixelsPerM (38-41)
@@ -293,7 +284,6 @@ class Bmp:
             # compensate bmp pixels shift
             for k in range(len(row) % 4):
                 destination.write(int(0).to_bytes(1, byteorder='little'))
-
 
 
 # main resizing function
@@ -330,4 +320,4 @@ def resize_image(
 
 # execution
 with open("./test.bmp", "rb+") as input_image_file:
-    resize_image(input_image_file, 0.2)
+    resize_image(input_image_file, 2, "bilinear")
