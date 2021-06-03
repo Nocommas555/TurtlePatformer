@@ -86,7 +86,6 @@ class Player(Sprite):
             self.camera_lagbehind[1]*(chelone.camera.y-camera_desired[1])
         )
 
-
     def move_on_command(self):
         '''handles movement with keypresses'''
         ret = [False, False]
@@ -307,7 +306,7 @@ def start_level(root = None):
         playsound = sound.playsound
         sound_finished = sound.sound_finished
 
-    level_generator(obj_quantity=20)
+    level_generator(obj_quantity=30)
 
     background_sound("background", loader.load("clear.png"), phys_type="inmovable", sound="sounds/imperial_march.wav")
 

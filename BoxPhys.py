@@ -15,7 +15,9 @@ queueWriteLock = threading.Lock()
 THREADS = 8
 
 # depth of area on the edges the box collier in which the objects are displaced
-COLLIDER_ACTIVE_BOUNDARY = 100
+COLLIDER_ACTIVE_BOUNDARY = 300
+SIMILATION_RADIUS = 3000
+
 
 class Point():
     '''dataclass representing a point'''
@@ -47,7 +49,9 @@ class PhysicsObject():
     def __init__(self, type: str = "default", col: dict = None,
                  x: float = 0, y: float = 0,
                  vel: list = None,
-                 gravity: float = -0.3, friction: float = 0.1):
+                 gravity: float = -0.3, friction: float = 0.1, 
+                 active: bool = True):
+
         global physics_objects
 
         if type not in ["default", "immovable"]:
@@ -69,16 +73,15 @@ class PhysicsObject():
         self.vel = vel
         self.gravity = gravity
         self.friction = friction
+        self.active = active
 
         physics_objects.append(self)
 
     def advance_simulation(self):
         '''advances the phys simulation for this object'''
-
-        if self.type != "immovable":
+        if self.type != "immovable" and self.active:
             self.vel.y -= self.gravity
             self.move(self.vel.x, self.vel.y)
-
 
     def move(self, x: int, y: int):
         '''moves the object by a set amount of pixels'''
@@ -93,7 +96,11 @@ class PhysicsObject():
         if self.type != "immovable":
             self.vel.x += x
             self.vel.y += y
-
+    
+    def update_active(self):
+        pass
+    
+    
     def delete_self(self):
         '''removes this object on the next frame'''
         remove_phys_obj(self)
@@ -245,26 +252,36 @@ def _colliders_intersect(A: Collider, B: Collider):
             or A_SW.y <= B_NE.y
             or A_NE.y >= B_SW.y)
 
-def _handle_all_collisions(arr: list, start:int=0, end:int=None):
-    '''looks at all box colliders, calls their parents to resolve any intersections'''
-    # compare every element in rect list to every next element
-    # which gives us total of (n-1)^2 / 2 number of comparisons
-    for i, obj in enumerate(arr[start:end]):
-        for obj2 in arr[start+i+1:]:
-            if _colliders_intersect(obj, obj2):
+def _handle_single_obj_collision(obj: Collider, arr: list):
+    after_us = False
+    for obj2 in arr:
 
+        if after_us and obj2.parent.active:
+            if _colliders_intersect(obj, obj2):
                 disp = get_collision_displacement(obj,obj2)
                 with queueWriteLock:
                     add_func_1 = [obj.parent.handle_collision, (obj2.parent, obj, obj2, False, disp)]
                     add_func_2 = [obj2.parent.handle_collision, (obj.parent, obj2, obj, True, [-disp[0], -disp[1]])]
                     _main_thread_calls.append(add_func_1)
                     _main_thread_calls.append(add_func_2)
+        else:
+            after_us = obj2 is obj
+
+def _handle_all_collisions(arr: list, start:int=0, end:int=None):
+    '''looks at all box colliders, calls their parents to resolve any intersections'''
+    # compare every element in rect list to every next element
+    # which gives us total of (n-1)^2 / 2 number of comparisons
+    for obj in arr[start:end]:
+        if obj.parent.active:
+          _handle_single_obj_collision(obj, arr[start:])
+
 
 def advance_phys_simulation():
     '''advances the physics simulation by 1 frame'''
     for obj in physics_objects:
         obj.advance_simulation()
-
+        obj.update_active()
+        
     array_part_len = math.floor(len(colliders)/THREADS)
     threads = []
     for i in range(THREADS):

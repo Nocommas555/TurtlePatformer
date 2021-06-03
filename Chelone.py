@@ -12,7 +12,7 @@ from typing import Union, Callable
 from time import time, sleep
 
 from sound import kill_all_sounds
-from BoxPhys import Collider, PhysicsObject, advance_phys_simulation, reset_phys_sim
+from BoxPhys import Collider, PhysicsObject, advance_phys_simulation, reset_phys_sim, SIMILATION_RADIUS
 
 chelone = None
 resolution_x = 1600
@@ -291,10 +291,14 @@ class Sprite(PhysicsObject, AnimStateSystem):
 
     def update_all(self):
         '''function to call everything that needs to be updated in a frame'''
-        self.update()
-        self.advance_anim()
-        self._update_state()
-        self.last_update()
+
+        self.active = abs(self.x-chelone.camera.x)<SIMILATION_RADIUS
+
+        if self.active:
+            self.update()
+            self.advance_anim()
+            self._update_state()
+            self.last_update()
 
     def move(self, x: int, y: int):
         '''moves the sprite a set amount of pixels'''
@@ -433,12 +437,12 @@ class SpriteRenderer():
                 self.settings = json.load(settings_file)
             except:
                 self.settings = {"sound": True,
-                                            "jump": "w",
-                                            "duck": "s",
-                                            "run_right": "d",
-                                            "run_left": "a",
-                                            "force": "e",
-                                            "atack": "space"}
+                                "jump": "w",
+                                "duck": "s",
+                                "run_right": "d",
+                                "run_left": "a",
+                                "force": "e",
+                                "atack": "space"}
 
     def restart_fps_timer(self):
         '''resets the variables associated with fps waiting'''
