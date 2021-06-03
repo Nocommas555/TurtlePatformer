@@ -27,3 +27,13 @@ Basic platformer written on a custom engine using tkinter as a graphics library
 * _Collider_drawer_*
 ---
 -a tool to draw colliders
+
+## Contributors
+
+-Oleg Shkurenko(nocommas555)
+-Vladyslav Kravchenko(cyberlord-coder-228)
+-Kyrylo Cholombytko(1mperix)
+
+## Code reviewers
+
+-Timur Shemsedinov
