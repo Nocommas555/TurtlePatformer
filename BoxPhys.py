@@ -279,13 +279,13 @@ def _handle_all_collisions(arr: list, start:int=0, end:int=None):
           _handle_single_obj_collision(obj, arr[start:])
 
 
-def advance_phys_simulation():
-    '''advances the physics simulation by 1 frame'''
-    for obj in physics_objects:
+def _update_all_active(arr: list, start:int=0, end:int=None):
+    for obj in arr[start:end]:
         obj.update_active()
-        obj.advance_simulation()
-        
-    array_part_len = math.floor(len(colliders)/THREADS)
+
+def paralellilize_func_for_arr(arr, func, THREADS=THREADS):
+    
+    array_part_len = math.floor(len(arr)/THREADS)
     threads = []
     for i in range(THREADS):
         start = i*array_part_len
@@ -293,7 +293,8 @@ def advance_phys_simulation():
             end = (i+1)*(array_part_len)-1
         else:
             end = None
-        threads.append(threading.Thread(target = lambda:_handle_all_collisions(colliders, start, end)))
+
+        threads.append(threading.Thread(target = lambda:func(arr, start, end)))
         threads[-1].start()
 
     for t in threads:
@@ -306,6 +307,19 @@ def advance_phys_simulation():
             _main_thread_calls.pop(-1)
         
         callback[0](*callback[1])
+
+
+def advance_phys_simulation():
+    '''advances the physics simulation by 1 frame'''
+    
+
+    paralellilize_func_for_arr(physics_objects, _update_all_active, THREADS)
+
+    for obj in physics_objects:
+        obj.advance_simulation()
+        
+
+    paralellilize_func_for_arr(colliders, _handle_all_collisions, THREADS)
 
 
     _remove_phys_obj()
