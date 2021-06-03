@@ -14,6 +14,7 @@ Basic platformer written on a custom engine using tkinter as a graphics library
 ---
 - basic collision detection and handling using square hitboxes
 - velocities and gravity simulation
+- allows user to use multithreading
 ---
 * _Picture and animation loader_*
 ---
@@ -24,6 +25,7 @@ Basic platformer written on a custom engine using tkinter as a graphics library
 ---
 - a basic winapi wrapper to play mp3's and wav sounds
 - used since python has no built-in music lib
+---
 * _Collider_drawer_*
 ---
 -a tool to draw colliders
