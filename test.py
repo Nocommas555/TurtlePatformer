@@ -106,7 +106,7 @@ class Player(Sprite):
 
         return ret
 
-    def handle_collision(self, collided_obj, my_collider, other_collider, handled=False, displacement = None):
+    def handle_collision(self, collided_obj, my_collider, other_collider, handled=False, displacement=None):
         '''check if we ever intersect ground to be able to jump'''
         if displacement is None:
             displacement = get_collision_displacement(my_collider, other_collider)
@@ -151,7 +151,7 @@ class Player(Sprite):
         )
         chelone.add_sprite(player)
         game_over.delete_self()
-    
+
     def update_active(self):
         '''never unload the player'''
         pass
@@ -180,7 +180,7 @@ class Droid(Sprite):
 
 
     def setup(self, kargs):
-        self.states = {"walk": lambda:0}
+        self.states = {"walk": lambda: 0}
         self.patrol_range = kargs.get("patrol_range", [self.x-300, self.x])
         self.speed = kargs.get("speed", 0)
         self.shooting_cooldown_limit = kargs.get("shooting_cooldown", 240)
@@ -250,7 +250,7 @@ def droid_generator(droid_x, droid_quantity):
 
     for i in range(1, droid_quantity):
         patrol_range = [droid_x + 100, droid_x + 200]
-        Droid("Droid", loader.load("droid.png"), patrol_range=patrol_range, speed=1.3, state_anim_directory = "droid")
+        Droid("Droid", loader.load("droid.png"), patrol_range=patrol_range, speed=1.3, state_anim_directory="droid")
         droid_x += 90
 
 
@@ -259,21 +259,20 @@ def block_generator(block_x, block_quantity, ground_y):
     loader = SpriteLoader()
 
     for i in range(1, block_quantity - 1):
-        Sprite("Block", loader.load("box.png"), phys_type="immovable", x = block_x, y=ground_y - 60, layer = 26)
-        Sprite("Block", loader.load("box.png"), phys_type="immovable", x = block_x + 50, y=ground_y - 135)
+        Sprite("Block", loader.load("box.png"), phys_type="immovable", x=block_x, y=ground_y - 60, layer=26)
+        Sprite("Block", loader.load("box.png"), phys_type="immovable", x=block_x + 50, y=ground_y - 135)
         block_x += 100
 
-    Sprite("Block", loader.load("box.png"), phys_type="immovable", x = block_x, y=ground_y - 60, layer = 26)
+    Sprite("Block", loader.load("box.png"), phys_type="immovable", x=block_x, y=ground_y - 60, layer=26)
 
-def level_generator(start_x = 0, obj_quantity = 1, ground_y = 650):
+def level_generator(start_x=0, obj_quantity=1, ground_y=650):
     '''generating simple levels from patterns found in level_patterns.json'''
     loader = SpriteLoader()
 
     try:
         pattern = json.load(open("level_patterns.json", "r"))
-    except Exception as e:
+    except:
         pattern = []
-        print(e)
 
     b = 0
     i = 0
@@ -293,7 +292,7 @@ def level_generator(start_x = 0, obj_quantity = 1, ground_y = 650):
 
 
 
-def start_level(root = None):
+def start_level(root=None):
     '''main function for loading the level'''
     global chelone, playsound, sound_finished
 
@@ -312,7 +311,7 @@ def start_level(root = None):
 
     background_sound("background", loader.load("clear.png"), phys_type="inmovable", sound="sounds/imperial_march.wav")
 
-    fps_tracker = tk.Label(root, text = 'fps')
+    fps_tracker = tk.Label(root, text='fps')
     fps_tracker.config(font=("sans-serif", 44))
     fps_tracker.place(relx=0, rely=0, anchor=tk.NW)
 
@@ -322,7 +321,7 @@ def start_level(root = None):
         endTime = time()
         elapsedTime = endTime - startTime
         #print(1./elapsedTime)
-        fps_tracker.config(text = str(int(1./elapsedTime)))
+        fps_tracker.config(text=str(int(1./elapsedTime)))
 
 
 
