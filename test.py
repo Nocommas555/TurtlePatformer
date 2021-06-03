@@ -5,8 +5,8 @@ import random
 import math
 import json
 import tkinter as tk
-
 from time import time
+import sound
 
 from Chelone import init, Sprite, SpriteLoader, check_keys
 from BoxPhys import get_collision_displacement
@@ -305,7 +305,6 @@ def start_level(root = None):
     Player("Player", loader.load("tmp.png"), gravity=-1, x=400, y=300, layer=10, state_anim_directory="anakin")
 
     if chelone.settings["sound"]:
-        import sound
         playsound = sound.playsound
         sound_finished = sound.sound_finished
 

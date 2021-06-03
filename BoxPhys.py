@@ -4,7 +4,6 @@ It has support for 2d box colliders, velocities, gravity and trigger hitboxes.
 '''
 import threading
 import math
-import queue
 
 physics_objects = []
 colliders = []
@@ -49,7 +48,7 @@ class PhysicsObject():
     def __init__(self, type: str = "default", col: dict = None,
                  x: float = 0, y: float = 0,
                  vel: list = None,
-                 gravity: float = -0.3, friction: float = 0.1, 
+                 gravity: float = -0.3, friction: float = 0.1,
                  active: bool = True):
 
         global physics_objects
@@ -96,11 +95,11 @@ class PhysicsObject():
         if self.type != "immovable":
             self.vel.x += x
             self.vel.y += y
-    
+
     def update_active(self):
         pass
-    
-    
+
+
     def delete_self(self):
         '''removes this object on the next frame'''
         remove_phys_obj(self)
@@ -109,8 +108,11 @@ class PhysicsObject():
     def handle_trigger(self, collided_obj, my_collider, other_collider): #noqa
         pass
 
-    def handle_collision(self, collided_obj,
-                         my_collider, other_collider, handled=False, displacement = None):
+    def handle_collision(
+        self, collided_obj,
+        my_collider, other_collider,
+        handled=False, displacement = None
+    ):
         '''handles a collision with another object'''
 
         # don't collide with self. allows overlapping hitboxes
@@ -276,7 +278,7 @@ def _handle_all_collisions(arr: list, start:int=0, end:int=None):
     # which gives us total of (n-1)^2 / 2 number of comparisons
     for obj in arr[start:end]:
         if obj.parent.active:
-          _handle_single_obj_collision(obj, arr[start:])
+            _handle_single_obj_collision(obj, arr[start:])
 
 
 def _update_all_active(arr: list, start:int=0, end:int=None):
@@ -286,6 +288,7 @@ def _update_all_active(arr: list, start:int=0, end:int=None):
 def paralellilize_func_for_arr(arr, func, THREADS=THREADS):
     
     array_part_len = math.floor(len(arr)/THREADS)
+
     threads = []
     for i in range(THREADS):
         start = i*array_part_len
@@ -305,7 +308,7 @@ def paralellilize_func_for_arr(arr, func, THREADS=THREADS):
         with queueWriteLock:
             callback = _main_thread_calls[-1]
             _main_thread_calls.pop(-1)
-        
+
         callback[0](*callback[1])
 
 

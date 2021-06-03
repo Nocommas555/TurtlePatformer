@@ -34,7 +34,7 @@ def init(root = None):
         root.bind("<Key>", on_key_press)
         root.bind("<KeyRelease>", on_key_release)
         root.bind("<FocusOut>", FocusOut)
-                
+
         # Create the canvas and make it visible with pack()
         canvas = tk.Canvas(root, width=resolution_x, height=resolution_y)
         canvas.pack()
