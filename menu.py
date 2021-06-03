@@ -6,6 +6,7 @@ import os
 import json
 from test import start_level
 from time import time, sleep
+import functools
 
 
 # set default settings
@@ -37,6 +38,9 @@ current_drag_sprite = None
 picture_parent_directory = './menu_pics/'
 settings_file_name = 'settings.json'
 game_not_started = True
+window_width = 1600
+window_height = 800
+background_width = 2600
 
 TARGET_FPS = 30
 frame_period = 1.0/TARGET_FPS
@@ -46,19 +50,26 @@ next_frame_time = now + frame_period
 # declare classes
 class Sprite:
     ''' Pictures on the main screen '''
+    anchor_offsets = {
+        tk.CENTER: {'x': -0.5, 'y': -0.5},
+        tk.NW: {'x': 0, 'y': 0},
+        tk.SW: {'x': 0, 'y': -1},
+        tk.NE: {'x': -1, 'y': 0},
+        tk.SE: {'x': -1, 'y': -1}
+    }
+
     def __init__(
         self, ID="?",x=0, y=0, width=0, height=0,
         anchor=tk.NW, img_file=None, parent_frame=None
     ):
         self.ID = ID
-        self.x = x
-        self.y = y
+        self.x = x + width * self.anchor_offsets[anchor]['x']
+        self.y = y + height * self.anchor_offsets[anchor]['y']
         self.width = width
         self.height = height
         self.image = tk.PhotoImage(file=img_file)
         self.instance = parent_frame.create_image(
-            self.x,
-            self.y,
+            x, y,
             anchor=anchor,
             image=self.image
         )
@@ -91,10 +102,10 @@ class PlayButton(Sprite):
     ''' Button that starts level '''
     def on_click(self, offset_x, offset_y):
         global game_not_started
+
         main_menu.pack_forget()
         game_not_started = False
         start_level(root)
-
 
 class SettingsButton(Sprite):
     ''' Button that sends you to settings menu '''
@@ -109,20 +120,20 @@ class ExitButton(Sprite):
 
 # set up screen
 root = tk.Tk()
-root.geometry("1600x800")
+root.geometry(str(window_width)+'x'+str(window_height))
 
 main_menu = tk.Canvas(root, bg="black")
 main_menu.pack(fill=tk.BOTH, expand=1)
 
 settings_frame =\
-    tk.Frame(root, width=1600, height=800, bg="black")
+    tk.Frame(root, width=window_width, height=window_height, bg="black")
 
 b_background =\
     tk.PhotoImage(file=picture_parent_directory+"b_background.png")
 b_background_instance =\
     main_menu.create_image(0, 0, image=b_background, anchor=tk.NW)
 b_background_instance_next =\
-    main_menu.create_image(1300, 0, image=b_background, anchor=tk.NW)
+    main_menu.create_image(background_width/2, 0, image=b_background, anchor=tk.NW)
 
 my_objects.append(
     DragableSprite(
@@ -164,12 +175,13 @@ my_objects.append(
 )
 my_objects.append(
     PlayButton(
-        x=684,
+        x=window_width*0.5,
         y=480,
         width=228,
         height=100,
         img_file=picture_parent_directory+"m_play.png",
-        parent_frame=main_menu
+        parent_frame=main_menu,
+        anchor=tk.CENTER
     )
 )
 my_objects.append(
@@ -193,6 +205,8 @@ my_objects.append(
     )
 )
 
+# reverse order of objects,
+# so that ones which are on top have higher interaction priority
 my_objects.reverse()
 
 regular_font = tkfont.Font(family='Noto Sans Display', size=16)
@@ -215,6 +229,7 @@ def save_settings():
 
     # create file if not found
     open(settings_file_name, "a+")
+
     json.dump(user_settings, open(settings_file_name, "w"))
 
 
@@ -226,8 +241,6 @@ def change_frame(this_frame, next_frame):
 
 def press_button_main_menu(event):
     ''' Detects if user clicked on sprite in main menu '''
-    global my_objects
-
     for obj in my_objects:
         if obj.x < event.x < obj.x + obj.width\
         and obj.y < event.y < obj.y + obj.height:
@@ -235,10 +248,7 @@ def press_button_main_menu(event):
             obj.on_click(obj.x - event.x,obj.y - event.y)
 
 def drag_sprite(event):
-    ''' Moves movable sprite
-        while mouse clicked and moving '''
-    global my_objects
-
+    ''' Moves movable sprite while mouse clicked and moving '''
     for obj in my_objects:
         if isinstance(obj, DragableSprite):
             if obj is current_drag_sprite:
@@ -249,8 +259,7 @@ def drag_sprite(event):
                 print(obj.last_movement_x, obj.last_movement_y)
 
 def release_sprite(event): # noqa , parameter event needed for callback signature
-    ''' Stops cyurrent movable sprite from moving
-        when unclicked'''
+    ''' Stops current movable sprite from moving when unclicked'''
     global current_drag_sprite
 
     current_drag_sprite = None
@@ -266,7 +275,7 @@ def flip_sound_setting():
         master=settings_frame,
         text='ON',
         font=regular_font,
-        fg='black',
+        fg='white',
         bg='green'
     )
     off_label = tk.Label(
@@ -277,16 +286,14 @@ def flip_sound_setting():
         bg='red'
     )
 
-    if user_settings["sound"]:
-        sound_label = on_label
-    else:
-        sound_label = off_label
+    sound_label = on_label if user_settings["sound"] else off_label
 
     sound_label.place(
-        relx=0.544,
-        rely=0.13,
-        width=50,
-        height=50
+        relx=0.5,
+        rely=0.17,
+        width=window_width*0.07,
+        height=window_height*0.07,
+        anchor=tk.CENTER
     )
 
     save_settings()
@@ -315,6 +322,7 @@ def add_button_with_label(
     font=regular_font,
     foreground="blue",
     command=None,
+    function_arguments=(),
     relx=0.5,
     rely=0.5,
     button_width=150,
@@ -330,9 +338,9 @@ def add_button_with_label(
         text=text,
         font=font,
         fg=foreground,
-        command=command
+        command=functools.partial(command, function_arguments)
     ).place(
-        relx=relx,
+        relx=relx-button_width/window_width/2,
         rely=rely,
         width=button_width,
         height=button_height,
@@ -345,7 +353,7 @@ def add_button_with_label(
         fg=foreground,
     )
     states_label[ID].place(
-        relx=relx*1.01 + (button_width/1600),
+        relx=relx*1.01+button_width/window_width/2,
         rely=rely*1.01,
         width=label_width,
         height=label_height,
@@ -370,7 +378,7 @@ def animate_background():
         sleep(next_frame_time - now)
         now = time()
 
-    next_frame_time = now+frame_period
+    next_frame_time = now + frame_period
 
     frames_lapsed += 1
 
@@ -389,6 +397,7 @@ def animate_background():
         )
         main_menu.lower(b_background_instance_next)
         frames_lapsed = 0
+    # inertia implentation
     for obj in my_objects:
         if obj is not current_drag_sprite:
             obj.move(obj.last_movement_x, obj.last_movement_y)
@@ -404,69 +413,50 @@ tk.Button(
     master=settings_frame,
     text='Sound',
     font=regular_font,
-    fg="blue",
+    fg='blue',
     command=flip_sound_setting
 ).place(
-    relx=0.382,
-    rely=0.13,
-    width=250,
-    height=50
+    relx=0.5,
+    rely=0.1,
+    width=window_width*0.2,
+    height=window_height*0.07,
+    anchor=tk.CENTER
 )
+
 tk.Button(
     master=settings_frame,
     text='Return to main menu',
     font=regular_font,
-    fg="blue",
+    fg='blue',
     command=lambda:change_frame(settings_frame, main_menu)
 ).place(
-    relx=0.382,
-    rely=0.75,
-    width=300,
-    height=50
-)
-add_button_with_label(
-    text="Jump",
-    command=lambda:change_state_to("jump"),
-    relx=0.43,
-    rely=0.27,
-    ID="jump"
-)
-add_button_with_label(
-    text="Duck",
-    command=lambda:change_state_to("duck"),
-    relx=0.43,
-    rely=0.34,
-    ID="duck"
-)
-add_button_with_label(
-    text="Move right",
-    command=lambda:change_state_to("run_right"),
-    relx=0.43,
-    rely=0.41,
-    ID="run_right"
-)
-add_button_with_label(
-    text="Move left",
-    command=lambda:change_state_to("run_left"),
-    relx=0.43,
-    rely=0.48,
-    ID="run_left"
-)
-add_button_with_label(
-    text="Use force",
-    command=lambda:change_state_to("force"),
-    relx=0.43,
-    rely=0.55,
-    ID="force"
-)
-add_button_with_label(
-    text="Byty kohos'",
-    command=lambda:change_state_to("atack"),
-    relx=0.43,
-    rely=0.62,
-    ID="atack"
+    relx=0.5,
+    rely=0.8,
+    width=window_width*0.2,
+    height=window_height*0.07,
+    anchor=tk.CENTER
 )
 
+control_button_relx = 0.5
+control_button_rely = 0.3
+delta_rely = 0.07
+for key in user_settings:
+    if key == 'sound':
+        continue
+
+    add_button_with_label(
+        text=key,
+        command=change_state_to,
+        function_arguments=(key),
+        relx=control_button_relx,
+        rely=control_button_rely,
+        button_width=window_width*0.1,
+        button_height=window_height*delta_rely*0.9,
+        label_width=window_width*0.1,
+        label_height=window_height*delta_rely*0.9,
+        ID=key
+    )
+    control_button_rely += delta_rely
 
 root.bind("<Key>", on_key_press)
 main_menu.bind("<Button-1>", press_button_main_menu)
