@@ -311,7 +311,7 @@ def start_level(root=None):
         playsound = sound.playsound
         sound_finished = sound.sound_finished
 
-    level_generator(obj_quantity=50)
+    level_generator(obj_quantity=60)
 
     background_sound("background", loader.load("clear.png"), phys_type="inmovable", sound="sounds/imperial_march.wav")
 
