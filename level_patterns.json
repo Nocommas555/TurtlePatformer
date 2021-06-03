@@ -1,6 +1,6 @@
 [
 	{"width":1000, "block_quantity":5, "droid_quantity": 2},
-	{"width":800,  "block_quantity":3, "droid_quantity": 4},
-	{"width":1200,  "block_quantity":4, "droid_quantity": 3},
+	{"width":800,  "block_quantity":3, "droid_quantity": 2},
+	{"width":1200,  "block_quantity":4, "droid_quantity": 2},
 	{"width":900,  "block_quantity":5, "droid_quantity": 2}
 ]
