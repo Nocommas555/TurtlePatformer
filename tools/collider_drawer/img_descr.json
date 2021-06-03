@@ -1,0 +1,34 @@
+{
+    "images": {
+        "1.png": {
+            "extra": {},
+            "hitboxes": {},
+            "scale": 1
+        },
+        "2.png": {
+            "extra": {},
+            "hitboxes": {},
+            "scale": 1
+        },
+        "3.png": {
+            "extra": {},
+            "hitboxes": {},
+            "scale": 1
+        },
+        "4.png": {
+            "extra": {},
+            "hitboxes": {},
+            "scale": 1
+        },
+        "5.png": {
+            "extra": {},
+            "hitboxes": {},
+            "scale": 1
+        },
+        "6.png": {
+            "extra": {},
+            "hitboxes": {},
+            "scale": 3
+        }
+    }
+}
