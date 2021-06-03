@@ -34,6 +34,6 @@ Basic platformer written on a custom engine using tkinter as a graphics library
 - Vladyslav Kravchenko(cyberlord-coder-228)
 - Kyrylo Cholombytko(1mperix)
 
-## Code reviewers
+## Special thanks
 
 - Timur Shemsedinov
