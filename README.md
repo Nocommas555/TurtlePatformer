@@ -6,7 +6,7 @@ Basic platformer written on a custom engine using tkinter as a graphics library
 
 ## Currently implemented engine features:
 
-##_Renderer_
+## _Renderer_
 ---
 - supports sprite layering
 - implements basic camera functionality
