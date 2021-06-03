@@ -18,7 +18,7 @@ chelone = None
 resolution_x = 1600
 resolution_y = 800
 
-def init(root = None):
+def init(root=None):
     '''initializes the tk screen, canvas and SpriteRenderer class'''
     global chelone, resolution_x, resolution_y
 
@@ -290,9 +290,9 @@ class Sprite(PhysicsObject, AnimStateSystem):
         chelone.remove_sprite(self)
 
     def update_active(self):
-        self.active = abs(self.x-chelone.camera.x)<SIMILATION_RADIUS
-        if not self.active and len(self.colliders)>0:
-            self.active = abs(self.x + next(iter(self.colliders.values())).width-chelone.camera.x)<SIMILATION_RADIUS
+        self.active = abs(self.x-chelone.camera.x) < SIMILATION_RADIUS
+        if not self.active and len(self.colliders) > 0:
+            self.active = abs(self.x + next(iter(self.colliders.values())).width-chelone.camera.x) < SIMILATION_RADIUS
 
 
     def update_all(self):
@@ -441,12 +441,12 @@ class SpriteRenderer():
                 self.settings = json.load(settings_file)
             except:
                 self.settings = {"sound": True,
-                                "jump": "w",
-                                "duck": "s",
-                                "run_right": "d",
-                                "run_left": "a",
-                                "force": "e",
-                                "atack": "space"}
+                                 "jump": "w",
+                                 "duck": "s",
+                                 "run_right": "d",
+                                 "run_left": "a",
+                                 "force": "e",
+                                 "atack": "space"}
 
     def restart_fps_timer(self):
         '''resets the variables associated with fps waiting'''
@@ -556,8 +556,8 @@ class SpriteRenderer():
     def db_draw_hitboxes(self):
         '''draws all active hitboxes as transparent rectangles'''
         colors = {"green":{"outline":"#00bb00", "fill":"#004400"},
-                        "red":{"outline":"#bb0000", "fill":"#440000"},
-                        "black":{"outline":"#000000", "fill":"#000000"}}
+                  "red":{"outline":"#bb0000", "fill":"#440000"},
+                  "black":{"outline":"#000000", "fill":"#000000"}}
 
         self.screen.delete("hb")
 
