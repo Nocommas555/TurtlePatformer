@@ -20,17 +20,17 @@ SIMILATION_RADIUS = 3000
 
 class Point():
     '''dataclass representing a point'''
-    x=0
-    y=0
-    def __init__(self, x:int, y:int):
+    x = 0
+    y = 0
+    def __init__(self, x: int, y: int):
         self.x = x
         self.y = y
 
 class Velocity():
     '''dataclass representing velocity'''
-    x=0
-    y=0
-    def __init__(self, x:int, y:int):
+    x = 0
+    y = 0
+    def __init__(self, x: int, y: int):
         self.x = x
         self.y = y
 
@@ -60,7 +60,7 @@ class PhysicsObject():
             col = {}
 
         if vel is None:
-            vel = Velocity(0,0)
+            vel = Velocity(0, 0)
 
         else:
             vel = Velocity(vel[0], vel[1])
@@ -97,7 +97,8 @@ class PhysicsObject():
             self.vel.y += y
 
     def update_active(self):
-        pass
+        '''never unloads. should be extended to change update_state on whether or not it should unload'''
+        pass #noqa, it is necessary
 
 
     def delete_self(self):
@@ -109,10 +110,10 @@ class PhysicsObject():
         pass
 
     def handle_collision(
-        self, collided_obj,
-        my_collider, other_collider,
-        handled=False, displacement = None
-    ):
+            self, collided_obj,
+            my_collider, other_collider,
+            handled=False, displacement=None
+        ):
         '''handles a collision with another object'''
 
         # don't collide with self. allows overlapping hitboxes
@@ -253,9 +254,9 @@ def _colliders_intersect(A: Collider, B: Collider):
     B_SW, B_NE = B.SW(), B.NE()
 
     return not (A_SW.x >= B_NE.x
-            or A_NE.x <= B_SW.x
-            or A_SW.y <= B_NE.y
-            or A_NE.y >= B_SW.y)
+                or A_NE.x <= B_SW.x
+                or A_SW.y <= B_NE.y
+                or A_NE.y >= B_SW.y)
 
 def _handle_single_obj_collision(obj: Collider, arr: list):
     after_us = False
@@ -263,7 +264,7 @@ def _handle_single_obj_collision(obj: Collider, arr: list):
 
         if after_us:
             if _colliders_intersect(obj, obj2):
-                disp = get_collision_displacement(obj,obj2)
+                disp = get_collision_displacement(obj, obj2)
                 with queueWriteLock:
                     add_func_1 = [obj.parent.handle_collision, (obj2.parent, obj, obj2, False, disp)]
                     add_func_2 = [obj2.parent.handle_collision, (obj.parent, obj2, obj, True, [-disp[0], -disp[1]])]
@@ -272,7 +273,7 @@ def _handle_single_obj_collision(obj: Collider, arr: list):
         else:
             after_us = obj2 is obj
 
-def _handle_all_collisions(arr: list, start:int=0, end:int=None):
+def _handle_all_collisions(arr: list, start: int = 0, end: int = None):
     '''looks at all box colliders, calls their parents to resolve any intersections'''
     # compare every element in rect list to every next element
     # which gives us total of (n-1)^2 / 2 number of comparisons
@@ -281,29 +282,37 @@ def _handle_all_collisions(arr: list, start:int=0, end:int=None):
             _handle_single_obj_collision(obj, arr[start:])
 
 
-def _update_all_active(arr: list, start:int=0, end:int=None):
+def _update_all_active(arr: list, start: int = 0, end: int = None):
+    '''updates the active state of all phys objects. created to multithread the task'''
     for obj in arr[start:end]:
         obj.update_active()
 
-def paralellilize_func_for_arr(arr, func, THREADS=THREADS):
-    
-    array_part_len = math.floor(len(arr)/THREADS)
+def paralellilize_func_for_arr(arr, func, pool_n=THREADS):
+    '''
+        multithreads a given function for pool_n amount of threads.
+        the function should have the signature
+        arr:list, start:int, end:int
+    '''
+    array_part_len = math.floor(len(arr)/pool_n)
 
     threads = []
-    for i in range(THREADS):
+    start = 0
+    end = None
+    for i in range(pool_n):
         start = i*array_part_len
-        if i!=THREADS-1:
+
+        if i != pool_n-1:
             end = (i+1)*(array_part_len)-1
         else:
             end = None
 
-        threads.append(threading.Thread(target = lambda:func(arr, start, end)))
+        threads.append(threading.Thread(target=lambda: func(arr, start, end)))
         threads[-1].start()
 
     for t in threads:
         t.join()
 
-    while len(_main_thread_calls)>0:
+    while len(_main_thread_calls) > 0:
 
         with queueWriteLock:
             callback = _main_thread_calls[-1]
@@ -314,13 +323,13 @@ def paralellilize_func_for_arr(arr, func, THREADS=THREADS):
 
 def advance_phys_simulation():
     '''advances the physics simulation by 1 frame'''
-    
+
 
     paralellilize_func_for_arr(physics_objects, _update_all_active, THREADS)
 
     for obj in physics_objects:
         obj.advance_simulation()
-        
+
 
     paralellilize_func_for_arr(colliders, _handle_all_collisions, THREADS)
 
@@ -353,4 +362,3 @@ def reset_phys_sim():
     physics_objects = []
     colliders = []
     _removing = []
-    
