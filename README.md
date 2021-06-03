@@ -1,8 +1,10 @@
-# TurtlePatformer
+## TurtlePatformer
+
+<img align="center" alt="Title" width="100%" src="readme/title.png" />
 
 Basic platformer written on a custom engine using tkinter as a graphics library
 
-# Currently implemented engine features:
+## Currently implemented engine features:
 * _Renderer_*
 ---
 - supports sprite layering
