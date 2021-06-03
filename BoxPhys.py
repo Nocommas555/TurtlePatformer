@@ -15,7 +15,7 @@ queueWriteLock = threading.Lock()
 THREADS = 8
 
 # depth of area on the edges the box collier in which the objects are displaced
-COLLIDER_ACTIVE_BOUNDARY = 100
+COLLIDER_ACTIVE_BOUNDARY = 50
 SIMILATION_RADIUS = 3000
 
 
@@ -282,8 +282,8 @@ def _handle_all_collisions(arr: list, start:int=0, end:int=None):
 def advance_phys_simulation():
     '''advances the physics simulation by 1 frame'''
     for obj in physics_objects:
-        obj.advance_simulation()
         obj.update_active()
+        obj.advance_simulation()
         
     array_part_len = math.floor(len(colliders)/THREADS)
     threads = []

@@ -151,7 +151,10 @@ class Player(Sprite):
         )
         chelone.add_sprite(player)
         game_over.delete_self()
-
+    
+    def update_active(self):
+        '''never unload the player'''
+        pass
 
 class Droid(Sprite):
     """
