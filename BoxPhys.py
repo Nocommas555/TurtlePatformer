@@ -275,8 +275,11 @@ def advance_phys_simulation():
             end = None
         threads.append(threading.Thread(target = lambda:_handle_all_collisions(colliders, start, end)))
         threads[-1].start()
+
+    for t in threads:
+        t.join()
     #waits until all threads die
-    while len([x for x in threads if x.is_alive()]) or len(_main_thread_calls)>0:
+    while len(_main_thread_calls)>0:
 
         with queueWriteLock:
             callback = _main_thread_calls[-1]
