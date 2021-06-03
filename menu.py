@@ -1,4 +1,6 @@
-''' Our main menu + settings menu '''
+'''
+    Our main menu + settings menu
+'''
 
 import tkinter as tk
 import tkinter.font as tkfont
@@ -21,7 +23,8 @@ user_settings = {
 }
 
 # init globals
-frames_lapsed = 0
+game_not_started = True
+
 state = ""
 states_label = {
     "sound": False,
@@ -37,11 +40,11 @@ drag_point = {}
 current_drag_sprite = None
 picture_parent_directory = './menu_pics/'
 settings_file_name = 'settings.json'
-game_not_started = True
 window_width = 1600
 window_height = 800
 background_width = 2600
 
+frames_lapsed = 0
 TARGET_FPS = 30
 frame_period = 1.0/TARGET_FPS
 now = time()
@@ -60,7 +63,7 @@ class Sprite:
 
     def __init__(
         self, ID="?",x=0, y=0, width=0, height=0,
-        anchor=tk.NW, img_file=None, parent_frame=None
+        anchor=tk.CENTER, img_file=None, parent_frame=None
     ):
         self.ID = ID
         self.x = x + width * self.anchor_offsets[anchor]['x']
@@ -69,11 +72,9 @@ class Sprite:
         self.height = height
         self.image = tk.PhotoImage(file=img_file)
         self.instance = parent_frame.create_image(
-            x, y,
-            anchor=anchor,
-            image=self.image
+            x, y, anchor=anchor, image=self.image
         )
-        self.parent_frame=parent_frame
+        self.parent_frame = parent_frame
         self.last_movement_x = 0
         self.last_movement_y = 0
 
@@ -94,7 +95,9 @@ class DragableSprite(Sprite):
     def on_click(self, offset_x, offset_y):
         global current_drag_sprite
 
-        self.drag_point = {"x": offset_x, "y": offset_y}
+        self.drag_point = {'x': offset_x, 'y': offset_y}
+        self.last_movement_x = 0
+        self.last_movement_y = 0
 
         current_drag_sprite = self
 
@@ -137,8 +140,8 @@ b_background_instance_next =\
 
 my_objects.append(
     DragableSprite(
-        x=80,
-        y=500,
+        x=window_width*0.05,
+        y=window_height*0.63,
         width=65,
         height=97,
         img_file=picture_parent_directory+"b_planet_ring.png",
@@ -147,8 +150,8 @@ my_objects.append(
 )
 my_objects.append(
     DragableSprite(
-        x=1100,
-        y=50,
+        x=window_width*0.69,
+        y=window_height*0.06,
         width=57,
         height=57,
         img_file=picture_parent_directory+"b_planet.png",
@@ -157,8 +160,8 @@ my_objects.append(
 )
 my_objects.append(
     DragableSprite(
-        x=1400,
-        y=480,
+        x=window_width*0.88,
+        y=window_height*0.6,
         width=176,
         height=176,
         img_file=picture_parent_directory+"b_death_star.png",
@@ -167,27 +170,27 @@ my_objects.append(
 )
 my_objects.append(
     Sprite(
-        x=10,
-        y=230,
+        x=window_width*0.006,
+        y=window_height*0.3,
         img_file=picture_parent_directory+"1_title_image.png",
-        parent_frame=main_menu
+        parent_frame=main_menu,
+        anchor=tk.NW
     )
 )
 my_objects.append(
     PlayButton(
         x=window_width*0.5,
-        y=480,
+        y=window_height*0.6,
         width=228,
         height=100,
         img_file=picture_parent_directory+"m_play.png",
-        parent_frame=main_menu,
-        anchor=tk.CENTER
+        parent_frame=main_menu
     )
 )
 my_objects.append(
     SettingsButton(
-        x=715,
-        y=600,
+        x=window_width*0.5,
+        y=window_height*0.75,
         width=169,
         height=50,
         img_file=picture_parent_directory+"m_settings.png",
@@ -196,8 +199,8 @@ my_objects.append(
 )
 my_objects.append(
     ExitButton(
-        x=750,
-        y=680,
+        x=window_width*0.5,
+        y=window_height*0.85,
         width=100,
         height=50,
         img_file=picture_parent_directory+"m_exit.png",
@@ -291,7 +294,7 @@ def flip_sound_setting():
     sound_label.place(
         relx=0.5,
         rely=0.17,
-        width=window_width*0.07,
+        width=window_width*0.1,
         height=window_height*0.07,
         anchor=tk.CENTER
     )
@@ -364,14 +367,14 @@ def restart_fps_timer():
     ''' Resets the variables associated with fps waiting '''
     global frame_period, TARGET_FPS, now, next_frame_time
 
-    frame_period = 1.0/TARGET_FPS
+    frame_period = 1.0 / TARGET_FPS
     now = time()
     next_frame_time = now + frame_period
 
 def animate_background():
     ''' Animates stars and palnets on the background '''
     global b_background_instance, b_background_instance_next,\
-        frames_lapsed, frame_period, TARGET_FPS, now, next_frame_time
+        frames_lapsed, now, next_frame_time
 
     now = time()
     while now < next_frame_time:
@@ -379,28 +382,29 @@ def animate_background():
         now = time()
 
     next_frame_time = now + frame_period
-
     frames_lapsed += 1
 
     main_menu.move(b_background_instance, -1, 0)
     main_menu.move(b_background_instance_next, -1, 0)
 
-    if frames_lapsed >= 1300:
+    if frames_lapsed >= background_width / 2:
         # kinda reset
         main_menu.delete(b_background_instance)
         b_background_instance = b_background_instance_next
         b_background_instance_next = main_menu.create_image(
-            1300,
+            background_width/2,
             0,
             image=b_background,
             anchor=tk.NW
         )
         main_menu.lower(b_background_instance_next)
         frames_lapsed = 0
+
     # inertia implentation
     for obj in my_objects:
         if obj is not current_drag_sprite:
             obj.move(obj.last_movement_x, obj.last_movement_y)
+
     root.update()
 
 # make some preparations
@@ -418,7 +422,7 @@ tk.Button(
 ).place(
     relx=0.5,
     rely=0.1,
-    width=window_width*0.2,
+    width=window_width*0.15,
     height=window_height*0.07,
     anchor=tk.CENTER
 )
@@ -437,7 +441,7 @@ tk.Button(
     anchor=tk.CENTER
 )
 
-control_button_relx = 0.5
+#control_button_relx = 0.5
 control_button_rely = 0.3
 delta_rely = 0.07
 for key in user_settings:
@@ -448,7 +452,7 @@ for key in user_settings:
         text=key,
         command=change_state_to,
         function_arguments=(key),
-        relx=control_button_relx,
+        relx=0.5,
         rely=control_button_rely,
         button_width=window_width*0.1,
         button_height=window_height*delta_rely*0.9,
@@ -457,6 +461,7 @@ for key in user_settings:
         ID=key
     )
     control_button_rely += delta_rely
+
 
 root.bind("<Key>", on_key_press)
 main_menu.bind("<Button-1>", press_button_main_menu)
