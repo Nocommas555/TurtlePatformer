@@ -289,10 +289,11 @@ class Sprite(PhysicsObject, AnimStateSystem):
         self.parent_canvas.delete(self.image_tk)
         chelone.remove_sprite(self)
 
+    def update_active(self):
+        self.active = abs(self.x-chelone.camera.x)<SIMILATION_RADIUS
+
     def update_all(self):
         '''function to call everything that needs to be updated in a frame'''
-
-        self.active = abs(self.x-chelone.camera.x)<SIMILATION_RADIUS
 
         if self.active:
             self.update()
@@ -458,6 +459,8 @@ class SpriteRenderer():
             sleep(self.next_frame - self.now)
             self.now = time()
 
+
+        advance_phys_simulation()
         for layer in self._sprites:
             for sprite in layer.values():
                 sprite.update_all()
@@ -475,7 +478,6 @@ class SpriteRenderer():
         self.next_frame += self.frame_period
 
         check_keys()
-        advance_phys_simulation()
 
     def get_unique_id(self, id: str):
         '''returns an unique id'''

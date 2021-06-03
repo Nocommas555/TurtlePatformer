@@ -299,14 +299,14 @@ def start_level(root = None):
 
     loader = SpriteLoader()
 
-    Player("Player", loader.load("tmp.png"), gravity=-1, x=400, y=400, layer=10, state_anim_directory="anakin")
+    Player("Player", loader.load("tmp.png"), gravity=-1, x=400, y=300, layer=10, state_anim_directory="anakin")
 
     if chelone.settings["sound"]:
         import sound
         playsound = sound.playsound
         sound_finished = sound.sound_finished
 
-    level_generator(obj_quantity=30)
+    level_generator(obj_quantity=50)
 
     background_sound("background", loader.load("clear.png"), phys_type="inmovable", sound="sounds/imperial_march.wav")
 

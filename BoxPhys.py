@@ -15,7 +15,7 @@ queueWriteLock = threading.Lock()
 THREADS = 8
 
 # depth of area on the edges the box collier in which the objects are displaced
-COLLIDER_ACTIVE_BOUNDARY = 300
+COLLIDER_ACTIVE_BOUNDARY = 100
 SIMILATION_RADIUS = 3000
 
 
@@ -244,6 +244,9 @@ def get_collision_displacement(my_collider, other_collider):
 
 def _colliders_intersect(A: Collider, B: Collider):
     # check if starting point of one rectangle is within projection another on x
+    if not A.parent.active or not B.parent.active:
+        return False
+
     A_SW, A_NE = A.SW(), A.NE()
     B_SW, B_NE = B.SW(), B.NE()
 
@@ -256,7 +259,7 @@ def _handle_single_obj_collision(obj: Collider, arr: list):
     after_us = False
     for obj2 in arr:
 
-        if after_us and obj2.parent.active:
+        if after_us:
             if _colliders_intersect(obj, obj2):
                 disp = get_collision_displacement(obj,obj2)
                 with queueWriteLock:
@@ -295,7 +298,7 @@ def advance_phys_simulation():
 
     for t in threads:
         t.join()
-    #waits until all threads die
+
     while len(_main_thread_calls)>0:
 
         with queueWriteLock:
