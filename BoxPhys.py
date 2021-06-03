@@ -2,9 +2,17 @@
 BoxPhys is an open-source lightweight 2d physics engine.
 It has support for 2d box colliders, velocities, gravity and trigger hitboxes.
 '''
+import threading
+import math
+import queue
+
 physics_objects = []
 colliders = []
 _removing = []
+
+_main_thread_calls = []
+queueWriteLock = threading.Lock()
+THREADS = 8
 
 # depth of area on the edges the box collier in which the objects are displaced
 COLLIDER_ACTIVE_BOUNDARY = 300
@@ -88,7 +96,11 @@ class PhysicsObject():
         if self.type != "immovable":
             self.vel.x += x
             self.vel.y += y
-
+    
+    def update_active(self):
+        pass
+    
+    
     def delete_self(self):
         '''removes this object on the next frame'''
         remove_phys_obj(self)
@@ -98,7 +110,7 @@ class PhysicsObject():
         pass
 
     def handle_collision(self, collided_obj,
-                         my_collider, other_collider, handled=False):
+                         my_collider, other_collider, handled=False, displacement = None):
         '''handles a collision with another object'''
 
         # don't collide with self. allows overlapping hitboxes
@@ -110,8 +122,8 @@ class PhysicsObject():
             return
 
         if not handled and other_collider.type != "trigger":
-
-            displacement = get_collision_displacement(my_collider, other_collider)
+            if displacement is None:
+                displacement = get_collision_displacement(my_collider, other_collider)
 
             # nullify velocities in the direction of collision
             if displacement[0] != 0:
@@ -205,7 +217,6 @@ class Collider():
 def get_collision_displacement(my_collider, other_collider):
     '''return by how much this object should be displaced in order to move it outside the collided object'''
     global COLLIDER_ACTIVE_BOUNDARY
-
     top_dist = my_collider.bottom_edge()-other_collider.top_edge()
     bottom_dist = other_collider.bottom_edge() - my_collider.top_edge()
     right_dist = my_collider.right_edge() - other_collider.left_edge()
@@ -245,29 +256,55 @@ def _handle_single_obj_collision(obj: Collider, arr: list):
     after_us = False
     for obj2 in arr:
 
-        if after_us:
+        if after_us and obj2.parent.active:
             if _colliders_intersect(obj, obj2):
-                obj.parent.handle_collision(obj2.parent, obj, obj2, True)
-                obj2.parent.handle_collision(obj.parent, obj2, obj, False)
+                disp = get_collision_displacement(obj,obj2)
+                with queueWriteLock:
+                    add_func_1 = [obj.parent.handle_collision, (obj2.parent, obj, obj2, False, disp)]
+                    add_func_2 = [obj2.parent.handle_collision, (obj.parent, obj2, obj, True, [-disp[0], -disp[1]])]
+                    _main_thread_calls.append(add_func_1)
+                    _main_thread_calls.append(add_func_2)
         else:
             after_us = obj2 is obj
 
-def _handle_all_collisions(arr: list):
+def _handle_all_collisions(arr: list, start:int=0, end:int=None):
     '''looks at all box colliders, calls their parents to resolve any intersections'''
     # compare every element in rect list to every next element
     # which gives us total of (n-1)^2 / 2 number of comparisons
-    for obj in arr:
+    for obj in arr[start:end]:
         if obj.parent.active:
-            _handle_single_obj_collision(obj, arr)
-
+          _handle_single_obj_collision(obj, arr[start:])
 
 
 def advance_phys_simulation():
     '''advances the physics simulation by 1 frame'''
     for obj in physics_objects:
         obj.advance_simulation()
+        obj.update_active()
+        
+    array_part_len = math.floor(len(colliders)/THREADS)
+    threads = []
+    for i in range(THREADS):
+        start = i*array_part_len
+        if i!=THREADS-1:
+            end = (i+1)*(array_part_len)-1
+        else:
+            end = None
+        threads.append(threading.Thread(target = lambda:_handle_all_collisions(colliders, start, end)))
+        threads[-1].start()
 
-    _handle_all_collisions(colliders)
+    for t in threads:
+        t.join()
+    #waits until all threads die
+    while len(_main_thread_calls)>0:
+
+        with queueWriteLock:
+            callback = _main_thread_calls[-1]
+            _main_thread_calls.pop(-1)
+        
+        callback[0](*callback[1])
+
+
     _remove_phys_obj()
 
 
