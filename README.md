@@ -1,4 +1,4 @@
-## TurtlePatformer
+## TurtlePlatformer
 
 <img align="center" alt="Title" width="100%" src="readme/title.png" />
 
