@@ -291,6 +291,9 @@ class Sprite(PhysicsObject, AnimStateSystem):
 
     def update_active(self):
         self.active = abs(self.x-chelone.camera.x)<SIMILATION_RADIUS
+        if not self.active and len(self.colliders)>0:
+            self.active = abs(self.x + next(iter(self.colliders.values())).width-chelone.camera.x)<SIMILATION_RADIUS
+
 
     def update_all(self):
         '''function to call everything that needs to be updated in a frame'''
