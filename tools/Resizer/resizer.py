@@ -163,10 +163,12 @@ class Bmp:
 
         resized_result = []
         for i in range(self.height):
-            for rn in range(coef):
+            # for every additional pixel row
+            for _ in range(coef):
                 resized_result.append([])
                 for j in range(self.width):
-                    for cn in range(coef):
+                    # for every additional pixel
+                    for _ in range(coef):
                         # copy pixel from original image
                         resized_result[-1].append(self.matrix[i][j])
 
@@ -279,7 +281,7 @@ class Bmp:
             for pixel in row:
                 destination.write(bytearray(pixel))
             # compensate bmp pixels shift
-            for k in range(len(row) % 4):
+            for _ in range(len(row) % 4):
                 destination.write(int(0).to_bytes(1, byteorder='little'))
 
 
@@ -314,5 +316,6 @@ def resize_image(
 
 
 # execution
-with open("./test.bmp", "rb+") as input_image_file:
-    resize_image(input_image_file, 2, "bilinear")
+if __name__ == '__main__':
+    with open("./test.bmp", "rb+") as input_image_file:
+        resize_image(input_image_file, 2, "bilinear")
