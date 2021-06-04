@@ -1,6 +1,9 @@
-[
-	{"width":1000, "block_quantity":5, "droid_quantity": 2},
-	{"width":800,  "block_quantity":3, "droid_quantity": 3},
-	{"width":1200,  "block_quantity":4, "droid_quantity": 4},
-	{"width":900,  "block_quantity":5, "droid_quantity": 2}
-]
+{
+"patterns":[
+	{"width":1000, "block_quantity":4, "droid_quantity": 1, "lowerboxlayer":26, "upperboxlayer":26, "blockstart_x":100, "droidstart_x":90, "patrol_range_offset":100, "patrol_range_size": 200, "upperblock_x":50, "upperblock_y":-135, "lowerblock_x":0, "lowerblock_y":-60,"droidspawn_offset": 300},
+	{"width":800,  "block_quantity":2, "droid_quantity": 3, "lowerboxlayer":26, "upperboxlayer":26, "blockstart_x":100, "droidstart_x":90, "patrol_range_offset":100, "patrol_range_size": 200, "upperblock_x":50, "upperblock_y":-135, "lowerblock_x":0, "lowerblock_y":-60,"droidspawn_offset": 300},
+	{"width":1200,  "block_quantity":3, "droid_quantity": 1, "lowerboxlayer":26, "upperboxlayer":26, "blockstart_x":100, "droidstart_x":90, "patrol_range_offset":100, "patrol_range_size": 200, "upperblock_x":50, "upperblock_y":-135, "lowerblock_x":0, "lowerblock_y":-60,"droidspawn_offset": 300},
+	{"width":900,  "block_quantity":4, "droid_quantity": 3, "lowerboxlayer":26, "upperboxlayer":26, "blockstart_x":100, "droidstart_x":90, "patrol_range_offset":100, "patrol_range_size": 200, "upperblock_x":50, "upperblock_y":-135, "lowerblock_x":0, "lowerblock_y":-60,"droidspawn_offset": 300}
+],
+"global_settings":{"ground_width":2560, "ground_sprite":"gnd.png"}	
+}

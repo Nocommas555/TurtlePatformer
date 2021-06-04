@@ -248,26 +248,34 @@ class background_sound(Sprite):
         '''stop this class from unloading'''
         pass
 
-def droid_generator(droid_x, droid_quantity):
+def droid_generator(droid_x, sector_settings):
     '''generates multiple droids'''
     loader = SpriteLoader()
 
-    for i in range(1, droid_quantity):
-        patrol_range = [droid_x + 100, droid_x + 200]
-        Droid("Droid", loader.load("droid.png"), patrol_range=patrol_range, speed=1.3, state_anim_directory="droid")
-        droid_x += 90
+    for i in range(sector_settings["droid_quantity"]):
+        patrol_range_start = droid_x + sector_settings["patrol_range_offset"]
+        patrol_range_end = droid_x + sector_settings["patrol_range_size"]
+        patrol_range = [patrol_range_start, patrol_range_end]
+        Droid("Droid", loader.load("droid.png"), patrol_range=patrol_range, speed=1, state_anim_directory="droid")
+        droid_x += sector_settings["droidstart_x"]
 
 
-def block_generator(block_x, block_quantity, ground_y):
+def block_generator(block_x, sector_settings, ground_y):
     '''generates a block pile'''
     loader = SpriteLoader()
+    
+    upperspawn_y = ground_y + sector_settings["upperblock_y"] 
+    lowerspawn_y = ground_y + sector_settings["lowerblock_y"]
+    upperlayer = sector_settings["upperboxlayer"]
+    lowerlayer = sector_settings["lowerboxlayer"]
+    
+    for i in range(sector_settings["block_quantity"] - 1):
+        upperspawn_x = block_x + sector_settings["upperblock_x"]
+        Sprite("Block", loader.load("box.png"), phys_type="immovable", x=block_x, y=lowerspawn_y, layer=lowerlayer)
+        Sprite("Block", loader.load("box.png"), phys_type="immovable", x=upperspawn_x, y=upperspawn_y)
+        block_x += sector_settings["blockstart_x"] 
 
-    for i in range(1, block_quantity - 1):
-        Sprite("Block", loader.load("box.png"), phys_type="immovable", x=block_x, y=ground_y - 60, layer=26)
-        Sprite("Block", loader.load("box.png"), phys_type="immovable", x=block_x + 50, y=ground_y - 135)
-        block_x += 100
-
-    Sprite("Block", loader.load("box.png"), phys_type="immovable", x=block_x, y=ground_y - 60, layer=26)
+    Sprite("Block", loader.load("box.png"), phys_type="immovable", x=block_x, y=lowerspawn_y, layer=lowerlayer)
 
 def level_generator(start_x=0, obj_quantity=1, ground_y=650):
     '''generating simple levels from patterns found in level_patterns.json'''
@@ -281,17 +289,20 @@ def level_generator(start_x=0, obj_quantity=1, ground_y=650):
     b = 0
     i = 0
     obj_x = 0
+    ground_width = pattern["global_settings"]["ground_width"]
+    ground_sprite_name = pattern["global_settings"]["ground_sprite"]
 
     while b < obj_quantity:
-        selected_sector = pattern[random.randint(0, len(pattern) - 1)]
+        random_index = random.randint(0, len(pattern["patterns"]) - 1)
+        selected_sector = pattern["patterns"][random_index]
         obj_x += selected_sector["width"]
-        block_generator(obj_x, selected_sector["block_quantity"], ground_y)
-        droid_generator(obj_x + 300, selected_sector["droid_quantity"])
+        block_generator(obj_x, selected_sector, ground_y)
+        droid_generator(obj_x + selected_sector["droidspawn_offset"], selected_sector)
         b += 1
 
-    while i < math.ceil(obj_x/2560.0):
-        Sprite("Ground", loader.load("gnd.png"), phys_type="immovable", x=start_x, y=ground_y, layer=49)
-        start_x += 2560
+    while i < math.ceil(obj_x/float(ground_width)):
+        Sprite("Ground", loader.load(ground_sprite_name), phys_type="immovable", x=start_x, y=ground_y, layer=49)
+        start_x += ground_width
         i += 1
 
 
@@ -324,7 +335,6 @@ def start_level(root=None):
         chelone.advance_frame()
         endTime = time()
         elapsedTime = endTime - startTime
-        #print(1./elapsedTime)
         fps_tracker.config(text=str(int(1./elapsedTime)))
 
 
