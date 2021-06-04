@@ -1,4 +1,6 @@
-''' Program used to resize bmp images '''
+'''
+    Program used to resize bmp images
+'''
 
 #     BMP headers strcucture
 #
@@ -22,7 +24,6 @@
 #     # Important Colors (50-53)
 
 
-# define some helpful functions to avoid code repeating
 def read_int_from_bytes(pos, num_of_bytes, file):
     ''' Reads given number of bytes at a given position,
         and returns corresponding integer '''
@@ -39,11 +40,7 @@ def write_bytes_from_int(pos, num_of_bytes, int_data, destination):
 
 
 def calculate_pixel_colors_bilinear(
-        org_row,
-        org_column,
-        delta_row,
-        delta_column,
-        pixel_matrix
+        org_row, org_column, delta_row, delta_column, pixel_matrix
     ):
     ''' Function used to calculate pixel`s
         color values based on it`s position
@@ -112,7 +109,7 @@ class Bmp:
         self.colors_used        = read_int_from_bytes(46, 4, my_file)
         self.important_colors   = read_int_from_bytes(50, 4, my_file)
         self.color_table        = my_file.read(self.offset - 54)
-        self.matrix = self.form_pixel_matrix(my_file)
+        self.matrix             = self.form_pixel_matrix(my_file)
 
     def form_pixel_matrix(self, my_file):
         ''' Forms matrix of bytearrays,
@@ -288,9 +285,7 @@ class Bmp:
 
 # main resizing function
 def resize_image(
-    file_bmp=open("./test.bmp", "rb+"),
-    coef=1,
-    method="pixel"
+    file_bmp=open("./test.bmp", "rb+"), coef=1, method="pixel"
 ):
     ''' Resizes image based on given
         image, coefficient, and method '''
@@ -314,9 +309,9 @@ def resize_image(
             resulting_file
         )
 
-
         print("\nResulting image:")
         Bmp(resulting_file).print_info()
+
 
 # execution
 with open("./test.bmp", "rb+") as input_image_file:

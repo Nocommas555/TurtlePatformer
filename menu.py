@@ -25,7 +25,6 @@ user_settings = {
 # init globals
 game_not_started = True
 
-state = ""
 states_label = {
     "sound": False,
     "jump": None,
@@ -35,6 +34,7 @@ states_label = {
     "force": None,
     "atack": None
 }
+state = ""
 my_objects = []
 drag_point = {}
 current_drag_sprite = None
@@ -62,7 +62,7 @@ class Sprite:
     }
 
     def __init__(
-        self, ID="?",x=0, y=0, width=0, height=0,
+        self, ID="?", x=0, y=0, width=0, height=0,
         anchor=tk.CENTER, img_file=None, parent_frame=None
     ):
         self.ID = ID
@@ -128,15 +128,19 @@ root.geometry(str(window_width)+'x'+str(window_height))
 main_menu = tk.Canvas(root, bg="black")
 main_menu.pack(fill=tk.BOTH, expand=1)
 
-settings_frame =\
-    tk.Frame(root, width=window_width, height=window_height, bg="black")
+settings_frame = tk.Frame(
+    root, width=window_width, height=window_height, bg="black"
+)
 
-b_background =\
-    tk.PhotoImage(file=picture_parent_directory+"b_background.png")
-b_background_instance =\
-    main_menu.create_image(0, 0, image=b_background, anchor=tk.NW)
-b_background_instance_next =\
-    main_menu.create_image(background_width/2, 0, image=b_background, anchor=tk.NW)
+b_background = tk.PhotoImage(
+    file=picture_parent_directory+"b_background.png"
+)
+b_background_instance = main_menu.create_image(
+    0, 0, image=b_background, anchor=tk.NW
+)
+b_background_instance_next = main_menu.create_image(
+    background_width/2, 0, image=b_background, anchor=tk.NW
+)
 
 my_objects.append(
     DragableSprite(
@@ -247,7 +251,6 @@ def press_button_main_menu(event):
     for obj in my_objects:
         if obj.x < event.x < obj.x + obj.width\
         and obj.y < event.y < obj.y + obj.height:
-            print("e")
             obj.on_click(obj.x - event.x,obj.y - event.y)
 
 def drag_sprite(event):
@@ -259,10 +262,9 @@ def drag_sprite(event):
                     event.x + obj.drag_point["x"] - obj.x,
                     event.y + obj.drag_point["y"] - obj.y
                 )
-                print(obj.last_movement_x, obj.last_movement_y)
 
 def release_sprite(event): # noqa , parameter event needed for callback signature
-    ''' Stops current movable sprite from moving when unclicked'''
+    ''' Stops current movable sprite from moving when unclicked '''
     global current_drag_sprite
 
     current_drag_sprite = None
@@ -441,7 +443,6 @@ tk.Button(
     anchor=tk.CENTER
 )
 
-#control_button_relx = 0.5
 control_button_rely = 0.3
 delta_rely = 0.07
 for key in user_settings:
@@ -474,4 +475,4 @@ while game_not_started:
     animate_background()
     endTime = time()
     elapsedTime = endTime - startTime
-    print(1./elapsedTime)
+    print(1.0/elapsedTime)
