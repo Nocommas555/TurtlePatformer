@@ -213,7 +213,7 @@ class Droid(Sprite):
 
     def handle_trigger(self, collided_obj, my_collider, other_collider):
 
-        if isinstance(collided_obj, Player) and not isinstance(collided_obj, Droid):
+        if isinstance(collided_obj, Player):
             if self.shooting_cooldown >= self.shooting_cooldown_limit:
                 self.shooting_cooldown = 0
                 if my_collider.id == "left_search":
