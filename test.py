@@ -263,17 +263,17 @@ def droid_generator(droid_x, sector_settings):
 def block_generator(block_x, sector_settings, ground_y):
     '''generates a block pile'''
     loader = SpriteLoader()
-    
-    upperspawn_y = ground_y + sector_settings["upperblock_y"] 
+
+    upperspawn_y = ground_y + sector_settings["upperblock_y"]
     lowerspawn_y = ground_y + sector_settings["lowerblock_y"]
     upperlayer = sector_settings["upperboxlayer"]
     lowerlayer = sector_settings["lowerboxlayer"]
-    
+
     for i in range(sector_settings["block_quantity"] - 1):
         upperspawn_x = block_x + sector_settings["upperblock_x"]
         Sprite("Block", loader.load("box.png"), phys_type="immovable", x=block_x, y=lowerspawn_y, layer=lowerlayer)
         Sprite("Block", loader.load("box.png"), phys_type="immovable", x=upperspawn_x, y=upperspawn_y)
-        block_x += sector_settings["blockstart_x"] 
+        block_x += sector_settings["blockstart_x"]
 
     Sprite("Block", loader.load("box.png"), phys_type="immovable", x=block_x, y=lowerspawn_y, layer=lowerlayer)
 
