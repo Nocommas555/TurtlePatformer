@@ -87,34 +87,43 @@ def calculate_pixel_colors_bilinear(
     return resulting_pixel
 
 
+class PieceOfHeader:
+    def __init__(self, pos, length, file_bmp):
+        file_bmp.seek(pos, 0)
+        self.pos = pos
+        self.length = length
+        self.bytes = file_bmp.read(length)
+        self.int = read_int_from_bytes(pos, length, file_bmp)
+
+
 class Bmp:
     ''' Class with main info about given bmp picture
         and functional to modify it '''
     def __init__(self, my_file):
         ''' Gets info from sample header '''
         my_file.seek(0, 0)
-        self.signature          = my_file.read(2)
-        self.file_size          = read_int_from_bytes(2, 4, my_file)
-        self.reserved           = read_int_from_bytes(6, 4, my_file)
-        self.offset             = read_int_from_bytes(10, 4, my_file)
-        self.size               = read_int_from_bytes(14, 4, my_file)
-        self.width              = read_int_from_bytes(18, 4, my_file)
-        self.height             = read_int_from_bytes(22, 4, my_file)
-        self.planes             = read_int_from_bytes(26, 2, my_file)
-        self.bits_per_pixel     = read_int_from_bytes(28, 2, my_file)
-        self.compression        = read_int_from_bytes(30, 4, my_file)
-        self.image_size         = read_int_from_bytes(34, 4, my_file)
-        self.x_pixels_per_m     = read_int_from_bytes(38, 4, my_file)
-        self.y_pixels_per_m     = read_int_from_bytes(42, 4, my_file)
-        self.colors_used        = read_int_from_bytes(46, 4, my_file)
-        self.important_colors   = read_int_from_bytes(50, 4, my_file)
-        self.color_table        = my_file.read(self.offset - 54)
+        self.signature          = PieceOfHeader(0, 2, my_file)
+        self.file_size          = PieceOfHeader(2, 4, my_file)
+        self.reserved           = PieceOfHeader(6, 4, my_file)
+        self.offset             = PieceOfHeader(10, 4, my_file)
+        self.size               = PieceOfHeader(14, 4, my_file)
+        self.width              = PieceOfHeader(18, 4, my_file)
+        self.height             = PieceOfHeader(22, 4, my_file)
+        self.planes             = PieceOfHeader(26, 2, my_file)
+        self.bits_per_pixel     = PieceOfHeader(28, 2, my_file)
+        self.compression        = PieceOfHeader(30, 4, my_file)
+        self.image_size         = PieceOfHeader(34, 4, my_file)
+        self.x_pixels_per_m     = PieceOfHeader(38, 4, my_file)
+        self.y_pixels_per_m     = PieceOfHeader(42, 4, my_file)
+        self.colors_used        = PieceOfHeader(46, 4, my_file)
+        self.important_colors   = PieceOfHeader(50, 4, my_file)
+        self.color_table        = my_file.read(self.offset.int - 54)
         self.matrix             = self.form_pixel_matrix(my_file)
 
     def form_pixel_matrix(self, my_file):
         ''' Forms matrix of bytearrays,
             every bytearray is a pixel in BGR format '''
-        my_file.seek(self.offset, 0)
+        my_file.seek(self.offset.int, 0)
         result = []
 
         for i in range(self.height):
@@ -128,7 +137,7 @@ class Bmp:
         ''' Updates some Bmp object`s fields
             to actual values '''
 
-        self.file_size = self.file_size\
+        self.file_size.int = self.file_size.int\
             + 3*(new_width*new_height-self.width*self.height)
         self.width = new_width
         self.height = new_height
@@ -211,27 +220,27 @@ class Bmp:
     def print_info(self):
         ''' Prints headers into console '''
         print("\n\tHeader")
-        print("Signature\t", self.signature)
-        print("FileSize\t", self.file_size, "bits")
-        print("reserved\t", self.reserved)
-        print("DataOffset\t", self.offset)
+        print("Signature\t", self.signature.bytes)
+        print("FileSize\t", self.file_size.int, "bits")
+        print("reserved\t", self.reserved.int)
+        print("DataOffset\t", self.offset.int)
 
         print("\n\tInfoHeader")
-        print("Size\t\t", self.size)
-        print("Width\t\t", self.width)
-        print("Height\t\t", self.height)
-        print("Bits Per Pixel\t", self.bits_per_pixel)
-        print("Compression\t", self.compression)
-        print("ImageSize\t", self.image_size)
-        print("XpixelsPerM\t", self.x_pixels_per_m)
-        print("YpixelsPerM\t", self.y_pixels_per_m)
-        print("Colors Used\t", self.colors_used)
-        print("Impotant Colors\t", self.important_colors)
+        print("Size\t\t", self.size.int)
+        print("Width\t\t", self.width.int)
+        print("Height\t\t", self.height.int)
+        print("Bits Per Pixel\t", self.bits_per_pixel.int)
+        print("Compression\t", self.compression.int)
+        print("ImageSize\t", self.image_size.int)
+        print("XpixelsPerM\t", self.x_pixels_per_m.int)
+        print("YpixelsPerM\t", self.y_pixels_per_m.int)
+        print("Colors Used\t", self.colors_used.int)
+        print("Impotant Colors\t", self.important_colors.int)
 
     def print_color_table(self):
         ''' Prints colortable into console '''
         print("\n\tColorTable")
-        for i in range(int((self.offset-54)/4)):
+        for _ in range(int((self.offset.int-54)/4)):
             print(self.color_table.read(4))
 
     def print_image(self):
@@ -243,40 +252,40 @@ class Bmp:
         ''' Writes updated image to a new file '''
         # Signature (0-1)
         destination.seek(0, 0)
-        destination.write(self.signature)
+        destination.write(self.signature.bytes)
         # FileSize (2-5)
-        write_bytes_from_int(2, 4, self.file_size, destination)
+        write_bytes_from_int(2, 4, self.file_size.int, destination)
         # reserved (6-9)
-        write_bytes_from_int(6, 4, self.reserved, destination)
+        write_bytes_from_int(6, 4, self.reserved.int, destination)
         # DataOffset (10-13)
-        write_bytes_from_int(10, 4, self.offset, destination)
+        write_bytes_from_int(10, 4, self.offset.int, destination)
         # Size (of info header) (14-17), defaults to 40
         write_bytes_from_int(14, 4, 40, destination)
         # Width (18-21)
-        write_bytes_from_int(18, 4, self.width, destination)
+        write_bytes_from_int(18, 4, self.width.int, destination)
         # Height (22-25)
-        write_bytes_from_int(22, 4, self.height, destination)
+        write_bytes_from_int(22, 4, self.height.int, destination)
         # Planes (26-27)
-        write_bytes_from_int(26, 2, self.planes, destination)
+        write_bytes_from_int(26, 2, self.planes.int, destination)
         # Bits Per Pixel (28-29)
-        write_bytes_from_int(28, 2, self.bits_per_pixel, destination)
+        write_bytes_from_int(28, 2, self.bits_per_pixel.int, destination)
         # Compression (30-33), as we don`t compress our images it`s 0
         write_bytes_from_int(30, 4, 0, destination)
         # (compressed) ImageSize (34-37), defaults to 0
         write_bytes_from_int(34, 4, 0, destination)
         # XpixelsPerM (38-41)
-        write_bytes_from_int(38, 4, self.x_pixels_per_m, destination)
+        write_bytes_from_int(38, 4, self.x_pixels_per_m.int, destination)
         # YpixelsPerM (42-45)
-        write_bytes_from_int(42, 4, self.y_pixels_per_m, destination)
+        write_bytes_from_int(42, 4, self.y_pixels_per_m.int, destination)
         # Colors Used (46-49)
-        write_bytes_from_int(46, 4, self.colors_used, destination)
+        write_bytes_from_int(46, 4, self.colors_used.int, destination)
         # Important Colors (50-53)
-        write_bytes_from_int(50, 4, self.important_colors, destination)
+        write_bytes_from_int(50, 4, self.important_colors.int, destination)
         # Color Map (54-end_of_offset)
         destination.seek(54, 0)
         destination.write(self.color_table)
 
-        destination.seek(self.offset, 0)
+        destination.seek(self.offset.int, 0)
         for row in self.matrix:
             for pixel in row:
                 destination.write(bytearray(pixel))
