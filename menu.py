@@ -26,6 +26,10 @@ user_settings = {
 # init globals
 game_not_started = True
 
+sprite_objects = []
+current_drag_sprite = None
+drag_point = {}
+
 states_label = {
     "sound": False,
     "jump": None,
@@ -36,9 +40,7 @@ states_label = {
     "atack": None
 }
 active_managable_setting = ""
-sprite_objects = []
-drag_point = {}
-current_drag_sprite = None
+
 PICTURE_PARENT_DIRECTORY = './menu_pics/'
 SETTINGS_FILENAME = 'settings.json'
 
@@ -46,9 +48,9 @@ WINDOW_WIDTH = 1600
 WINDOW_HEIGHT = 800
 BACKGROUND_WIDTH = 2600
 
-frames_lapsed = 0
 TARGET_FPS = 30
 frame_period = 1.0/TARGET_FPS
+frames_lapsed = 0
 now = time()
 next_frame_time = now + frame_period
 
@@ -92,6 +94,9 @@ class Sprite:
         self.last_movement_x = dx
         self.last_movement_y = dy
 
+class BackgroundSprite(Sprite):
+    
+
 class DragableSprite(Sprite):
     ''' Sprites which you can move with mouse '''
     def on_click(self, offset_x, offset_y):
@@ -134,14 +139,19 @@ settings_frame = tk.Frame(
     root, width=WINDOW_WIDTH, height=WINDOW_HEIGHT, bg="black"
 )
 
-b_background = tk.PhotoImage(
-    file=PICTURE_PARENT_DIRECTORY+"b_background.png"
+b_background_sprite = Sprite(
+    x=0,
+    y=0,
+    img_file=PICTURE_PARENT_DIRECTORY+'b_background.png',
+    anchor=tk.NW,
+    parent_frame=main_menu_frame
 )
-b_background_instance = main_menu_frame.create_image(
-    0, 0, image=b_background, anchor=tk.NW
-)
-b_background_instance_next = main_menu_frame.create_image(
-    BACKGROUND_WIDTH/2, 0, image=b_background, anchor=tk.NW
+b_background_sprite_next = Sprite(
+    x=BACKGROUND_WIDTH/2,
+    y=0,
+    img_file=PICTURE_PARENT_DIRECTORY+'b_background.png',
+    anchor=tk.NW,
+    parent_frame=main_menu_frame
 )
 
 sprites_properties = {
@@ -203,14 +213,16 @@ sprites_properties = {
         }
 }
 for sprite_name in sprites_properties:
-    s_property = sprites_properties[sprite_name]
+    sprite_property = sprites_properties[sprite_name]
+    img_location = PICTURE_PARENT_DIRECTORY+sprite_name+'.png'
+
     sprite_objects.append(
-        s_property['class'](
-            x=s_property['x'],
-            y=s_property['y'],
-            width=s_property['width'],
-            height=s_property['height'],
-            img_file=PICTURE_PARENT_DIRECTORY+sprite_name+'.png',
+        sprite_property['class'](
+            x=sprite_property['x'],
+            y=sprite_property['y'],
+            width=sprite_property['width'],
+            height=sprite_property['height'],
+            img_file=img_location,
             parent_frame=main_menu_frame
         )
     )
@@ -250,7 +262,7 @@ def change_frame(this_frame, next_frame):
     next_frame.pack(fill=tk.BOTH, expand=1)
     root.update()
 
-def press_button_main_menu(event):
+def click_on_sprite_main_menu(event):
     ''' Detects if user clicked on sprite in main menu '''
     for obj in sprite_objects:
         if obj.x < event.x < obj.x + obj.width\
@@ -319,7 +331,7 @@ def on_key_press(event):
     else:
         return
 
-def change_state_to(state_parameter):
+def update_manage_setting(state_parameter):
     ''' Detects which action is changes control key '''
     global active_managable_setting
 
@@ -327,17 +339,11 @@ def change_state_to(state_parameter):
 
 def add_button_with_label(
     master=settings_frame,
-    text="?",
-    font=regular_font,
-    foreground="blue",
-    command=None,
-    function_arguments=(),
-    relx=0.5,
-    rely=0.5,
-    button_width=150,
-    button_height=50,
-    label_width=150,
-    label_height=50,
+    text="?", font=regular_font, foreground="blue",
+    command=None, function_arguments=(),
+    relx=0.5, rely=0.5,
+    button_width=150, button_height=50,
+    label_width=150, label_height=50,
     anchor=tk.CENTER,
     ID="unnamed"
 ):
@@ -349,7 +355,7 @@ def add_button_with_label(
         fg=foreground,
         command=functools.partial(command, function_arguments)
     ).place(
-        relx=relx-button_width/WINDOW_WIDTH/2,
+        relx=(relx-button_width/WINDOW_WIDTH)/2,
         rely=rely,
         width=button_width,
         height=button_height,
@@ -362,7 +368,7 @@ def add_button_with_label(
         fg=foreground,
     )
     states_label[ID].place(
-        relx=relx*1.01+button_width/WINDOW_WIDTH/2,
+        relx=relx*1.01+(button_width/WINDOW_WIDTH)/2,
         rely=rely*1.01,
         width=label_width,
         height=label_height,
@@ -378,7 +384,7 @@ def restart_fps_timer():
 
 def animate_background():
     ''' Animates stars and palnets on the background '''
-    global b_background_instance, b_background_instance_next,\
+    global b_background_sprite, b_background_sprite_next,\
         frames_lapsed, now, next_frame_time
 
     now = time()
@@ -389,17 +395,21 @@ def animate_background():
     next_frame_time = now + frame_period
     frames_lapsed += 1
 
-    for image in (b_background_instance, b_background_instance_next):
-        main_menu_frame.move(image, -1, 0)
+    for image in (b_background_sprite, b_background_sprite_next):
+        image.move(-1, 0)
 
     if frames_lapsed >= BACKGROUND_WIDTH / 2:
         # kinda reset
-        main_menu_frame.delete(b_background_instance)
-        b_background_instance = b_background_instance_next
-        b_background_instance_next = main_menu_frame.create_image(
-            BACKGROUND_WIDTH/2, 0, image=b_background, anchor=tk.NW
+
+        b_background_sprite = b_background_sprite_next
+        b_background_sprite_next = Sprite(
+            x=BACKGROUND_WIDTH/2,
+            y=0,
+            img_file=PICTURE_PARENT_DIRECTORY+'b_background.png',
+            anchor=tk.NW,
+            parent_frame=main_menu_frame
         )
-        main_menu_frame.lower(b_background_instance_next)
+        main_menu_frame.lower(b_background_sprite_next.instance)
         frames_lapsed = 0
 
     # inertia implentation
@@ -451,7 +461,7 @@ for key in user_settings:
 
     add_button_with_label(
         text=key,
-        command=change_state_to,
+        command=update_manage_setting,
         function_arguments=(key),
         relx=0.5,
         rely=control_button_rely,
@@ -465,7 +475,7 @@ for key in user_settings:
 
 
 bind_dict = {
-    '<Button-1>': press_button_main_menu,
+    '<Button-1>': click_on_sprite_main_menu,
     '<B1-Motion>': drag_sprite,
     '<B1-ButtonRelease>': release_sprite
 }
