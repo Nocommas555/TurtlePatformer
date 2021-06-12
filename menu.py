@@ -48,7 +48,7 @@ WINDOW_WIDTH = 1600
 WINDOW_HEIGHT = 800
 BACKGROUND_WIDTH = 2600
 
-TARGET_FPS = 30
+TARGET_FPS = 300
 frame_period = 1.0/TARGET_FPS
 frames_lapsed = 0
 now = time()
@@ -93,8 +93,6 @@ class Sprite:
         self.y += dy
         self.last_movement_x = dx
         self.last_movement_y = dy
-
-class BackgroundSprite(Sprite):
     
 
 class DragableSprite(Sprite):
@@ -139,22 +137,25 @@ settings_frame = tk.Frame(
     root, width=WINDOW_WIDTH, height=WINDOW_HEIGHT, bg="black"
 )
 
-b_background_sprite = Sprite(
-    x=0,
-    y=0,
-    img_file=PICTURE_PARENT_DIRECTORY+'b_background.png',
-    anchor=tk.NW,
-    parent_frame=main_menu_frame
-)
-b_background_sprite_next = Sprite(
-    x=BACKGROUND_WIDTH/2,
-    y=0,
-    img_file=PICTURE_PARENT_DIRECTORY+'b_background.png',
-    anchor=tk.NW,
-    parent_frame=main_menu_frame
-)
-
 sprites_properties = {
+    'b_background_sprite':
+        {
+            'x': BACKGROUND_WIDTH/2,
+            'y': WINDOW_HEIGHT/2,
+            'width': BACKGROUND_WIDTH,
+            'height': 0,
+            'img_file': PICTURE_PARENT_DIRECTORY+'b_background.png',
+            'class': Sprite
+        },
+    'b_background_sprite_next':
+        {
+            'x': BACKGROUND_WIDTH,
+            'y': WINDOW_HEIGHT/2,
+            'width': BACKGROUND_WIDTH,
+            'height': 0,
+            'img_file': PICTURE_PARENT_DIRECTORY+'b_background.png',
+            'class': Sprite
+        },
     'b_planet_ring':
         {
             'x': randint(0, WINDOW_WIDTH),
@@ -214,10 +215,13 @@ sprites_properties = {
 }
 for sprite_name in sprites_properties:
     sprite_property = sprites_properties[sprite_name]
-    img_location = PICTURE_PARENT_DIRECTORY+sprite_name+'.png'
 
-    sprite_objects.append(
-        sprite_property['class'](
+    if 'img_file' in sprite_property:
+        img_location = sprite_property['img_file']
+    else:
+        img_location = PICTURE_PARENT_DIRECTORY+sprite_name+'.png'
+
+    new_sprite = sprite_property['class'](
             x=sprite_property['x'],
             y=sprite_property['y'],
             width=sprite_property['width'],
@@ -225,7 +229,12 @@ for sprite_name in sprites_properties:
             img_file=img_location,
             parent_frame=main_menu_frame
         )
-    )
+
+    if 'background' in sprite_name:
+        new_sprite.last_movement_x = -1
+
+    sprite_objects.append(new_sprite)
+
 
 
 # reverse order of objects,
@@ -395,21 +404,17 @@ def animate_background():
     next_frame_time = now + frame_period
     frames_lapsed += 1
 
-    for image in (b_background_sprite, b_background_sprite_next):
-        image.move(-1, 0)
-
     if frames_lapsed >= BACKGROUND_WIDTH / 2:
         # kinda reset
-
-        b_background_sprite = b_background_sprite_next
-        b_background_sprite_next = Sprite(
-            x=BACKGROUND_WIDTH/2,
-            y=0,
+        sprite_objects[-2] = sprite_objects[-1]
+        sprite_objects[-1] = Sprite(
+            x=BACKGROUND_WIDTH,
+            y=WINDOW_HEIGHT/2,
             img_file=PICTURE_PARENT_DIRECTORY+'b_background.png',
-            anchor=tk.NW,
             parent_frame=main_menu_frame
         )
-        main_menu_frame.lower(b_background_sprite_next.instance)
+        sprite_objects[-1].last_movement_x = -1
+        main_menu_frame.lower(sprite_objects[-1].instance)
         frames_lapsed = 0
 
     # inertia implentation
