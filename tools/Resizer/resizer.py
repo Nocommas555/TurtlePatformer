@@ -1,4 +1,6 @@
-''' Program used to resize bmp images '''
+'''
+    Program used to resize bmp images
+'''
 
 #     BMP headers strcucture
 #
@@ -22,7 +24,6 @@
 #     # Important Colors (50-53)
 
 
-# define some helpful functions to avoid code repeating
 def read_int_from_bytes(pos, num_of_bytes, file):
     ''' Reads given number of bytes at a given position,
         and returns corresponding integer '''
@@ -39,11 +40,7 @@ def write_bytes_from_int(pos, num_of_bytes, int_data, destination):
 
 
 def calculate_pixel_colors_bilinear(
-        org_row,
-        org_column,
-        delta_row,
-        delta_column,
-        pixel_matrix
+        org_row, org_column, delta_row, delta_column, pixel_matrix
     ):
     ''' Function used to calculate pixel`s
         color values based on it`s position
@@ -112,7 +109,7 @@ class Bmp:
         self.colors_used        = read_int_from_bytes(46, 4, my_file)
         self.important_colors   = read_int_from_bytes(50, 4, my_file)
         self.color_table        = my_file.read(self.offset - 54)
-        self.matrix = self.form_pixel_matrix(my_file)
+        self.matrix             = self.form_pixel_matrix(my_file)
 
     def form_pixel_matrix(self, my_file):
         ''' Forms matrix of bytearrays,
@@ -166,16 +163,46 @@ class Bmp:
 
         resized_result = []
         for i in range(self.height):
-            for rn in range(coef):
+            # for every additional pixel row
+            for _ in range(coef):
                 resized_result.append([])
                 for j in range(self.width):
-                    for cn in range(coef):
+                    # for every additional pixel
+                    for _ in range(coef):
                         # copy pixel from original image
                         resized_result[-1].append(self.matrix[i][j])
 
         self.update_header(
             new_width=self.width*coef,
             new_height=self.height*coef,
+            new_pixel_matrix=resized_result
+        )
+
+    def size_down_matrix_bilinear(self, coef):
+        ''' Sizing up pixel matrix by
+            assuming missing pixels` BGR values,
+            based on current pixel`s neighbors
+            (bilinear method) '''
+
+        resized_result = []
+        for i in range(self.height):
+            if i % coef == 0:
+                resized_result.append([])
+                for j in range(self.width):
+                    if j % coef == 0:
+                        resized_result[-1].append(
+                            calculate_pixel_colors_bilinear(
+                                org_row=i,
+                                org_column=j,
+                                delta_row=1/coef,
+                                delta_column=1/coef,
+                                pixel_matrix=self.matrix
+                            )
+                        )
+
+        self.update_header(
+            new_width=len(resized_result[-1]),
+            new_height=len(resized_result),
             new_pixel_matrix=resized_result
         )
 
@@ -232,7 +259,7 @@ class Bmp:
     def print_color_table(self):
         ''' Prints colortable into console '''
         print("\n\tColorTable")
-        for i in range(int((self.offset-54)/4)):
+        for _ in range(int((self.offset-54)/4)):
             print(self.color_table.read(4))
 
     def print_image(self):
@@ -282,15 +309,13 @@ class Bmp:
             for pixel in row:
                 destination.write(bytearray(pixel))
             # compensate bmp pixels shift
-            for k in range(len(row) % 4):
+            for _ in range(len(row) % 4):
                 destination.write(int(0).to_bytes(1, byteorder='little'))
 
 
 # main resizing function
 def resize_image(
-    file_bmp=open("./test.bmp", "rb+"),
-    coef=1,
-    method="pixel"
+    file_bmp=open("./test.bmp", "rb+"), coef=1, method="pixel"
 ):
     ''' Resizes image based on given
         image, coefficient, and method '''
@@ -303,7 +328,10 @@ def resize_image(
         else:
             picture.size_up_matrix_simple(coef)
     elif coef > 0:
-        picture.size_down_matrix_simple(round(1/coef))
+        if method == "bilinear":
+            picture.size_down_matrix_bilinear(round(1/coef))
+        else:
+            picture.size_down_matrix_simple(round(1/coef))
     else:
         print("Invalid scale factor")
         return
@@ -314,10 +342,11 @@ def resize_image(
             resulting_file
         )
 
-
         print("\nResulting image:")
         Bmp(resulting_file).print_info()
 
+
 # execution
-with open("./test.bmp", "rb+") as input_image_file:
-    resize_image(input_image_file, 2, "bilinear")
+if __name__ == '__main__':
+    with open("./bigboi.bmp", "rb+") as input_image_file:
+        resize_image(input_image_file, 0.5, "bilinear")

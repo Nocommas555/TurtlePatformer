@@ -1,5 +1,7 @@
-''' Tool, used to create levels
-    from pre-made sprites: building blocks in this context'''
+'''
+    Tool, used to create levels
+    from pre-made sprites: building blocks in this context
+'''
 
 import json
 import os
@@ -9,15 +11,14 @@ import tkinter as tk
 # init globals
 sprite_names = []
 sprites_pictures = {}
-sprites_pictures_scales = {}
 current_sprite_name = None
 shadow = None
+movable_state = False
 level_data = []
 changes = []
 camera_offset_x = 0
 camera_offset_y = 0
 drag_point = {}
-movable_state = False
 window_size = "1600x800"
 
 
@@ -32,7 +33,7 @@ canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
 # main functional
 def load_sprites(path="../../sprites"):
     ''' Loads sprites from a given folder '''
-    global sprites_pictures, sprites_pictures_scales, sprite_names
+    global sprites_pictures, sprite_names
 
     sprite_names = os.listdir(path)
     #open(path+"/"+"img_descr.json", "a+")
@@ -44,8 +45,9 @@ def load_sprites(path="../../sprites"):
 
     for filename in list(sprite_names):
         if ".png" in filename:
-            if "scale" in img_descr_data["images"][filename]:
-                scale = img_descr_data["images"][filename]["scale"]
+            f_properties = img_descr_data["images"][filename]
+            if "scale" in f_properties:
+                scale = f_properties["scale"]
             else:
                 scale = 1
             sprites_pictures[filename] = tk.PhotoImage(
@@ -53,7 +55,7 @@ def load_sprites(path="../../sprites"):
             ).zoom(scale)
         else:
             sprite_names.remove(filename)
-load_sprites()
+load_sprites() # needs to be called immedeatly after declaration
 
 def save_to_file(filename="level.json"):
     ''' Saves level to a .json file '''
@@ -63,11 +65,10 @@ def save_to_file(filename="level.json"):
     with open(filename, "w+") as level_file:
         json.dump(level_data, level_file)
 
+
 def get_additional_settings():
     ''' Gets string which user inputs
         into a special field (entry_widget) '''
-    global entry_widget
-
     try:
         return json.loads(entry_widget.get())
     except:
@@ -99,8 +100,7 @@ def drag_camera(event):
 def on_mouse_click(event):
     ''' Adds new element to level
         and draws it on canvas '''
-    global sprites_pictures, sprites_pictures_scales,\
-        current_sprite_name, entry_widget, changes
+    global changes, level_data
 
     print(
         "clicked at",
@@ -128,7 +128,7 @@ def on_mouse_click(event):
 def on_mouse_move(event):
     ''' Redraws preview of the current
         selected building block, called shadow '''
-    global current_sprite_name, shadow, sprites_pictures_scales
+    global current_sprite_name, shadow
 
     if not current_sprite_name:
         return
@@ -196,12 +196,17 @@ change_state_check.pack(side=tk.BOTTOM, fill=tk.X)
 toolbar_frame.pack(side=tk.RIGHT, fill=tk.Y)
 
 
-canvas.bind("<Button-1>", on_mouse_click)
-canvas.bind("<Motion>", on_mouse_move)
-canvas.bind('<Button-3>', undo)
-my_list.bind("<<ListboxSelect>>", update_selection)
-canvas.bind("<Button-2>", start_camera_drag)
-canvas.bind("<B2-Motion>", drag_camera)
+my_list.bind('<<ListboxSelect>>', update_selection)
+
+bind_dict = {
+    '<Button-1>': on_mouse_click,
+    '<Motion>': on_mouse_move,
+    '<Button-3>': undo,
+    '<Button-2>': start_camera_drag,
+    '<B2-Motion>': drag_camera
+}
+for action in bind_dict:
+    canvas.bind(action, bind_dict[action])
 
 
 root.mainloop()
